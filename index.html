@@ -16,20 +16,39 @@
   </style>
 </head>
 <body>
-<a href="design-system.html" style="
+<!-- 🔁 NAV SWITCH (Preview ativo) -->
+<div style="
   position: fixed;
   top: 16px;
   right: 16px;
-  background: #000;
-  color: #fff;
-  padding: 8px 12px;
-  text-decoration: none;
-  border-radius: 6px;
+  z-index: 999999;
+  display: flex;
+  background: rgba(0,0,0,0.85);
+  border-radius: 999px;
+  overflow: hidden;
   font-family: sans-serif;
   font-size: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 ">
-  Ver Design System
-</a>
+
+  <span style="
+    padding: 8px 12px;
+    background: #fff;
+    color: #000;
+    font-weight: 600;
+  ">
+    Preview
+  </span>
+
+  <a href="design-system.html" style="
+    padding: 8px 12px;
+    color: #fff;
+    text-decoration: none;
+  ">
+    Design System
+  </a>
+
+</div>
   <div id="error"></div><div id="root"></div>
   <script>
     window.onerror = function(msg,src,line,col,err) {

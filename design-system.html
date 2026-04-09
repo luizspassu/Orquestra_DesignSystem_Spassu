@@ -37,8 +37,41 @@
       min-height: 100vh;
     }
 
+<!-- 🔁 NAV SWITCH (Design System ativo) -->
+<div style="
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 999999;
+  display: flex;
+  background: rgba(0,0,0,0.85);
+  border-radius: 999px;
+  overflow: hidden;
+  font-family: sans-serif;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+">
 
+  <a href="index.html" style="
+    padding: 8px 12px;
+    color: #fff;
+    text-decoration: none;
+  ">
+    Preview
+  </a>
+
+  <span style="
+    padding: 8px 12px;
+    background: #fff;
+    color: #000;
+    font-weight: 600;
+  ">
+    Design System
+  </span>
+
+</div>
     /* ── Sidebar nav ── */
+
     .doc-nav {
       width: var(--sidebar);
       background: var(--navy);
