@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orquestra Design System v1.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #201547; --navy-dk: #160f30; --orange: #FA4616; --orange-tx: #C2410C;
+      --avocado: #DBE442; --avocado-dk: #b8c018;
+      --black: #000000; --spatial-grey: #D9D9D6;
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-500: #6b7280; --gray-700: #374151; --white: #ffffff;
+      --red: #ef4444; --green: #10b981; --sidebar: 220px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: "Poppins", sans-serif; background: var(--gray-50); color: var(--gray-700); display: flex; min-height: 100vh; }
+    .doc-nav { width: var(--sidebar); background: var(--navy); position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100; padding: 0 0 32px; display: flex; flex-direction: column; }
+    .doc-nav__logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+    .doc-nav__logo h1 { color: var(--white); font-size: 15px; font-weight: 700; letter-spacing: 0.5px; }
+    .doc-nav__logo span { color: var(--avocado); font-size: 11px; font-weight: 500; display: block; margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+    .doc-nav__section { padding: 18px 20px 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.35); }
+    .doc-nav a { display: flex; align-items: center; gap: 8px; padding: 8px 20px; font-size: 13px; color: rgba(255,255,255,0.65); text-decoration: none; border-left: 3px solid transparent; transition: all 0.15s; }
+    .doc-nav a:hover, .doc-nav a.active { color: var(--white); background: rgba(255,255,255,0.07); border-left-color: var(--avocado); }
+    .doc-main { margin-left: var(--sidebar); flex: 1; }
+    .page-header { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dk) 100%); padding: 56px 64px 48px; position: relative; overflow: hidden; }
+    .page-header::after { content: ""; position: absolute; right: -40px; bottom: -60px; width: 320px; height: 320px; background: var(--orange); opacity: 0.08; border-radius: 50%; }
+    .page-header h1 { color: var(--white); font-size: 36px; font-weight: 700; line-height: 1.15; }
+    .page-header h1 span { color: var(--avocado); }
+    .page-header p { color: rgba(255,255,255,0.65); font-size: 15px; margin-top: 12px; max-width: 560px; }
+    .page-header__meta { display: flex; gap: 24px; margin-top: 28px; }
+    .page-header__badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.75); font-size: 11px; font-weight: 500; padding: 5px 14px; border-radius: 100px; letter-spacing: 0.8px; text-transform: uppercase; }
+    .section { padding: 56px 64px; border-bottom: 1px solid var(--gray-200); }
+    .section:last-child { border-bottom: none; }
+    .section-title { font-size: 24px; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .section-title .icon { width: 36px; height: 36px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .section-title .icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; }
+    .section-desc { color: var(--gray-500); font-size: 14px; margin-bottom: 36px; padding-left: 48px; }
+    .subsection { margin-bottom: 40px; }
+    .subsection-title { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--gray-100); }
+    .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+    .swatch { border-radius: 10px; overflow: hidden; border: 1px solid var(--gray-200); box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .swatch__color { height: 80px; }
+    .swatch__info { padding: 10px 12px; background: var(--white); }
+    .swatch__name { font-size: 13px; font-weight: 600; color: var(--navy); }
+    .swatch__hex { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+    .swatch__usage { font-size: 11px; color: var(--gray-500); margin-top: 4px; line-height: 1.4; }
+    .token-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .token-table th { background: rgba(32,21,71,0.04); padding: 10px 16px; text-align: left; font-weight: 600; color: var(--navy); border-bottom: 2px solid var(--gray-200); }
+    .token-table td { padding: 10px 16px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: top; }
+    .token-table tr:last-child td { border-bottom: none; }
+    .token-table tr:hover td { background: var(--gray-50); }
+    .token-table .mono { font-family: "JetBrains Mono", monospace; font-size: 12px; background: var(--gray-100); padding: 2px 6px; border-radius: 4px; color: var(--navy); }
+    .type-ramp { display: flex; flex-direction: column; gap: 16px; }
+    .type-row { display: flex; align-items: baseline; gap: 24px; padding: 16px 20px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; }
+    .type-row__meta { flex-shrink: 0; width: 200px; }
+    .type-row__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-500); }
+    .type-row__spec { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--orange-tx); margin-top: 3px; }
+    .type-row__sample { color: var(--navy); }
+    .spacing-grid { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+    .spacing-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .spacing-item__bar { background: var(--navy); border-radius: 4px; opacity: 0.2; }
+    .spacing-item__label { font-size: 12px; font-weight: 600; color: var(--navy); }
+    .spacing-item__px { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--gray-500); }
+    .component-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .component-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; }
+    .component-card__preview { padding: 32px 24px; background: var(--gray-50); display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; min-height: 100px; }
+    .component-card__spec { padding: 16px 20px; border-top: 1px solid var(--gray-100); }
+    .component-card__spec h4 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+    .component-card__spec dl { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 12px; }
+    .component-card__spec dt { color: var(--gray-500); }
+    .component-card__spec dd { color: var(--gray-700); font-family: "JetBrains Mono", monospace; }
+    .btn { font-family: "Poppins", sans-serif; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--orange); color: var(--white); }
+    .btn-secondary { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
+    .btn-ghost { background: transparent; color: var(--gray-700); border: 1px solid var(--gray-200); }
+    .btn-sm { font-size: 12px; padding: 7px 14px; }
+    .btn-lg { font-size: 15px; padding: 13px 28px; }
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .badge--blue { background:#dbeafe; color:#1d4ed8; } .badge--gray { background:#f3f4f6; color:#374151; }
+    .badge--red { background:#fee2e2; color:#b91c1c; } .badge--yellow { background:#fef9c3; color:#a16207; }
+    .badge--green { background:#dcfce7; color:#15803d; } .badge--orange { background:rgba(250,70,22,0.1); color:var(--orange-tx); }
+    .kpi-card { background: var(--white); border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(32,21,71,0.06); text-align: center; min-width: 150px; }
+    .kpi-card--avocado { border-left: 4px solid var(--avocado); }
+    .kpi-card--orange  { border-left: 4px solid var(--orange); }
+    .kpi-card--gray    { border-left: 4px solid #D9D9D6; }
+    .kpi-card__value { font-size: 20px; font-weight: 700; }
+    .kpi-card__label { font-size: 13px; font-weight: 500; color: var(--navy); margin-top: 2px; }
+    .kpi-card__sub   { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+    .progress-wrap { width: 100%; }
+    .progress-bar { height: 8px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+    .progress-bar__fill { height: 100%; border-radius: 99px; background: var(--orange); }
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray-500); margin-bottom: 4px; }
+    .sidebar-preview { width: 220px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; }
+    .sidebar-preview__header { padding: 12px 14px; background: var(--gray-50); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-500); }
+    .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 13px; }
+    .sidebar-item--active { background: var(--orange); color: var(--white); font-weight: 600; }
+    .sidebar-item--default { color: var(--gray-700); }
+    .sidebar-item__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--avocado); margin-left: auto; }
+    .sidebar-item__icon { width: 18px; height: 18px; opacity: 0.7; }
+    .input-demo { width: 280px; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-family: "Poppins", sans-serif; font-size: 13px; color: var(--gray-700); background: var(--white); outline: none; }
+    .input-demo:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(32,21,71,0.1); }
+    .input-demo--error { border-color: var(--red); }
+    .input-label { font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; display: block; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-error { font-size: 12px; color: var(--red); }
+    .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px; }
+    .alert--warning { background: #fef9c3; border-left: 4px solid #ca8a04; color: #a16207; }
+    .alert--error   { background: #fee2e2; border-left: 4px solid #dc2626; color: #991b1b; }
+    .alert--info    { background: #dbeafe; border-left: 4px solid #2563eb; color: #1d4ed8; }
+    .alert--success { background: #d1fae5; border-left: 4px solid #059669; color: #065f46; }
+    .screen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .screen-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; }
+    .screen-card__header { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+    .screen-card__title { font-size: 14px; font-weight: 600; color: var(--navy); }
+    .screen-card__status { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 100px; }
+    .screen-card__status--done { background: #dcfce7; color: #15803d; }
+    .screen-card__status--todo { background: #f3f4f6; color: #374151; }
+    .screen-card__body { padding: 16px 20px; }
+    .screen-card__desc { font-size: 13px; color: var(--gray-500); margin-bottom: 12px; }
+    .screen-card__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .screen-tag { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: rgba(32,21,71,0.06); color: var(--navy); }
+    .checklist { display: flex; flex-direction: column; }
+    .check-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
+    .check-item:last-child { border-bottom: none; }
+    .check-icon { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+    .check-icon--critical { background: #fee2e2; color: #b91c1c; }
+    .check-icon--medium   { background: #fef9c3; color: #a16207; }
+    .check-icon--low      { background: #d1fae5; color: #065f46; }
+    .check-body { flex: 1; }
+    .check-body strong { color: var(--navy); font-weight: 600; }
+    .check-body p { color: var(--gray-500); margin-top: 2px; font-size: 12px; }
+    .check-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; flex-shrink: 0; }
+    .check-tag--critical { background: #fee2e2; color: #b91c1c; }
+    .check-tag--medium   { background: #fef9c3; color: #a16207; }
+    .check-tag--low      { background: #d1fae5; color: #065f46; }
+    .code-block { background: var(--navy-dk); color: #e2e8f0; font-family: "JetBrains Mono", monospace; font-size: 12px; line-height: 1.7; padding: 20px 24px; border-radius: 10px; overflow-x: auto; margin-top: 12px; }
+    .code-block .kw  { color: #93c5fd; } .code-block .str { color: #86efac; }
+    .code-block .cmt { color: #64748b; font-style: italic; } .code-block .num { color: #fca5a5; } .code-block .prop { color: #fde68a; }
+    .violation-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; }
+    .violation-box__title { font-size: 14px; font-weight: 700; color: #c2410c; margin-bottom: 8px; }
+    .violation-box__body  { font-size: 13px; color: #9a3412; line-height: 1.6; }
+    .violation-box__code  { margin-top: 10px; font-family: "JetBrains Mono", monospace; font-size: 12px; background: rgba(0,0,0,0.05); padding: 8px 12px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }
+    .violation-box__code .bad  { color: #b91c1c; }
+    .violation-box__code .good { color: #059669; }
+    .shadow-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+    .shadow-item { background: var(--white); border-radius: 10px; padding: 24px 32px; text-align: center; }
+    .shadow-item__label { font-size: 12px; font-weight: 600; color: var(--navy); margin-top: 10px; }
+    .shadow-item__spec  { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--gray-500); margin-top: 2px; }
+    .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .shadow-md { box-shadow: 0 2px 8px rgba(32,21,71,0.06); }
+    .shadow-lg { box-shadow: 0 10px 20px -5px rgba(32,21,71,0.15); }
+    .back-top { position: fixed; bottom: 32px; right: 32px; width: 40px; height: 40px; background: var(--orange); color: var(--white); border: none; border-radius: 50%; cursor: pointer; font-size: 18px; box-shadow: 0 4px 12px rgba(250,70,22,0.4); display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform 0.15s; }
+    .back-top:hover { transform: translateY(-2px); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 20px 24px; }
+    .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; }
+    .inline-code { font-family: "JetBrains Mono", monospace; font-size: 12px; background: var(--gray-100); color: var(--navy); padding: 2px 6px; border-radius: 4px; }
+    .text-sm { font-size: 13px; } .text-muted { color: var(--gray-500); }
+    @media (max-width: 900px) { .doc-nav { display: none; } .doc-main { margin-left: 0; } .section { padding: 40px 24px; } .page-header { padding: 40px 24px 36px; } .component-grid, .grid-2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- 🔁 NAV SWITCH (Design System ativo) -->
+  <div style="position:fixed;bottom:16px;right:16px;z-index:999999;display:flex;background:rgba(0,0,0,0.75);border-radius:999px;overflow:hidden;font-family:sans-serif;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);opacity:0.7;"
+    onmouseover="this.style.opacity='1'"
+    onmouseout="this.style.opacity='0.7'">
+    <a href="index.html" style="padding:8px 12px;color:#fff;text-decoration:none;">Preview</a>
+    <span style="padding:8px 12px;background:#fff;color:#000;font-weight:600;">Design System</span>
+  </div>
+
+<nav class="doc-nav">
+  <div class="doc-nav__logo"><h1>Design System</h1><span>Orquestra v1.0</span></div>
+  <div class="doc-nav__section">Fundação</div>
+  <a href="#tokens-cor">Tokens de Cor</a>
+  <a href="#tipografia">Tipografia</a>
+  <a href="#espacamento">Espaçamento</a>
+  <a href="#sombras">Sombras &amp; Bordas</a>
+  <div class="doc-nav__section">Componentes</div>
+  <a href="#botoes">Botões</a>
+  <a href="#badges">Badges de Status</a>
+  <a href="#kpi-cards">KPI Cards</a>
+  <a href="#progress">Progress Bar</a>
+  <a href="#sidebar">Sidebar &amp; Nav</a>
+  <a href="#inputs">Inputs &amp; Forms</a>
+  <a href="#tabela">Tabela de Dados</a>
+  <a href="#alertas">Alertas</a>
+  <div class="doc-nav__section">Sistema</div>
+  <a href="#telas">Mapa de Telas</a>
+  <a href="#violacoes">Violações a Corrigir</a>
+  <a href="#checklist">Checklist de Melhorias</a>
+  <a href="#dev-guide">Guia do Dev</a>
+</nav>
+
+<main class="doc-main">
+
+  <div class="page-header">
+    <h1>Orquestra <span>Design System</span></h1>
+    <p>Guia de referência para implementação das telas do sistema Orquestra — SPASSU Tecnologia. Fonte da verdade para tokens, componentes e especificações de tela.</p>
+    <div class="page-header__meta">
+      <span class="page-header__badge">v1.0</span>
+      <span class="page-header__badge">React 18.3.1</span>
+      <span class="page-header__badge">Inline Styles</span>
+      <span class="page-header__badge">Poppins</span>
+      <span class="page-header__badge">Abril 2026</span>
+    </div>
+  </div>
+
+  <!-- TOKENS DE COR -->
+  <section class="section" id="tokens-cor">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg></div>
+      Tokens de Cor
+    </div>
+    <p class="section-desc">Paleta oficial do sistema Orquestra. Nunca utilizar valores hexadecimais hardcoded — referenciar sempre o objeto <code class="inline-code">C</code>.</p>
+
+    <div class="subsection">
+      <div class="subsection-title">Paleta Principal</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__color" style="background:#201547;"></div><div class="swatch__info"><div class="swatch__name">Navy</div><div class="swatch__hex">#201547</div><div class="swatch__usage">Header, sidebar ativa, textos primários, headings</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#160f30;"></div><div class="swatch__info"><div class="swatch__name">Navy Dark</div><div class="swatch__hex">#160f30</div><div class="swatch__usage">Hover do header, gradientes</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#FA4616;"></div><div class="swatch__info"><div class="swatch__name">Orange</div><div class="swatch__hex">#FA4616</div><div class="swatch__usage">⚠️ Apenas fundos, bordas, elementos ≥18px. NUNCA como texto pequeno.</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#C2410C;"></div><div class="swatch__info"><div class="swatch__name">Orange Text</div><div class="swatch__hex">#C2410C</div><div class="swatch__usage">✅ Substituto do orange em textos — ratio ≥ 4.5:1.</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#DBE442;border:1px solid #c4cc35;"></div><div class="swatch__info"><div class="swatch__name">Avocado</div><div class="swatch__hex">#DBE442</div><div class="swatch__usage">Destaques, dot ativo da sidebar, borda KPI executado</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#b8c018;border:1px solid #a6ad14;"></div><div class="swatch__info"><div class="swatch__name">Avocado Dark</div><div class="swatch__hex">#b8c018</div><div class="swatch__usage">Texto sobre fundo Avocado — garante legibilidade</div></div></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Neutros de Marca (Pantone)</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__color" style="background:#D9D9D6;border:1px solid #ccc;"></div><div class="swatch__info"><div class="swatch__name">Spatial Grey</div><div class="swatch__hex">#D9D9D6 · Pantone Cool Gray 1 C</div><div class="swatch__usage">Bordas e fundos neutros — cor de marca oficial</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#ffffff;border:1px solid #e5e7eb;"></div><div class="swatch__info"><div class="swatch__name">Full White</div><div class="swatch__hex">#FFFFFF · Pantone White</div><div class="swatch__usage">Fundos de cards, superfícies, textos sobre dark bg</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#000000;"></div><div class="swatch__info"><div class="swatch__name">Full Black</div><div class="swatch__hex">#000000 · Pantone Black</div><div class="swatch__usage">Tipografia de alto contraste, overlays, NavSwitch</div></div></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Escala de Cinzas</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__color" style="background:#f9fafb;border-bottom:1px solid #e5e7eb;"></div><div class="swatch__info"><div class="swatch__name">Gray 50</div><div class="swatch__hex">#f9fafb</div><div class="swatch__usage">Background de páginas</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#f3f4f6;"></div><div class="swatch__info"><div class="swatch__name">Gray 100</div><div class="swatch__hex">#f3f4f6</div><div class="swatch__usage">Fundo de thead, hover</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#e5e7eb;"></div><div class="swatch__info"><div class="swatch__name">Gray 200</div><div class="swatch__hex">#e5e7eb</div><div class="swatch__usage">Bordas de cards, inputs</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#6b7280;"></div><div class="swatch__info"><div class="swatch__name">Gray 500</div><div class="swatch__hex">#6b7280</div><div class="swatch__usage">Textos secundários</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#374151;"></div><div class="swatch__info"><div class="swatch__name">Gray 700</div><div class="swatch__hex">#374151</div><div class="swatch__usage">Textos de corpo</div></div></div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Cores Semânticas</div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch__color" style="background:#ef4444;"></div><div class="swatch__info"><div class="swatch__name">Danger</div><div class="swatch__hex">#ef4444</div><div class="swatch__usage">Erros, acima do orçamento</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#10b981;"></div><div class="swatch__info"><div class="swatch__name">Success</div><div class="swatch__hex">#10b981</div><div class="swatch__usage">Dentro do orçamento, concluído</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#eab308;"></div><div class="swatch__info"><div class="swatch__name">Warning</div><div class="swatch__hex">#eab308</div><div class="swatch__usage">Suspenso, atenção</div></div></div>
+        <div class="swatch"><div class="swatch__color" style="background:#3b82f6;"></div><div class="swatch__info"><div class="swatch__name">Info</div><div class="swatch__hex">#3b82f6</div><div class="swatch__usage">Em andamento</div></div></div>
+      </div>
+    </div>
+
+    <div class="subsection mt-24">
+      <div class="subsection-title">Objeto de Tokens — JSX</div>
+      <div class="code-block"><span class="cmt">// Referência canônica — ContractDetailPage_preview.jsx</span>
+<span class="kw">const</span> <span class="prop">C</span> = {
+  navy:        <span class="str">"#201547"</span>,  <span class="cmt">// Primário — Pantone 275 C</span>
+  navyDark:    <span class="str">"#160f30"</span>,  <span class="cmt">// Gradiente do header</span>
+  orange:      <span class="str">"#FA4616"</span>,  <span class="cmt">// ⚠️ Fundos/bordas — NÃO use como texto &lt;18px (Pantone 172 C)</span>
+  orangeText:  <span class="str">"#C2410C"</span>,  <span class="cmt">// ✅ Substituto seguro p/ texto laranja (WCAG AA ≥4.5:1)</span>
+  avocado:     <span class="str">"#DBE442"</span>,  <span class="cmt">// Destaque, dot ativo, borda KPI executado (Pantone 380 C)</span>
+  avocadoDark: <span class="str">"#b8c018"</span>,  <span class="cmt">// Texto sobre fundo Avocado</span>
+  black:       <span class="str">"#000000"</span>,  <span class="cmt">// Full Black — Pantone Black</span>
+  gray50:      <span class="str">"#f9fafb"</span>,  gray100: <span class="str">"#f3f4f6"</span>,
+  gray200:     <span class="str">"#e5e7eb"</span>,  gray500: <span class="str">"#6b7280"</span>,  gray700: <span class="str">"#374151"</span>,
+  white:       <span class="str">"#ffffff"</span>,  <span class="cmt">// Full White — Pantone White</span>
+};</div>
+    </div>
+  </section>
+
+  <!-- TIPOGRAFIA -->
+  <section class="section" id="tipografia">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg></div>
+      Tipografia
+    </div>
+    <p class="section-desc">Fonte única: <strong>Poppins</strong> (Google Fonts). Carregada via CDN no host HTML.</p>
+    <div class="type-ramp">
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Page Title</div><div class="type-row__spec">24px · weight 600</div></div><div class="type-row__sample" style="font-size:24px;font-weight:600;color:#201547;">Orquestra</div></div>
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Section Heading</div><div class="type-row__spec">18px · weight 700</div></div><div class="type-row__sample" style="font-size:18px;font-weight:700;color:#201547;">Detalhe do Contrato</div></div>
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Card Title</div><div class="type-row__spec">16px · weight 700</div></div><div class="type-row__sample" style="font-size:16px;font-weight:700;color:#201547;">Resumo por Categoria</div></div>
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Body / Table Cell</div><div class="type-row__spec">14px · weight 400–500</div></div><div class="type-row__sample" style="font-size:14px;color:#374151;">Desenvolvimento · Jan–Mar/2025</div></div>
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Small / Label</div><div class="type-row__spec">13px · weight 400–600</div></div><div class="type-row__sample" style="font-size:13px;color:#374151;">ICJ 5900.0131123.25.2 · Petrobras</div></div>
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Caption / Meta</div><div class="type-row__spec">12px · weight 400</div></div><div class="type-row__sample" style="font-size:12px;color:#6b7280;">Última atualização em 26/03/2026</div></div>
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Nav Section Label</div><div class="type-row__spec">10px · weight 600 · uppercase · ls 1.2px</div></div><div class="type-row__sample" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:#9ca3af;">Dashboard</div></div>
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">KPI Value</div><div class="type-row__spec">24px · weight 700</div></div><div class="type-row__sample" style="font-size:24px;font-weight:700;color:#C2410C;">R$ 171.500,00</div></div>
+    </div>
+    <div class="card mt-24">
+      <strong style="font-size:13px;color:#201547;">⚠️ Regra Crítica de Acessibilidade</strong>
+      <p class="text-sm text-muted" style="margin-top:6px;line-height:1.6;"><span class="inline-code">#FA4616</span> como cor de texto em tamanhos menores que 18px tem contraste ~3.0:1 — reprovado por WCAG AA. Sempre usar <span class="inline-code">#C2410C</span> (orangeText), com ratio ≥ 4.5:1.</p>
+    </div>
+  </section>
+
+  <!-- ESPAÇAMENTO -->
+  <section class="section" id="espacamento">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></div>
+      Espaçamento &amp; Grid
+    </div>
+    <p class="section-desc">Escala baseada em múltiplos de 4px. Layout base: 1920×1080px.</p>
+    <div class="subsection">
+      <div class="subsection-title">Escala</div>
+      <div class="spacing-grid">
+        <div class="spacing-item"><div class="spacing-item__bar" style="width:4px;height:4px;"></div><div class="spacing-item__label">XS</div><div class="spacing-item__px">4px</div></div>
+        <div class="spacing-item"><div class="spacing-item__bar" style="width:8px;height:8px;"></div><div class="spacing-item__label">SM</div><div class="spacing-item__px">8px</div></div>
+        <div class="spacing-item"><div class="spacing-item__bar" style="width:12px;height:12px;"></div><div class="spacing-item__label">SM+</div><div class="spacing-item__px">12px</div></div>
+        <div class="spacing-item"><div class="spacing-item__bar" style="width:16px;height:16px;"></div><div class="spacing-item__label">MD</div><div class="spacing-item__px">16px</div></div>
+        <div class="spacing-item"><div class="spacing-item__bar" style="width:24px;height:24px;"></div><div class="spacing-item__label">LG</div><div class="spacing-item__px">24px</div></div>
+        <div class="spacing-item"><div class="spacing-item__bar" style="width:32px;height:32px;"></div><div class="spacing-item__label">XL</div><div class="spacing-item__px">32px</div></div>
+        <div class="spacing-item"><div class="spacing-item__bar" style="width:48px;height:48px;"></div><div class="spacing-item__label">2XL</div><div class="spacing-item__px">48px</div></div>
+        <div class="spacing-item"><div class="spacing-item__bar" style="width:64px;height:64px;"></div><div class="spacing-item__label">3XL</div><div class="spacing-item__px">64px</div></div>
+      </div>
+    </div>
+    <div class="subsection mt-24">
+      <div class="subsection-title">Estrutura de Layout — Detalhe do Contrato</div>
+      <table class="token-table">
+        <thead><tr><th>Área</th><th>Dimensão</th><th>Fundo</th><th>Notas</th></tr></thead>
+        <tbody>
+          <tr><td>AppHeader</td><td>100% × 72px</td><td><span class="mono">#201547 → #160f30</span></td><td>Logo, título, hamburger</td></tr>
+          <tr><td>Sidebar</td><td>256px × 100%</td><td><span class="mono">#ffffff</span></td><td>Colapsável (0px quando fechada)</td></tr>
+          <tr><td>SubHeader</td><td>100% × 56px</td><td><span class="mono">#ffffff</span></td><td>Título do contrato</td></tr>
+          <tr><td>Content Area</td><td>flex-1</td><td><span class="mono">#f9fafb</span></td><td>Padding: 28px 32px</td></tr>
+          <tr><td>Card padrão</td><td>auto</td><td><span class="mono">#ffffff</span></td><td>border-radius 8px, padding 20–24px</td></tr>
+          <tr><td>Gap entre cards</td><td>24px</td><td>—</td><td>Todas as grids</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="subsection mt-24">
+      <div class="subsection-title">Border Radius</div>
+      <table class="token-table">
+        <thead><tr><th>Token</th><th>Valor</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td>radius-sm</td><td><span class="mono">4px</span></td><td>Badges, tags</td></tr>
+          <tr><td>radius-md</td><td><span class="mono">8px</span></td><td>Cards, botões, inputs — uso principal</td></tr>
+          <tr><td>radius-lg</td><td><span class="mono">12px</span></td><td>Modais, dropdowns</td></tr>
+          <tr><td>radius-pill</td><td><span class="mono">100px</span></td><td>Barras de progresso, pills</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SOMBRAS -->
+  <section class="section" id="sombras">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
+      Sombras &amp; Elevação
+    </div>
+    <p class="section-desc">Três níveis de elevação baseados na cor Navy para harmonia visual.</p>
+    <div class="shadow-grid">
+      <div><div class="shadow-item shadow-sm" style="width:120px;">Card</div><div class="shadow-item__label">Shadow SM</div><div class="shadow-item__spec">0 1px 3px rgba(0,0,0,0.08)</div><div class="text-sm text-muted" style="margin-top:4px;">Cards secundários</div></div>
+      <div><div class="shadow-item shadow-md" style="width:120px;">Card</div><div class="shadow-item__label">Shadow MD</div><div class="shadow-item__spec">0 2px 8px rgba(32,21,71,0.06)</div><div class="text-sm text-muted" style="margin-top:4px;">Cards principais — padrão</div></div>
+      <div><div class="shadow-item shadow-lg" style="width:120px;">Card</div><div class="shadow-item__label">Shadow LG</div><div class="shadow-item__spec">0 10px 20px -5px rgba(32,21,71,0.15)</div><div class="text-sm text-muted" style="margin-top:4px;">Dropdowns, modais</div></div>
+    </div>
+  </section>
+
+  <!-- BOTÕES -->
+  <section class="section" id="botoes">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="5"/></svg></div>
+      Botões
+    </div>
+    <p class="section-desc">Três variantes. Todos: <span class="inline-code">font-weight: 600</span>, <span class="inline-code">border-radius: 8px</span>, <span class="inline-code">font-size: 13px</span>.</p>
+    <div class="component-grid">
+      <div class="component-card">
+        <div class="component-card__preview">
+          <button class="btn btn-primary">Salvar Projeto</button>
+          <button class="btn btn-primary btn-sm">Confirmar</button>
+          <button class="btn btn-primary btn-lg">Cadastrar</button>
+        </div>
+        <div class="component-card__spec"><h4>Primary (Orange)</h4><dl><dt>Background</dt><dd>#FA4616</dd><dt>Color</dt><dd>#ffffff</dd><dt>Padding SM</dt><dd>7px 14px</dd><dt>Padding MD</dt><dd>10px 20px</dd></dl></div>
+      </div>
+      <div class="component-card">
+        <div class="component-card__preview">
+          <button class="btn btn-secondary">Cancelar</button>
+          <button class="btn btn-ghost">Filtrar</button>
+        </div>
+        <div class="component-card__spec"><h4>Secondary / Ghost</h4><dl><dt>Secondary border</dt><dd>1.5px solid #201547</dd><dt>Ghost border</dt><dd>1px solid #e5e7eb</dd><dt>Hover BG</dt><dd>rgba(32,21,71,0.04)</dd></dl></div>
+      </div>
+    </div>
+    <div class="card mt-24">
+      <strong style="font-size:13px;color:#201547;">Touch Target Mínimo</strong>
+      <p class="text-sm text-muted" style="margin-top:6px;line-height:1.6;">Botões clicáveis devem ter no mínimo <strong>36×36px</strong> (desktop). Botões de ícone no protótipo estão em <span class="inline-code">26×26px</span> — <strong>violação pendente</strong>.</p>
+    </div>
+  </section>
+
+  <!-- BADGES -->
+  <section class="section" id="badges">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+      Badges de Status
+    </div>
+    <p class="section-desc">Formato: dot colorido + label. Mapeados em <span class="inline-code">STATUS_MAP</span>.</p>
+    <div class="component-card" style="max-width:600px;">
+      <div class="component-card__preview" style="justify-content:flex-start;flex-direction:column;align-items:flex-start;gap:10px;">
+        <div class="badge badge--blue"><span class="badge-dot" style="background:#3b82f6;"></span>Em Andamento</div>
+        <div class="badge badge--gray"><span class="badge-dot" style="background:#9ca3af;"></span>Planejado</div>
+        <div class="badge badge--red"><span class="badge-dot" style="background:#ef4444;"></span>Cancelado</div>
+        <div class="badge badge--yellow"><span class="badge-dot" style="background:#eab308;"></span>Suspenso</div>
+        <div class="badge badge--green"><span class="badge-dot" style="background:#22c55e;"></span>Finalizado</div>
+        <div class="badge badge--orange"><span class="badge-dot" style="background:#FA4616;"></span>Acima do Planejado</div>
+      </div>
+      <div class="component-card__spec"><h4>STATUS_MAP</h4><dl><dt>Padding</dt><dd>3px 10px</dd><dt>Border radius</dt><dd>4px</dd><dt>Font size</dt><dd>12px · weight 600</dd><dt>Dot size</dt><dd>6×6px</dd></dl></div>
+    </div>
+    <div class="code-block mt-16"><span class="kw">const</span> <span class="prop">STATUS_MAP</span> = {
+  <span class="str">"Em Andamento"</span>: { bg:<span class="str">"#dbeafe"</span>, color:<span class="str">"#1d4ed8"</span>, dot:<span class="str">"#3b82f6"</span> },
+  <span class="str">"Planejado"</span>:    { bg:<span class="str">"#f3f4f6"</span>, color:<span class="str">"#374151"</span>, dot:<span class="str">"#9ca3af"</span> },
+  <span class="str">"Cancelado"</span>:    { bg:<span class="str">"#fee2e2"</span>, color:<span class="str">"#b91c1c"</span>, dot:<span class="str">"#ef4444"</span> },
+  <span class="str">"Suspenso"</span>:     { bg:<span class="str">"#fef9c3"</span>, color:<span class="str">"#a16207"</span>, dot:<span class="str">"#eab308"</span> },
+  <span class="str">"Finalizado"</span>:   { bg:<span class="str">"#dcfce7"</span>, color:<span class="str">"#15803d"</span>, dot:<span class="str">"#22c55e"</span> },
+};</div>
+  </section>
+
+  <!-- KPI CARDS -->
+  <section class="section" id="kpi-cards">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M22 7l-8.5 8.5-5-5L2 17M16 7h6v6"/></svg></div>
+      KPI Cards
+    </div>
+    <p class="section-desc">Grid de 4 colunas. Borda lateral colorida como indicador semântico.</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
+      <div class="kpi-card kpi-card--avocado"><div class="kpi-card__value" style="color:#b8c018;">R$ 171.500</div><div class="kpi-card__label">Executado</div><div class="kpi-card__sub">Total Realizado</div></div>
+      <div class="kpi-card kpi-card--orange"><div class="kpi-card__value" style="color:#C2410C;">R$ 780.000</div><div class="kpi-card__label">Planejado</div><div class="kpi-card__sub">Total Orçado</div></div>
+      <div class="kpi-card kpi-card--gray"><div class="kpi-card__value" style="color:#201547;">R$ 608.500</div><div class="kpi-card__label">A Executar</div><div class="kpi-card__sub">Saldo Restante</div></div>
+      <div class="kpi-card kpi-card--orange"><div class="kpi-card__value" style="color:#C2410C;">22%</div><div class="kpi-card__label">Progresso</div><div class="kpi-card__sub">Financeiro</div></div>
+    </div>
+    <div class="code-block mt-16"><span class="cmt">// KPIs financeiros — FinanceiroView</span>
+<span class="kw">const</span> kpis = [
+  { label:<span class="str">"Executado"</span>,  borderColor:C.avocado,   textColor:C.avocadoDark },
+  { label:<span class="str">"Planejado"</span>,  borderColor:C.orange,    textColor:C.orangeText  },
+  { label:<span class="str">"A Executar"</span>, borderColor:<span class="str">"#D9D9D6"</span>,  textColor:C.navy        },
+  { label:<span class="str">"Progresso"</span>,  borderColor:C.orange,    textColor:C.orangeText  },
+];</div>
+  </section>
+
+  <!-- PROGRESS BAR -->
+  <section class="section" id="progress">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-6"/></svg></div>
+      Progress Bar
+    </div>
+    <p class="section-desc">Usada em cards de projeto, Operacional e Financeiro.</p>
+    <div class="card" style="max-width:480px;display:flex;flex-direction:column;gap:20px;">
+      <div class="progress-wrap"><div class="progress-label"><span>Progresso Financeiro</span><span style="color:#C2410C;font-weight:600;">22%</span></div><div class="progress-bar"><div class="progress-bar__fill" style="width:22%;"></div></div></div>
+      <div class="progress-wrap"><div class="progress-label"><span>Desenvolvimento (dentro do orçamento)</span><span style="color:#10b981;font-weight:600;">27%</span></div><div class="progress-bar"><div class="progress-bar__fill" style="width:27%;background:#10b981;"></div></div></div>
+      <div class="progress-wrap"><div class="progress-label"><span>MVP1: Core Backend (35%)</span><span style="font-weight:600;color:#201547;">R$ 273.000</span></div><div class="progress-bar" style="height:10px;"><div class="progress-bar__fill" style="width:87.5%;background:#FA4616;"></div></div></div>
+      <div class="progress-wrap"><div class="progress-label"><span>Go-Live (10%)</span><span style="font-weight:600;color:#201547;">R$ 78.000</span></div><div class="progress-bar" style="height:10px;"><div class="progress-bar__fill" style="width:25%;background:#DBE442;"></div></div></div>
+    </div>
+    <table class="token-table mt-24" style="max-width:560px;">
+      <thead><tr><th>Propriedade</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Height padrão</td><td><span class="mono">8px</span></td></tr>
+        <tr><td>Height (barras MVP)</td><td><span class="mono">10px</span></td></tr>
+        <tr><td>Background track</td><td><span class="mono">#D9D9D6 / #e5e7eb</span></td></tr>
+        <tr><td>Border radius</td><td><span class="mono">99px (pill)</span></td></tr>
+        <tr><td>Fill — orange</td><td><span class="mono">#FA4616</span> — fases ímpares MVP</td></tr>
+        <tr><td>Fill — avocado</td><td><span class="mono">#DBE442</span> — fases pares MVP</td></tr>
+        <tr><td>Fill — green</td><td><span class="mono">#10b981</span> — dentro do orçamento</td></tr>
+        <tr><td>Fill — red</td><td><span class="mono">#ef4444</span> — acima do orçamento</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SIDEBAR -->
+  <section class="section" id="sidebar">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+      Sidebar &amp; Navegação
+    </div>
+    <p class="section-desc">Colapsável (256px ↔ 0px, transição 0.3s). Item ativo: background <span class="inline-code">#FA4616</span>, dot Avocado à direita.</p>
+    <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;">
+      <div>
+        <p class="text-sm text-muted" style="margin-bottom:12px;">Estados</p>
+        <div class="sidebar-preview">
+          <div class="sidebar-preview__header">Dashboard</div>
+          <div class="sidebar-item sidebar-item--active">
+            <svg class="sidebar-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            Operacional <span class="sidebar-item__dot"></span>
+          </div>
+          <div class="sidebar-item sidebar-item--default">
+            <svg class="sidebar-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Financeiro
+          </div>
+          <div class="sidebar-item sidebar-item--default">
+            <svg class="sidebar-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9"/></svg>
+            Processo TO BE
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="text-sm text-muted" style="margin-bottom:12px;">Especificações</p>
+        <table class="token-table" style="min-width:320px;">
+          <thead><tr><th>Propriedade</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Width expandida</td><td><span class="mono">256px</span></td></tr>
+            <tr><td>Width colapsada</td><td><span class="mono">0px (overflow hidden)</span></td></tr>
+            <tr><td>Transition</td><td><span class="mono">width 0.3s ease</span></td></tr>
+            <tr><td>Item padding</td><td><span class="mono">10px 16px</span></td></tr>
+            <tr><td>Ativo background</td><td><span class="mono">#FA4616</span></td></tr>
+            <tr><td>Ativo color</td><td><span class="mono">#ffffff · weight 600</span></td></tr>
+            <tr><td>Hover (inativo)</td><td><span class="mono">background #f9fafb</span></td></tr>
+            <tr><td>Dot ativo</td><td><span class="mono">6×6px · #DBE442 (Avocado)</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="subsection mt-24">
+      <div class="subsection-title">Grupos de Navegação</div>
+      <table class="token-table">
+        <thead><tr><th>Grupo</th><th>ID</th><th>Label</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="6">Dashboard</td><td><span class="mono">operational</span></td><td>Operacional</td><td><span class="badge badge--green">Implementado</span></td></tr>
+          <tr><td><span class="mono">financial</span></td><td>Financeiro</td><td><span class="badge badge--green">Implementado</span></td></tr>
+          <tr><td><span class="mono">process</span></td><td>Processo TO BE</td><td><span class="badge badge--gray">Pendente</span></td></tr>
+          <tr><td><span class="mono">usecases</span></td><td>Casos de Uso</td><td><span class="badge badge--gray">Pendente</span></td></tr>
+          <tr><td><span class="mono">timeline</span></td><td>Cronograma</td><td><span class="badge badge--gray">Pendente</span></td></tr>
+          <tr><td><span class="mono">issues</span></td><td>Problemas</td><td><span class="badge badge--gray">Pendente</span></td></tr>
+          <tr><td>Cadastro</td><td><span class="mono">data-entry</span></td><td>Entrada de Dados</td><td><span class="badge badge--gray">Pendente</span></td></tr>
+          <tr><td>Configurações</td><td><span class="mono">notifications</span></td><td>Notificações</td><td><span class="badge badge--gray">Pendente</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- INPUTS -->
+  <section class="section" id="inputs">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+      Inputs &amp; Formulários
+    </div>
+    <p class="section-desc">Padrão: label + input + mensagem de erro. Componente <span class="inline-code">Field</span> garante consistência.</p>
+    <div class="grid-2" style="max-width:640px;">
+      <div class="input-group"><label class="input-label">Título <span style="color:#FA4616;">*</span></label><input class="input-demo" type="text" placeholder="Nome do projeto..." /></div>
+      <div class="input-group"><label class="input-label">Data de Início <span style="color:#FA4616;">*</span></label><input class="input-demo" type="date" /></div>
+      <div class="input-group"><label class="input-label">E-mail</label><input class="input-demo input-demo--error" type="email" value="email-invalido" /><span class="input-error">⚠ Informe um e-mail válido</span></div>
+      <div class="input-group"><label class="input-label">Cliente</label><select class="input-demo"><option>Petrobras</option><option>Transpetro</option></select></div>
+    </div>
+    <table class="token-table mt-24" style="max-width:560px;">
+      <thead><tr><th>Estado</th><th>Border</th><th>Shadow</th></tr></thead>
+      <tbody>
+        <tr><td>Default</td><td><span class="mono">1px solid #e5e7eb</span></td><td>none</td></tr>
+        <tr><td>Focus</td><td><span class="mono">1px solid #201547</span></td><td><span class="mono">0 0 0 3px rgba(32,21,71,0.1)</span></td></tr>
+        <tr><td>Error</td><td><span class="mono">1px solid #ef4444</span></td><td>none</td></tr>
+        <tr><td>Disabled</td><td><span class="mono">1px solid #e5e7eb</span></td><td>none + opacity 0.5</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- TABELA -->
+  <section class="section" id="tabela">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18"/></svg></div>
+      Tabela de Dados
+    </div>
+    <p class="section-desc">Sem borda externa, separadores por linha. Usada em projetos, financeiro e problemas.</p>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="token-table">
+        <thead><tr><th>Categoria</th><th>Período</th><th style="text-align:right;">Planejado</th><th style="text-align:right;">Realizado</th><th style="text-align:right;">Variação</th><th style="text-align:center;">Status</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:500;color:#201547;">Desenvolvimento</td><td>Jan–Mar/2025</td><td style="text-align:right;">R$ 280.000</td><td style="text-align:right;">R$ 78.000</td><td style="text-align:right;"><span style="color:#10b981;font-weight:600;">+R$ 202.000</span></td><td style="text-align:center;"><span class="badge badge--green">Dentro</span></td></tr>
+          <tr><td style="font-weight:500;color:#201547;">Infraestrutura</td><td>Jan–Fev/2025</td><td style="text-align:right;">R$ 195.000</td><td style="text-align:right;">R$ 54.000</td><td style="text-align:right;"><span style="color:#10b981;font-weight:600;">+R$ 141.000</span></td><td style="text-align:center;"><span class="badge badge--green">Dentro</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ALERTAS -->
+  <section class="section" id="alertas">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg></div>
+      Alertas &amp; Mensagens
+    </div>
+    <p class="section-desc">Quatro variantes com <span class="inline-code">border-left: 4px solid</span>.</p>
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:560px;">
+      <div class="alert alert--info">ℹ️ <div><strong>Informação:</strong> Este contrato possui 4 entradas financeiras.</div></div>
+      <div class="alert alert--success">✅ <div><strong>Sucesso:</strong> Projeto cadastrado com sucesso.</div></div>
+      <div class="alert alert--warning">⚠️ <div><strong>Atenção:</strong> A data de término está próxima.</div></div>
+      <div class="alert alert--error">❌ <div><strong>Erro:</strong> Verifique os campos obrigatórios.</div></div>
+    </div>
+  </section>
+
+  <!-- MAPA DE TELAS -->
+  <section class="section" id="telas">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+      Mapa de Telas
+    </div>
+    <p class="section-desc">Estado atual do protótipo. Funcionais em <span class="inline-code">ContractDetailPage_preview.jsx</span>.</p>
+    <div class="screen-grid">
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Visão Geral (Home)</span><span class="screen-card__status screen-card__status--done">Implementado</span></div><div class="screen-card__body"><p class="screen-card__desc">Lista de projetos com busca, filtros, KPIs.</p><div class="screen-card__tags"><span class="screen-tag">HomePage_preview.jsx</span><span class="screen-tag">FilterDropdown</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Cadastrar Projeto</span><span class="screen-card__status screen-card__status--done">Implementado</span></div><div class="screen-card__body"><p class="screen-card__desc">Formulário com ICJ automático e validação.</p><div class="screen-card__tags"><span class="screen-tag">NewProjectPage_preview.jsx</span><span class="screen-tag">Field</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Detalhe — Operacional</span><span class="screen-card__status screen-card__status--done">Implementado</span></div><div class="screen-card__body"><p class="screen-card__desc">Fases, sprints expansíveis, 5 fases / 8 sprints.</p><div class="screen-card__tags"><span class="screen-tag">activeTab: operational</span><span class="screen-tag">OperacionalView</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Detalhe — Financeiro</span><span class="screen-card__status screen-card__status--done">Implementado</span></div><div class="screen-card__body"><p class="screen-card__desc">KPIs, categorias, distribuição MVP, tabela.</p><div class="screen-card__tags"><span class="screen-tag">activeTab: financial</span><span class="screen-tag">FinanceiroView</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Processo TO BE</span><span class="screen-card__status screen-card__status--todo">Pendente</span></div><div class="screen-card__body"><p class="screen-card__desc">Fluxo de processos futuros.</p><div class="screen-card__tags"><span class="screen-tag">activeTab: process</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Casos de Uso</span><span class="screen-card__status screen-card__status--todo">Pendente</span></div><div class="screen-card__body"><p class="screen-card__desc">Listagem por ator/funcionalidade.</p><div class="screen-card__tags"><span class="screen-tag">activeTab: usecases</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Cronograma</span><span class="screen-card__status screen-card__status--todo">Pendente</span></div><div class="screen-card__body"><p class="screen-card__desc">Timeline de fases e sprints (Gantt).</p><div class="screen-card__tags"><span class="screen-tag">activeTab: timeline</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Problemas</span><span class="screen-card__status screen-card__status--todo">Pendente</span></div><div class="screen-card__body"><p class="screen-card__desc">Log de issues com severidade e responsável.</p><div class="screen-card__tags"><span class="screen-tag">activeTab: issues</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Entrada de Dados</span><span class="screen-card__status screen-card__status--todo">Pendente</span></div><div class="screen-card__body"><p class="screen-card__desc">Formulários financeiros e de sprints.</p><div class="screen-card__tags"><span class="screen-tag">activeTab: data-entry</span></div></div></div>
+      <div class="screen-card"><div class="screen-card__header"><span class="screen-card__title">Notificações</span><span class="screen-card__status screen-card__status--todo">Pendente</span></div><div class="screen-card__body"><p class="screen-card__desc">Central de alertas por contrato.</p><div class="screen-card__tags"><span class="screen-tag">activeTab: notifications</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- VIOLAÇÕES -->
+  <section class="section" id="violacoes">
+    <div class="section-title">
+      <div class="icon" style="background:#dc2626;"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg></div>
+      Violações a Corrigir
+    </div>
+    <p class="section-desc">Problemas identificados no protótipo. Ordenados por severidade.</p>
+
+    <div class="violation-box">
+      <div class="violation-box__title">🔴 CRÍTICO — Cor de texto: #FA4616 sobre fundo branco</div>
+      <div class="violation-box__body">Contraste ~3.0:1 — reprovado por WCAG AA (mínimo 4.5:1). <strong>Ação:</strong> substituir por <code>C.orangeText</code> (<code>#C2410C</code>) em todos os textos de KPI e destaque.</div>
+      <div class="violation-box__code">
+        <span class="bad">// ❌ textColor: C.orange  → #FA4616 — contraste 3.0:1</span>
+        <span class="good">// ✅ textColor: C.orangeText → #C2410C — contraste 4.5:1</span>
+      </div>
+    </div>
+
+    <div class="violation-box">
+      <div class="violation-box__title">🔴 CRÍTICO — Touch target de ícones: 26×26px (mínimo: 36px)</div>
+      <div class="violation-box__body">Viola WCAG 2.5.5. <strong>Ação:</strong> <code>minWidth/minHeight: 36px</code> em todos os botões de ícone.</div>
+      <div class="violation-box__code">
+        <span class="bad">// ❌ style={{ minWidth:26, minHeight:26, padding:4 }}</span>
+        <span class="good">// ✅ style={{ minWidth:36, minHeight:36, padding:8 }}</span>
+      </div>
+    </div>
+
+    <div class="violation-box" style="background:#f0fdf4;border-color:#bbf7d0;">
+      <div class="violation-box__title" style="color:#166534;">🟡 MÉDIO — Token C.lime não renomeado no JSX</div>
+      <div class="violation-box__body" style="color:#14532d;">O objeto <code>C</code> ainda usa <code>lime</code>. Renomear para <code>avocado</code> para consistência com este documento e adicionar <code>avocadoDark</code> e <code>orangeText</code>.</div>
+      <div class="violation-box__code">
+        <span class="bad">// ❌ lime: "#DBE442"</span>
+        <span class="good">// ✅ avocado: "#DBE442", avocadoDark: "#b8c018", orangeText: "#C2410C"</span>
+      </div>
+    </div>
+
+    <div class="violation-box" style="background:#f0fdf4;border-color:#bbf7d0;">
+      <div class="violation-box__title" style="color:#166534;">🟡 MÉDIO — orquestra_preview.html desatualizado</div>
+      <div class="violation-box__body" style="color:#14532d;">HTML de preview não inclui Fase C. O protótipo real está em <strong>ContractDetailPage_preview.jsx</strong>. <strong>Ação:</strong> regenerar o HTML.</div>
+    </div>
+  </section>
+
+  <!-- CHECKLIST -->
+  <section class="section" id="checklist">
+    <div class="section-title">
+      <div class="icon" style="background:#059669;"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3"/></svg></div>
+      Checklist de Melhorias UX
+    </div>
+    <p class="section-desc">Priorizado por impacto. Trabalhar nesta ordem.</p>
+
+    <div class="grid-2" style="gap:0;">
+      <div>
+        <h3 style="font-size:14px;font-weight:600;color:#b91c1c;padding:12px 16px;background:#fee2e2;border-radius:8px 8px 0 0;margin:0;">🔴 Crítico</h3>
+        <div class="checklist" style="border:1px solid #fee2e2;border-top:none;border-radius:0 0 8px 8px;background:#fff;">
+          <div class="check-item"><div class="check-icon check-icon--critical">!</div><div class="check-body"><strong>C.orange → C.orangeText em textos</strong><p>KPI cards, labels de percentual em FinanceiroView e OperacionalView.</p></div><span class="check-tag check-tag--critical">a11y</span></div>
+          <div class="check-item"><div class="check-icon check-icon--critical">!</div><div class="check-body"><strong>Touch targets 26px → 36px</strong><p>Botões de ícone: fechar sidebar, editar, excluir, link.</p></div><span class="check-tag check-tag--critical">a11y</span></div>
+          <div class="check-item"><div class="check-icon check-icon--critical">!</div><div class="check-body"><strong>C.lime → C.avocado no JSX</strong><p>Adicionar <code>avocado</code>, <code>avocadoDark</code>, <code>orangeText</code> ao objeto <code>C</code>.</p></div><span class="check-tag check-tag--critical">tokens</span></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size:14px;font-weight:600;color:#a16207;padding:12px 16px;background:#fef9c3;border-radius:8px 8px 0 0;margin:0;">🟡 Médio</h3>
+        <div class="checklist" style="border:1px solid #fef9c3;border-top:none;border-radius:0 0 8px 8px;background:#fff;">
+          <div class="check-item"><div class="check-icon check-icon--medium">~</div><div class="check-body"><strong>Regenerar orquestra_preview.html</strong><p>Atualizar com Fase C: FinanceiroView, 5 fases, tab routing.</p></div><span class="check-tag check-tag--medium">preview</span></div>
+          <div class="check-item"><div class="check-icon check-icon--medium">~</div><div class="check-body"><strong>Hover state em linhas de tabela</strong><p>onMouseEnter/Leave com background #f9fafb.</p></div><span class="check-tag check-tag--medium">UX</span></div>
+          <div class="check-item"><div class="check-icon check-icon--medium">~</div><div class="check-body"><strong>Empty state padronizado</strong><p>Ícone 40px, título navy bold, subtítulo gray500.</p></div><span class="check-tag check-tag--medium">UX</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h3 style="font-size:14px;font-weight:600;color:#065f46;padding:12px 16px;background:#d1fae5;border-radius:8px 8px 0 0;margin:0;">🟢 Baixo — Refinamentos</h3>
+      <div class="checklist" style="border:1px solid #d1fae5;border-top:none;border-radius:0 0 8px 8px;background:#fff;">
+        <div class="check-item"><div class="check-icon check-icon--low">✓</div><div class="check-body"><strong>Transição da sidebar</strong><p>Já implementado com <code>width 0.3s ease</code>.</p></div><span class="check-tag check-tag--low">done</span></div>
+        <div class="check-item"><div class="check-icon check-icon--low">○</div><div class="check-body"><strong>Focus ring visível</strong><p><code>outline: 2px solid #201547; outline-offset: 2px</code> no <code>:focus-visible</code>.</p></div><span class="check-tag check-tag--low">a11y</span></div>
+        <div class="check-item"><div class="check-icon check-icon--low">○</div><div class="check-body"><strong>Tooltip nos ícones</strong><p>Adicionar <code>title</code> attribute nos botões de ícone.</p></div><span class="check-tag check-tag--low">a11y</span></div>
+        <div class="check-item"><div class="check-icon check-icon--low">○</div><div class="check-body"><strong>Breadcrumb na subheader</strong><p>"Visão Geral › Nome do Contrato".</p></div><span class="check-tag check-tag--low">UX</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GUIA DO DEV -->
+  <section class="section" id="dev-guide">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+      Guia de Implementação
+    </div>
+    <p class="section-desc">Instruções práticas para o time adaptar o protótipo ao sistema de produção.</p>
+
+    <div class="subsection">
+      <div class="subsection-title">Stack do Protótipo</div>
+      <table class="token-table" style="max-width:640px;">
+        <thead><tr><th>Camada</th><th>Tecnologia</th><th>Notas</th></tr></thead>
+        <tbody>
+          <tr><td>UI Framework</td><td><span class="mono">React 18.3.1</span></td><td>Arquivo único via Babel Standalone</td></tr>
+          <tr><td>Estilos</td><td><span class="mono">Inline styles (JS objects)</span></td><td>Tokens no objeto <code>C</code>. Sem Tailwind.</td></tr>
+          <tr><td>Ícones</td><td>SVG inline (<span class="mono">componente I</span>)</td><td><code>const IX = () =&gt; &lt;I d="..." /&gt;</code></td></tr>
+          <tr><td>Fonte</td><td><span class="mono">Poppins</span> via Google Fonts</td><td>No <code>&lt;link&gt;</code> do host HTML</td></tr>
+          <tr><td>Estado</td><td><span class="mono">useState, useMemo</span></td><td>Local por componente.</td></tr>
+          <tr><td>Roteamento</td><td><span class="mono">page + activeTab</span></td><td>Sem React Router.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection mt-24">
+      <div class="subsection-title">Modelo de Dados — financial[]</div>
+      <div class="code-block"><span class="cmt">// Cada entrada de MOCK_DETAIL.financial</span>
+{ id, category, period, planned, actual, description,
+  contract_id, is_draft }  <span class="cmt">// últimos 2 são campos de produção</span>
+
+<span class="cmt">// Cálculo dos KPIs — função X() do sistema original</span>
+executed   = Σ entry.actual
+sumPlanned = Σ entry.planned
+planned    = sumPlanned &gt; 0 ? sumPlanned : contract.totalValue
+remaining  = planned - executed
+progress   = Math.round(executed / planned * 100)</div>
+    </div>
+
+    <div class="subsection mt-24">
+      <div class="subsection-title">Template para Novas Telas</div>
+      <div class="code-block"><span class="kw">const</span> <span class="prop">NomeDaView</span> = ({ contract, detail }) =&gt; (
+  &lt;div style={{ padding:<span class="str">"28px 32px"</span>, display:<span class="str">"flex"</span>, flexDirection:<span class="str">"column"</span>, gap:<span class="num">24</span> }}&gt;
+    <span class="cmt">// KPI Row — 4 colunas</span>
+    &lt;div style={{ display:<span class="str">"grid"</span>, gridTemplateColumns:<span class="str">"repeat(4,1fr)"</span>, gap:<span class="num">24</span> }}&gt; ... &lt;/div&gt;
+    <span class="cmt">// Grid 2 colunas</span>
+    &lt;div style={{ display:<span class="str">"grid"</span>, gridTemplateColumns:<span class="str">"1fr 1fr"</span>, gap:<span class="num">24</span> }}&gt;
+      &lt;div style={{ background:C.white, borderRadius:<span class="num">8</span>, padding:<span class="str">"20px 24px"</span>,
+                    boxShadow:<span class="str">"0 2px 8px rgba(32,21,71,0.06)"</span> }}&gt; ... &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+);
+<span class="cmt">// Registrar:</span>
+activeTab === <span class="str">"nome-tab"</span> ? &lt;<span class="prop">NomeDaView</span> contract={contract} detail={detail} /&gt; : ...</div>
+    </div>
+
+    <div class="subsection mt-24">
+      <div class="subsection-title">Hierarquia de Fonte da Verdade</div>
+      <div class="card">
+        <p style="font-size:13px;line-height:1.9;color:#374151;">
+          <strong style="color:#201547;">1. ContractDetailPage_preview.jsx</strong> — Fonte da verdade comportamental.<br>
+          <strong style="color:#201547;">2. Orquestra_DesignSystem_v1.html</strong> — Fonte da verdade visual e de tokens.<br>
+          <strong style="color:#201547;">3. Figma (ca6iZeKIAXCHA7fazOY0gt)</strong> — Aproximação visual estática.<br>
+          <strong style="color:#dc2626;">4. orquestra_preview.html</strong> — ⚠️ Desatualizado. NÃO usar para Fases C+.<br><br>
+          <strong>Regra:</strong> Em conflito entre Figma e JSX, o JSX prevalece.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<a href="#" class="back-top" title="Voltar ao topo">↑</a>
+<script>
+  const sections = document.querySelectorAll('.section[id]');
+  const links    = document.querySelectorAll('.doc-nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const t = document.querySelector(`.doc-nav a[href="#${e.target.id}"]`);
+        if (t) t.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

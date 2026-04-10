@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orquestra — Contract Detail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', system-ui, sans-serif; background: #f9fafb; }
+  </style>
+</head>
+<body>
+
+  <!-- 🔁 NAV SWITCH (Preview ativo) -->
+  <div style="position:fixed;bottom:16px;right:16px;z-index:999999;display:flex;background:rgba(0,0,0,0.75);border-radius:999px;overflow:hidden;font-family:sans-serif;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);opacity:0.7;"
+    onmouseover="this.style.opacity='1'"
+    onmouseout="this.style.opacity='0.7'">
+    <span style="padding:8px 12px;background:#fff;color:#000;font-weight:600;">Preview</span>
+    <a href="design-system.html" style="padding:8px 12px;color:#fff;text-decoration:none;">Design System</a>
+  </div>
+
+  <div id="root"></div>
+  <script type="text/babel">
+// ContractDetailPage_preview.jsx
+// Preview autocontido — tela de Gestão Operacional (Detalhe do Contrato)
+// com novo header padrão, sidebar colapsável e aba Operacional completa.
+// Sem dependências externas — use em Stackblitz ou similar.
+
+const { useState, useMemo, useRef, useEffect } = React;
+
+// ─── Icons inline ─────────────────────────────────────────────────────────────
+const I = ({ d, size = 20, stroke = 2 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    {Array.isArray(d) ? d.map((p, i) => <path key={i} d={p} />) : <path d={d} />}
+  </svg>
+);
+
+const IMenu      = () => <I d="M3 12h18M3 6h18M3 18h18" />;
+const IChevR     = () => <I d="M9 18l6-6-6-6" size={16} />;
+const IArrowLeft = () => <I d="M19 12H5M12 5l-7 7 7 7" size={16} />;
+const ITarget    = () => <I size={18} d={["M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z","M12 18c3.31 0 6-2.69 6-6s-2.69-6-6-6-6 2.69-6 6 2.69 6 6 6z","M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"]} />;
+const ITrend     = () => <I size={18} d={["M22 7l-8.5 8.5-5-5L2 17","M16 7h6v6"]} />;
+const IGitBranch = () => <I size={18} d={["M6 3v12","M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z","M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z","M18 9a9 9 0 0 1-9 9"]} />;
+const IClipboard = () => <I size={18} d={["M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2","M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"]} />;
+const ICalendar  = () => <I size={18} d={["M8 2v4","M16 2v4","M3 10h18","M21 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8z"]} />;
+const IAlertC   = () => <I size={18} d={["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4","M12 17h.01"]} />;
+const IDatabase  = () => <I size={18} d={["M12 2C6.48 2 2 4.46 2 7.5S6.48 13 12 13s10-2.46 10-5.5S17.52 2 12 2z","M2 7.5v5C2 15.54 6.48 18 12 18s10-2.46 10-5.5v-5","M2 12.5v5C2 20.54 6.48 23 12 23s10-2.46 10-5.5v-5"]} />;
+const IBell      = () => <I size={18} d={["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9","M13.73 21a2 2 0 0 1-3.46 0"]} />;
+const IBarChart  = () => <I size={18} d="M12 20V10M18 20V4M6 20v-6" />;
+const ICheckC    = () => <I size={14} d={["M22 11.08V12a10 10 0 1 1-5.93-9.14","M22 4 12 14.01l-3-3"]} />;
+const IPause     = () => <I size={18} d={["M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z","M10 15V9M14 15V9"]} />;
+const IFolder    = () => <I size={40} stroke={1.5} d={["M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"]} />;
+
+// ─── Ícones extras para Visão Geral ──────────────────────────────────────────
+const IPlus      = ()  => <I d="M12 5v14M5 12h14" size={16} />;
+const IBrief     = ()  => <I size={18} d={["M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"]} />;
+const IClock     = ()  => <I size={18} d={["M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z","M12 6v6l4 2"]} />;
+const IXCirc     = ()  => <I size={18} d={["M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z","M15 9l-6 6M9 9l6 6"]} />;
+const ICheck     = ()  => <I size={18} d={["M22 11.08V12a10 10 0 1 1-5.93-9.14","M22 4 12 14.01l-3-3"]} />;
+const IPencil    = ()  => <I size={14} d={["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7","M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"]} />;
+const ITrash     = ()  => <I size={14} d={["M3 6h18","M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6","M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"]} />;
+const ILink      = ()  => <I size={14} d={["M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6","M15 3h6v6","M10 14 21 3"]} />;
+const ISearch    = ()  => <I size={16} d={["M21 21l-4.35-4.35","M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0"]} />;
+const IXSmall    = ()  => <I size={13} d="M18 6L6 18M6 6l12 12" />;
+const IChevron   = ({ open }) => (
+  <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+    style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+const ICheckMark = () => <I size={13} d="M20 6L9 17l-5-5" />;
+const IDollar    = () => <I size={18} d={["M12 2v20","M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"]} />;
+const IUsers     = () => <I size={18} d={["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2","M23 21v-2a4 4 0 0 0-3-3.87","M16 3.13a4 4 0 0 1 0 7.75","M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"]} />;
+
+// ─── Ícones extras para Cadastrar Projeto ────────────────────────────────────
+const ISave      = ()  => <I size={16} d={["M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z","M17 21v-8H7v8","M7 3v5h8"]} />;
+const IXIcon     = ()  => <I size={16} d="M18 6L6 18M6 6l12 12" />;
+const ILink2     = ()  => <I size={16} d={["M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71","M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"]} />;
+const IUser      = ()  => <I size={16} d={["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2","M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]} />;
+const IMail      = ()  => <I size={16} d={["M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z","M22 6l-10 7L2 6"]} />;
+const IFile      = ()  => <I size={16} d={["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6","M16 13H8","M16 17H8","M10 9H8"]} />;
+const IBuild     = ()  => <I size={16} d={["M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z","M9 22V12h6v10"]} />;
+const IAlertSm   = ()  => <I size={12} d={["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4","M12 17h.01"]} />;
+
+// ─── Logo SPASSU ─────────────────────────────────────────────────────────────
+const SPASSU_B64 = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYXllcl8yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTkuOTkgNjAiPjxkZWZzPjxzdHlsZT4uY2xzLTF7ZmlsbDojZmZmO308L3N0eWxlPjwvZGVmcz48ZyBpZD0iTGF5ZXJfMS0yIj48Zz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03Mi40NSw0MS43N2MtMS42LDAtMy4wNC0uMi00LjMzLS42MS0xLjI5LS40MS0yLjMzLS45NS0zLjEzLTEuNjNzLTEuNDEtMS40NS0xLjg0LTIuM2MtLjQyLS44NS0uNjMtMS43NS0uNjMtMi43aDMuNDZjLjAzLDEuMzEsLjYyLDIuMzksMS43NiwzLjI2LDEuMTUsLjg3LDIuNzIsMS4zLDQuNzMsMS4zLDEuODgsMCwzLjMzLS4zNCw0LjMzLTEuMDIsMS4wMS0uNjgsMS41MS0xLjYyLDEuNTEtMi44M3MtLjUtMi4wNy0xLjQ5LTIuNTljLTEtLjUyLTIuNi0uOTUtNC43OS0xLjI4LTEuMjMtLjE3LTIuMy0uMzktMy4yMS0uNjYtLjkyLS4yNi0xLjc5LS42My0yLjYxLTEuMTEtLjgyLS40Ny0xLjQ1LTEuMS0xLjg4LTEuODdzLS42NS0xLjY4LS42NS0yLjczYzAtMS44MywuNzMtMy4zNSwyLjE5LTQuNTMsMS40Ni0xLjE5LDMuNTUtMS43OSw2LjI2LTEuNzksMi43MiwwLDQuOTEsLjYsNi41OCwxLjgxLDEuNjcsMS4yLDIuNTEsMi43NSwyLjUxLDQuNjRsLTMuNTUtLjAyYy0uMDYtMS4xLS41OS0xLjk5LTEuNTgtMi42NS0uOTktLjY3LTIuMzEtMS0zLjk1LTEtMS41OSwwLTIuOCwuMzMtMy42NCwuOTktLjg0LC42Ni0xLjI2LDEuNDktMS4yNiwyLjQ5cy40MiwxLjg5LDEuMjYsMi40MmMuODQsLjUyLDIuNCwuOTcsNC42OSwxLjMyLC43MSwuMSwxLjMyLC4yLDEuODQsLjNzMS4xLC4yNCwxLjc1LC40MWMuNjUsLjE3LDEuMjEsLjM2LDEuNjYsLjU3LC40NSwuMjEsLjkyLC40NywxLjQsLjc5cy44NiwuNjgsMS4xNSwxLjA4Yy4yOSwuMzksLjUyLC44NywuNzEsMS40MiwuMTgsLjU1LC4yNywxLjE3LC4yNywxLjg0LDAsMi4xNS0uODYsMy44LTIuNTgsNC45Ni0xLjcyLDEuMTUtNC4wMywxLjczLTYuOTMsMS43M1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik04My40OSw0OC42NVYxOS4yOWgzLjQ2djQuOTdjLjg2LTEuNjMsMi4xNC0yLjk3LDMuODMtNCwxLjY5LTEuMDMsMy41OC0xLjU1LDUuNjgtMS41NSwyLjIxLDAsNC4yMywuNTEsNi4wNSwxLjU0LDEuODIsMS4wMywzLjI0LDIuNDIsNC4yNyw0LjE4LDEuMDMsMS43NiwxLjU0LDMuNywxLjU0LDUuOCwwLDIuMTItLjUxLDQuMDYtMS41NCw1LjgzLTEuMDMsMS43Ni0yLjQ1LDMuMTYtNC4yNiw0LjE4LTEuODEsMS4wMi0zLjgyLDEuNTQtNi4wMSwxLjU0LTIuMDQsMC0zLjkxLS40OS01LjYyLTEuNDctMS43MS0uOTgtMi45OS0yLjMtMy44NC0zLjk3bC4wNywyLjQzdjkuODloLTMuNjNabTEyLjQzLTkuOTVjMi40NiwwLDQuNTUtLjgsNi4yNi0yLjM5LDEuNzEtMS41OSwyLjU3LTMuNjIsMi41Ny02LjA4cy0uODYtNC40My0yLjU3LTYuMDRjLTEuNzEtMS42MS0zLjgxLTIuNDEtNi4yOC0yLjQxLTIuNDUsMC00LjUzLC44Mi02LjI1LDIuNDYtMS43MiwxLjY0LTIuNTgsMy42NC0yLjU4LDUuOTgsMCwyLjQxLC44Niw0LjQyLDIuNTksNi4wNCwxLjczLDEuNjIsMy44MSwyLjQzLDYuMjYsMi40M1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjEuNjgsNDEuNzdjLTIuMTUsMC00LjEyLS41MS01LjkxLTEuNTQtMS43OS0xLjAzLTMuMTktMi40Mi00LjIxLTQuMTktMS4wMi0xLjc3LTEuNTMtMy43MS0xLjUzLTUuODJzLjUxLTQuMDQsMS41My01LjhjMS4wMi0xLjc2LDIuNDItMy4xNiw0LjIxLTQuMTgsMS43OS0xLjAzLDMuNzUtMS41NCw1Ljg4LTEuNTRzNC4xNywuNSw1LjkxLDEuNDljMS43NCwxLDMuMDMsMi4zNSwzLjg2LDQuMDV2LTQuOTdoMy40NHYyMS44OGgtMy40NHYtNC45MmMtLjgzLDEuNzEtMi4xMiwzLjA1LTMuODUsNC4wNC0xLjczLC45OS0zLjcsMC40OC01LjksMC40OFptLjc4LTMuMWMyLjQ4LDAsNC41Ny0uODEsNi4yOC0yLjQ0LDEuNzEtMS42MywyLjU3LTMuNjMsMi41Ny02LjAxcy0uODYtNC4zNi0yLjU5LTZjLTEuNzMtMS42My0zLjgxLTIuNDUtNi4yNi0yLjQ1LTIuNDYsMC00LjU1LC44LTYuMjcsMi40MS0xLjcyLDEuNi0yLjU4LDMuNjItMi41OCw2LjA0cy44Niw0LjQ5LDIuNTgsNi4wN2MxLjcyLDEuNTgsMy44MSwyLjM4LDYuMjcsMi4zOFoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNDYuMzUsNDEuNzdjLTEuNiwwLTMuMDQtLjItNC4zMy0uNjEtMS4yOS0uNDEtMi4zMy0uOTUtMy4xMy0xLjYzLS44LS42OC0xLjQxLTEuNDUtMS44My0yLjMtLjQyLS44NS0uNjQtMS43NS0uNjQtMi43aDMuNDZjLjAzLDEuMzEsLjYyLDIuMzksMS43NywzLjI2LDEuMTUsLjg3LDIuNzIsMS4zLDQuNzMsMS4zLDEuODgsMCwzLjMzLS4zNCw0LjMzLTEuMDIsMS0uNjgsMS41MS0xLjYyLDEuNTEtMi44M3MtLjUtMi4wNy0xLjQ5LTIuNTktMi41OS0uOTUtNC43OS0xLjI4Yy0xLjIyLS4xNy0yLjMtLjM5LTMuMjEtLjY2LS45Mi0uMjYtMS43OS0uNjMtMi42MS0xLjExLS44My0uNDctMS40NS0xLjEtMS44OC0xLjg3LS40My0uNzctLjY1LTEuNjgtLjY1LTIuNzMsMC0xLjgzLC43My0zLjM1LDIuMTktNC41MywxLjQ2LTEuMTksMy41NS0xLjc5LDYuMjYtMS43OSwyLjcyLDAsNC45MSwuNiw2LjU4LDEuODEsMS42NywxLjIsMi41MSwyLjc1LDIuNTEsNC42NGwtMy41NS0uMDJjLS4wNi0xLjEtLjU5LTEuOTktMS41OC0yLjY1LS45OS0uNjctMi4zMS0xLTMuOTYtMXMtMi44LC4zMy0zLjY0LC45OWMtLjg0LC42Ni0xLjI2LDEuNDktMS4yNiwyLjQ5LDAsMC40Mi4xLjg5LDEuMjYsMi40MiwuODQsLjUyLDIuNCwuOTcsNC43LDEuMzIsLjcxLC4xLDEuMzIsLjIsMS44MywuM3MxLjEsLjI0LDEuNzUsLjQxYy42NSwuMTcsMS4yLC4zNiwxLjY2LC41NywuNDYsLjIxLC45MiwuNDcsMS40LC43OSwuNDgsLjMyLC44NiwuNjgsMS4xNSwxLjA4LC4yOSwuMzksLjUzLC44NywuNzEsMS40MiwuMTgsLjU1LC4yNywxLjE3LC4yNywxLjg0LDAsMi4xNS0uODYsMy44LTIuNTgsNC45Ni0xLjcyLDEuMTUtNC4wMywxLjczLTYuOTMsMS43M1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNjcuMzQsNDEuNzdjLTEuNiwwLTMuMDQtLjItNC4zMy0uNjEtMS4yOS0uNDEtMi4zMy0uOTUtMy4xMy0xLjYzLS44LS42OC0xLjQxLTEuNDUtMS44My0yLjMtLjQyLS44NS0uNjQtMS43NS0uNjQtMi43aDMuNDZjLjAzLDEuMzEsLjYyLDIuMzksMS43NywzLjI2LDEuMTUsLjg3LDIuNzIsMS4zLDQuNzMsMS4zLDEuODgsMCwzLjMzLS4zNCw0LjMzLTEuMDIsMS0uNjgsMS41MS0xLjYyLDEuNTEtMi44MywwLTEuMi0uNS0yLjA3LTEuNDktMi41OXMtMi41OS0uOTUtNC43OS0xLjI4Yy0xLjIyLS4xNy0yLjMtLjM5LTMuMjEtLjY2LS45Mi0uMjYtMS43OS0uNjMtMi42MS0xLjExLS44My0uNDctMS40NS0xLjEtMS44OC0xLjg3cy0uNjUtMS42OC0uNjUtMi43M2MwLTEuODMsLjczLTMuMzUsMi4xOS00LjUzLDEuNDYtMS4xOSwzLjU1LTEuNzksNi4yNi0xLjc5LDIuNzIsMCw0LjkxLC42LDYuNTgsMS44MSwxLjY3LDEuMiwyLjUxLDIuNzUsMi41MSw0LjY0bC0zLjU1LS4wMmMtLjA2LTEuMS0uNTktMS45OS0xLjU4LTIuNjUtLjk5LS42Ny0yLjMxLTEtMy45Ni0xLTEuNTgsMC0yLjgsLjMzLTMuNjQsLjk5LS44NCwuNjYtMS4yNiwxLjQ5LTEuMjYsMi40OSwwLDEuMDksLjQyLDEuODksMS4yNiwyLjQyLC44NCwuNTIsMi40LC45Nyw0LjcsMS4zMiwuNzEsLjEsMS4zMiwuMiwxLjgzLC4zczEuMSwuMjQsMS43NSwuNDFjLjY1LC4xNywxLjIsLjM2LDEuNjYsLjU3LC40NiwuMjEsLjkyLC40NywxLjQsLjc5LC40OCwuMzIsLjg2LC42OCwxLjE1LDEuMDgsLjI5LC4zOSwuNTMsLjg3LC43MSwxLjQyLC4xOCwuNTUsLjI3LDEuMTcsLjI3LDEuODQsMCwyLjE1LS44NiwzLjgtMi41OCw0Ljk2LTEuNzIsMS4xNS00LjAzLDEuNzMtNi45MywxLjczWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE4OS4yMyw0MS43N2MtMy4zNCwwLTUuOTktLjg5LTcuOTMtMi42OC0xLjk1LTEuNzgtMi45Mi00LjQ5LTIuOTItOC4xMXYtMTEuNjloMy41OHYxMS42MWMwLDIuNTUsLjYyLDQuNDksMS44Nyw1LjgsMS4yNSwxLjMyLDMuMDMsMS45OCw1LjM2LDEuOTgsMi4zMiwwLDQuMTEtLjY2LDUuMzYtMS45NywxLjI1LTEuMzEsMS44Ny0zLjI1LDEuODctNS44MXYtMTEuNjFoMy41OHYxMS42OWMwLDMuNjEtLjk3LDYuMzEtMi45Miw4LjEtMS45NSwxLjc5LTQuNTYsMi42OS03Ljg0LDIuNjlaIi8+PGc+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDguMzcsNTMuNzRjLS4yMSwwLS4zOC0uMTctLjM4LS4zOHMuMTctLjM4LC4zOC0uMzgsLjM4LC4xNywuMzgsLjM4LS4xNywuMzgtLjM4LC4zOFoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik00Mi40Niw1Ny4zMmMtLjMzLDAtLjYtLjI2LS42LS41OXMuMjctLjU5LC42LS41OSwuNiwuMjYsLjYsLjU5LS4yNywuNTktLjYsLjU5WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM1LjkyLDU5LjQ0Yy0uNDUsMC0uODEtLjM2LS44MS0uOHMuMzYtLjgsLjgxLS44LC44MSwuMzYsLjgxLC44LS4zNiwuOC0uODEsLjhaIi8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iMjkuMTIiIGN5PSI1OC45OSIgcng9IjEuMDIiIHJ5PSIxLjAxIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjIuNDEsNTljLS42OCwwLTEuMjMtLjU1LTEuMjMtMS4yM3MuNTUtMS4yMywxLjIzLTEuMjMsMS4yMywuNTUsMS4yMywxLjIzLS41NSwxLjIzLTEuMjMsMS4yM1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNi4xNyw1Ni40OGMtLjgsMC0xLjQ1LS42NC0xLjQ1LTEuNDRzLjY1LTEuNDQsMS40NS0xLjQ0LDEuNDUsLjY0LDEuNDUsMS40NC0uNjUsMS40NC0xLjQ1LDEuNDRaIi8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iMTAuNzQiIGN5PSI1MC45NSIgcng9IjEuNjUiIHJ5PSIxLjY0Ii8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNi40MSw0Ny41Yy0uOTgsMC0xLjc4LS43OS0xLjc4LTEuNzZzLjgtMS43NiwxLjc4LTEuNzYsMS43OCwuNzksMS43OCwxLjc2LS44LDEuNzYtMS43OCwxLjc2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTMuNDEsNDEuNTJjLTEuMDMsMC0xLjg3LS44My0xLjg3LTEuODZzLjg0LTEuODYsMS44Ny0xLjg2LDEuODcsLjgzLDEuODcsMS44Ni0uODQsMS44Ni0xLjg3LDEuODZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMS45MSwzNC45NmMtMS4wNiwwLTEuOTEtLjg1LTEuOTEtMS45cy44Ni0xLjksMS45MS0xLjksMS45MSwuODUsMS45MSwxLjktLjg2LDEuOS0xLjkxLDEuOVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xLjk5LDI4LjE5Yy0xLjA2LDAtMS45MS0uODUtMS45MS0xLjlzLjg2LTEuOSwxLjkxLTEuOSwxLjkxLC44NSwxLjkxLDEuOS0uODYsMS45LTEuOTEsMS45WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTMuNjQsMjEuNThjLTEuMDMsMC0xLjg3LS44My0xLjg3LTEuODVzLjg0LTEuODYsMS44Ny0xLjg2LDEuODcsLjgzLDEuODcsMS44Ni0uODQsMS44NS0xLjg3LDEuODVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNi43OSwxNS40OGMtLjk4LDAtMS43Ny0uNzktMS43Ny0xLjc2cy43OS0xLjc2LDEuNzctMS43NiwxLjc3LC43OSwxLjc3LDEuNzYtLjc5LDEuNzYtMS43NywxLjc2WiIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMSIgY3g9IjExLjI1IiBjeT0iOC42IiByeD0iMS42NCIgcnk9IjEuNjMiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNi43Nyw2LjA3Yy0uNzksMC0xLjQ0LS42NC0xLjQ0LTEuNDNzLjY0LTEuNDMsMS40NC0xLjQzLDEuNDQsLjY0LDEuNDQsMS40My0uNjQsMS40My0xLjQ0LDEuNDNaIi8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iMjMuMDciIGN5PSIyLjA2IiByeD0iMS4yMiIgcnk9IjEuMjEiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yOS44MSwyLjAxYy0uNTYsMC0xLjAxLS40NS0xLjAxLTFzLjQ1LTEsMS4wMS0xLDEuMDEsLjQ1LDEuMDEsMS0uNDUsMS0xLjAxLDFaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzYuNjEsMi4zYy0uNDQsMC0uNzktLjM1LS43OS0uNzlzLjM2LS43OSwuNzktLjc5LC43OSwuMzUsLjc5LC43OS0uMzYsLjc5LS43OSwuNzlaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDMuMSw0LjE1Yy0uMzIsMC0uNTgtLjI2LS41OC0uNThzLjI2LS41OCwuNTgtLjU4LC41OCwuMjYsLjU4LC41OC0uMjYsLjU4LS41OCwuNThaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDguOTMsNy40NGMtLjIsMC0uMzctLjE2LS4zNy0uMzZzLjE2LS4zNiwuMzctLjM2LC4zNywuMTYsLjM3LC4zNi0uMTYsLjM2LS4zNywuMzZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNTMuNzksMTIuMDNjLS4xMiwwLS4yMS0uMDktLjIxLS4yMXMuMDktLjIxLC4yMS0uMjEsLjIxLC4wOSwuMjEsLjIxLS4wOSwuMjEtLjIxLC4yMVoiLz48Y2lyY2xlIGNsYXNzPSJjbHMtMSIgY3g9IjQ3LjE2IiBjeT0iNDguMDQiIHI9Ii4zIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDEuNDksNTIuMzRjLS4zMSwwLS41Ni0uMjUtLjU2LS41NXMuMjUtLjU1LC41Ni0uNTUsLjU2LC4yNSwuNTYsLjU1LS4yNSwuNTUtLjU2LC41NVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zNS4wMSw1NC42M2MtLjQ1LDAtLjgxLS4zNi0uODEtLjgxcy4zNi0uODEsLjgxLS44MSwuODEsLjM2LC44MSwuODEtLjM2LC44MS0uODEsLjgxWiIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMSIgY3g9IjI4LjE5IiBjeT0iNTMuOTkiIHJ4PSIxLjA3IiByeT0iMS4wNiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTIxLjYsNTMuNTljLS43MywwLTEuMzItLjU5LTEuMzItMS4zMnMuNTktMS4zMSwxLjMyLTEuMzEsMS4zMiwuNTksMS4zMiwxLjMxLS41OSwxLjMyLTEuMzIsMS4zMloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNS43NSw1MC4zOGMtLjg3LDAtMS41OC0uNy0xLjU4LTEuNTdzLjcxLTEuNTcsMS41OC0xLjU3LDEuNTgsLjcsMS41OCwxLjU3LS43MSwxLjU3LTEuNTgsMS41N1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMS4xLDQ1LjYyYy0uOTcsMC0xLjc1LS43OC0xLjc1LTEuNzRzLjc5LTEuNzQsMS43NS0xLjc0LDEuNzUsLjc4LDEuNzUsMS43NC0uNzksMS43NC0xLjc1LDEuNzRaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNOCwzOS43MmMtMS4wMywwLTEuODctLjgzLTEuODctMS44NnMuODQtMS44NiwxLjg3LTEuODYsMS44NywuODMsMS44NywxLjg2LS44NCwxLjg2LTEuODcsMS44NloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik02LjcyLDMzLjEyYy0xLjA2LDAtMS45Mi0uODYtMS45Mi0xLjkxcy44Ni0xLjkxLDEuOTItMS45MSwxLjkyLC44NiwxLjkyLDEuOTEtLjg2LDEuOTEtMS45MiwxLjkxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTcuMzMsMjYuMzZjLTEuMDUsMC0xLjg5LS44NC0xLjg5LTEuODhzLjg1LTEuODgsMS44OS0xLjg4LDEuODksLjg0LDEuODksMS44OC0uODUsMS44OC0xLjg5LDEuODhaIi8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iOS44MSIgY3k9IjE4LjE3IiByeD0iMS44MiIgcnk9IjEuODEiLz48ZWxsaXBzZSBjbGFzcz0iY2xzLTEiIGN4PSIxMy45NSIgY3k9IjEyLjgiIHJ4PSIxLjY3IiByeT0iMS42NSIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE5LjQyLDEwLjJjLS43OSwwLTEuNDMtLjY0LTEuNDMtMS40MnMuNjQtMS40MiwxLjQzLTEuNDIsMS40MywuNjQsMS40MywxLjQyLS42NCwxLjQyLTEuNDMsMS40MloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yNS44LDcuNTljLS42NSwwLTEuMTctLjUyLTEuMTctMS4xNnMuNTItMS4xNiwxLjE3LTEuMTYsMS4xNywuNTIsMS4xNywxLjE2LS41MiwxLjE2LTEuMTcsMS4xNloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zMi42LDYuODNjLS41LDAtLjkxLS40LS45MS0uOTFzLjQxLS45MSwuOTEtLjkxLC45MSwuNDEsLjkxLC45MS0uNDEsLjkxLS45MSwuOTFaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzkuMjcsNy45NmMtLjM2LDAtLjY1LS4yOS0uNjUtLjY1cy4yOS0uNjUsLjY1LS42NSwuNjUsLjI5LC42NSwuNjUtLjI5LC42NS0uNjUsLjY1WiIvPjxjaXJjbGUgY2xhc3M9ImNscy0xIiBjeD0iNDUuMjgiIGN5PSIxMC40OCIgcj0iLjQiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik01MC4xOCwxNS4zOGMtLjExLDAtLjItLjA5LS4yLS4ycy4wOS0uMiwuMi0uMiwuMiwuMDksLjIsLjItLjA5LC4yLS4yLC4yWiIvPjxjaXJjbGUgY2xhc3M9ImNscy0xIiBjeD0iNDUuNzQiIGN5PSI0Mi40OSIgcj0iLjIyIi8+PGNpcmNsZSBjbGFzcz0iY2xzLTEiIGN4PSI0MC41IiBjeT0iNDYuNzgiIHI9Ii40OSIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM0LjA4LDQ5LjgyYy0uNDUsMC0uODItLjM2LS44Mi0uODFzLjM3LS44MSwuODItLjgxLC44MiwuMzYsLjgyLC44MS0uMzcsLjgxLS44MiwuODFaIi8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iMjcuMjgiIGN5PSI0OC45IiByeD0iMS4xNCIgcnk9IjEuMTMiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMC45Myw0Ny45Yy0uODEsMC0xLjQ2LS42NS0xLjQ2LTEuNDVzLjY1LTEuNDUsMS40Ni0xLjQ1LDEuNDYsLjY1LDEuNDYsMS40NS0uNjUsMS40NS0xLjQ2LDEuNDVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTUuODMsNDMuN2MtLjk1LDAtMS43Mi0uNzctMS43Mi0xLjcxcy43Ny0xLjcxLDEuNzItMS43MSwxLjcyLC43NywxLjcyLDEuNzEtLjc3LDEuNzEtMS43MiwxLjcxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTEyLjYsMzcuOTFjLTEuMDMsMC0xLjg3LS44My0xLjg3LTEuODZzLjg0LTEuODYsMS44Ny0xLjg2LDEuODcsLjgzLDEuODcsMS44Ni0uODQsMS44Ni0xLjg3LDEuODZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTEuNjMsMzEuMjljLTEuMDcsMC0xLjkzLS44Ni0xLjkzLTEuOTJzLjg2LTEuOTIsMS45My0xLjkyLDEuOTMsLjg2LDEuOTMsMS45Mi0uODYsMS45Mi0xLjkzLDEuOTJaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTMuMDQsMjQuNjFjLTEuMDMsMC0xLjg2LS44My0xLjg2LTEuODVzLjgzLTEuODUsMS44Ni0xLjg1LDEuODYsLjgzLDEuODYsMS44NS0uODMsMS44NS0xLjg2LDEuODVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTYuNjgsMTguNzRjLS45NCwwLTEuNy0uNzUtMS43LTEuNjhzLjc2LTEuNjgsMS43LTEuNjgsMS43LC43NSwxLjcsMS42OC0uNzYsMS42OC0xLjcsMS42OFoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMi4wNiwxNC4zNGMtLjc4LDAtMS40MS0uNjMtMS40MS0xLjRzLjYzLTEuNCwxLjQxLTEuNCwxLjQxLC42MywxLjQxLDEuNC0uNjMsMS40LTEuNDEsMS40WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTI4LjU1LDEyLjAxYy0uNiwwLTEuMDktLjQ4LTEuMDktMS4wOHMuNDktMS4wOCwxLjA5LTEuMDgsMS4wOSwuNDgsMS4wOSwxLjA4LS40OSwxLjA4LTEuMDksMS4wOFoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zNS4zNCwxMi4wMmMtLjQyLDAtLjc3LS4zNC0uNzctLjc2cy4zNC0uNzYsLjc3LS43NiwuNzcsLjM0LC43NywuNzYtLjM0LC43Ni0uNzcsLjc2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQxLjU5LDE0LjM0Yy0uMjQsMC0uNDQtLjItLjQ0LS40NHMuMi0uNDQsLjQ0LS40NCwuNDQsLjIsLjQ0LC40NC0uMiwuNDQtLjQ0LC40NFoiLz48Y2lyY2xlIGNsYXNzPSJjbHMtMSIgY3g9IjQ2LjU0IiBjeT0iMTguNTMiIHI9Ii4xOSIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE3LjI2LDM0LjUycy0uMDYtLjAzLS4wNi0uMDYsLjAzLS4wNiwuMDYtLjA2LC4wNiwuMDMsLjA2LC4wNi0uMDMsLjA2LS4wNiwuMDZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkuMzMsMzguNjZjLS4xLDAtLjE4LS4wOC0uMTgtLjE4cy4wOC0uMTgsLjE4LS4xOCwuMTgsLjA4LC4xOCwuMTgtLjA4LC4xOC0uMTgsLjE4WiIvPjxjaXJjbGUgY2xhc3M9ImNscy0xIiBjeD0iMjIuNTUiIGN5PSI0MS42NSIgcj0iLjM5Ii8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjYuNiw0NC4zNWMtLjM4LDAtLjY4LS4zLS42OC0uNjhzLjMxLS42OCwuNjgtLjY4LC42OCwuMywuNjgsLjY4LS4zMSwuNjgtLjY4LC42OFoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zMS4wOSw0NS4zMWMtLjU0LDAtLjk3LS40My0uOTctLjk2cy40My0uOTYsLjk3LS45NiwuOTcsLjQzLC45NywuOTYtLjQzLC45Ni0uOTcsLjk2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM1LjU3LDQ0Ljg2Yy0uNjksMC0xLjI2LS41Ni0xLjI2LTEuMjVzLjU2LTEuMjUsMS4yNi0xLjI1LDEuMjYsLjU2LDEuMjYsMS4yNS0uNTYsMS4yNS0xLjI2LDEuMjVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzkuNiw0My4wN2MtLjg1LDAtMS41NS0uNjktMS41NS0xLjUzcy42OS0xLjUzLDEuNTUtMS41MywxLjU1LC42OSwxLjU1LDEuNTMtLjY5LDEuNTMtMS41NSwxLjUzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQyLjc3LDQwLjA2Yy0uOTcsMC0xLjc1LS43OC0xLjc1LTEuNzRzLjc4LTEuNzQsMS43NS0xLjc0LDEuNzUsLjc4LDEuNzUsMS43NC0uNzgsMS43NC0xLjc1LDEuNzRaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDQuNzksMzYuMTRjLTEuMDQsMC0xLjg4LS44My0xLjg4LTEuODZzLjg0LTEuODYsMS44OC0xLjg2LDEuODgsLjgzLDEuODgsMS44Ni0uODQsMS44Ni0xLjg4LDEuODZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDUuNDQsMzEuNzNjLTEuMDcsMC0xLjkzLS44Ni0xLjkzLTEuOTJzLjg3LTEuOTIsMS45My0xLjkyLDEuOTMsLjg2LDEuOTMsMS45Mi0uODcsMS45Mi0xLjkzLDEuOTJaIi8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iNDQuNjYiIGN5PSIyNS4zNyIgcng9IjEuODciIHJ5PSIxLjg2Ii8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDIuNTQsMjMuMTJjLS45NiwwLTEuNzUtLjc4LTEuNzUtMS43M3MuNzgtMS43MywxLjc1LTEuNzMsMS43NSwuNzgsMS43NSwxLjczLS43OCwxLjczLTEuNzUsMS43M1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zOS4yNywxOS43OGMtLjg1LDAtMS41My0uNjgtMS41My0xLjUycy42OS0xLjUyLDEuNTMtMS41MiwxLjUzLC42OCwxLjUzLDEuNTItLjY5LDEuNTItMS41MywxLjUyWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM1LjIsMTcuNTJjLS42OSwwLTEuMjQtLjU1LTEuMjQtMS4yM3MuNTYtMS4yMywxLjI0LTEuMjMsMS4yNCwuNTUsMS4yNCwxLjIzLS41NiwxLjIzLTEuMjQsMS4yM1oiLz48ZWxsaXBzZSBjbGFzcz0iY2xzLTEiIGN4PSIzMC43IiBjeT0iMTUuNjgiIHJ4PSIuOTUiIHJ5PSIuOTQiLz48ZWxsaXBzZSBjbGFzcz0iY2xzLTEiIGN4PSIyNi4yMyIgY3k9IjE2LjQ3IiByeD0iLjY2IiByeT0iLjY2Ii8+PGNpcmNsZSBjbGFzcz0iY2xzLTEiIGN4PSIyMi4yNCIgY3k9IjE4LjYxIiByPSIuMzciLz48Y2lyY2xlIGNsYXNzPSJjbHMtMSIgY3g9IjE5LjExIiBjeT0iMjEuODciIHI9Ii4xNyIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE3LjE1LDI1Ljk4cy0uMDUtLjAyLS4wNS0uMDUsLjAyLS4wNSwuMDUtLjA1LC4wNSwuMDIsLjA1LC4wNS0uMDIsLjA1LS4wNSwuMDVaIi8+PC9nPjwvZz48L2c+PC9zdmc+";
+const SpassuLogo = () => (
+  <img src={`data:image/svg+xml;base64,${SPASSU_B64}`} alt="SPASSU" height="32" style={{ display:"block" }} />
+);
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const C = {
+  navy:        "#201547",
+  navyDark:    "#160f30",
+  orange:      "#FA4616",
+  orangeText:  "#C2410C", // substituto seguro para texto sobre fundo claro (WCAG AA ≥4.5:1)
+  avocado:     "#DBE442",
+  avocadoDark: "#b8c018", // texto sobre fundo Avocado (contraste adequado)
+  black:       "#000000",   // Full Black — Pantone Black
+  gray50:      "#f9fafb",
+  gray100:     "#f3f4f6",
+  gray200:     "#e5e7eb",
+  gray500:     "#6b7280",
+  gray700:     "#374151",
+  white:       "#ffffff",   // Full White — Pantone White
+};
+
+// ─── Mock data ────────────────────────────────────────────────────────────────
+const MOCK_CONTRACT = {
+  id:         "1",
+  number:     "ICJ 5900.0131123.25.2",
+  title:      "Solução Inovadora para Gestão de Pagamento de Hotéis",
+  company:    "Petrobras",
+  status:     "Em Andamento",
+  progress:   0,
+  contractor: "SPASSU TECNOLOGIA E SERVIÇOS S.A.",
+  duration:   "365 dias",
+  startDate:  new Date("2025-06-15"),
+  endDate:    new Date("2026-06-14"),
+  totalValue: 2500000,
+  lastUpdate: new Date("2026-03-26"),
+};
+
+const MOCK_DETAIL = {
+  milestones: [],
+  phases: [
+    {
+      id:"1", name:"Discovery",                    percentage:10, duration:"2 semanas",   value:78000,
+      sprints:[{ id:"s1", name:"Sprint 0: Validação do Entendimento e Planejamento Inicial",
+                 status:"pending", deliverables:["Documento de escopo validado","Plano de projeto inicial"] }],
+    },
+    {
+      id:"2", name:"MVP1: Core Backend",            percentage:35, duration:"10 semanas",  value:273000,
+      sprints:[
+        { id:"s2", name:"Sprint 1: Fundação do Backend e Setup de Interfaces",
+          status:"pending", deliverables:["Ambiente de desenvolvimento configurado","APIs base implementadas"] },
+        { id:"s3", name:"Sprint 2: Integração com OBTs e Visualização de Reservas",
+          status:"pending", deliverables:["Integração OBT concluída","Tela de reservas funcional"] },
+        { id:"s4", name:"Sprint 3: Módulo de Notas Fiscais e IA para Validação",
+          status:"pending", deliverables:["Módulo de NF implementado","IA de validação integrada"] },
+      ],
+    },
+    {
+      id:"3", name:"MVP2: Frontend & Integrações",  percentage:25, duration:"8 semanas",   value:195000,
+      sprints:[
+        { id:"s5", name:"Sprint 4: Interface Web e Mobile", status:"pending",
+          deliverables:["App web responsivo","App mobile iOS/Android"] },
+        { id:"s6", name:"Sprint 5: Integrações de Pagamento e GDS", status:"pending",
+          deliverables:["Gateway de pagamento integrado","GDS Amadeus/Sabre conectado"] },
+      ],
+    },
+    {
+      id:"4", name:"MVP3: Validação & Testes",       percentage:20, duration:"6 semanas",   value:156000,
+      sprints:[
+        { id:"s7", name:"Sprint 6: QA, Segurança e Performance", status:"pending",
+          deliverables:["Cobertura de testes >80%","Pentest concluído"] },
+      ],
+    },
+    {
+      id:"5", name:"Go-Live",                        percentage:10, duration:"2 semanas",   value:78000,
+      sprints:[
+        { id:"s8", name:"Sprint 7: Deploy, Cutover e Estabilização", status:"pending",
+          deliverables:["Sistema em produção","Treinamento concluído"] },
+      ],
+    },
+  ],
+  progress:  [],
+  // Modelo: { category, period, planned, actual } — alinhado ao sistema original
+  financial: [
+    { id:"fe1", category:"Desenvolvimento",    period:"Jan-Mar/2025", planned:280000, actual:78000,  description:"Sprint 0 e MVP1 backend" },
+    { id:"fe2", category:"Infraestrutura",     period:"Jan-Fev/2025", planned:195000, actual:54000,  description:"Cloud, servidores e licenças" },
+    { id:"fe3", category:"Design UX/UI",       period:"Fev-Mar/2025", planned:156000, actual:27000,  description:"Protótipos, testes e handoff" },
+    { id:"fe4", category:"Gestão de Projeto",  period:"Jan-Abr/2025", planned:149000, actual:12500,  description:"PMO, relatórios e governança" },
+  ],
+  issues:    [],
+};
+
+// ─── Lista de projetos para Visão Geral ─────────────────────────────────────
+const MOCK_PROJECTS = [
+  { id:"1", number:"ICJ 5900.0131123.25.2", title:"Solução Inovadora para Gestão de Pagamento de Hotéis",  company:"Petrobras",        status:"Em Andamento", progress:12,  startDate:"2025-01-10", endDate:"2025-12-31", totalValue:780000 },
+  { id:"2", number:"ICJ 5900.0098456.24.1", title:"Modernização do Sistema de Controle de Frota",           company:"Petrobras",        status:"Planejado",    progress:0,   startDate:"2026-03-01", endDate:"2026-09-30" },
+  { id:"3", number:"ICJ 5900.0075312.23.8", title:"Plataforma de Integração SAP e Sistemas Legados",        company:"Petrobras",        status:"Finalizado",   progress:100, startDate:"2023-06-01", endDate:"2024-06-30" },
+  { id:"4", number:"ICJ 5900.0042781.22.5", title:"Automação de Relatórios Regulatórios",                   company:"Transpetro",       status:"Cancelado",    progress:45,  startDate:"2022-03-15", endDate:"2022-12-31" },
+  { id:"5", number:"ICJ 5900.0063297.23.1", title:"Portal de Gestão de Fornecedores e Contratos",           company:"Pré-Sal Petróleo", status:"Suspenso",     progress:67,  startDate:"2023-01-01", endDate:"2026-06-30" },
+];
+
+// ─── Status styles para tabela de projetos ────────────────────────────────────
+const STATUS_MAP = {
+  "Em Andamento": { bg:"#dbeafe", color:"#1d4ed8", dot:"#3b82f6" },
+  "Planejado":    { bg:"#f3f4f6", color:"#374151", dot:"#9ca3af" },
+  "Cancelado":    { bg:"#fee2e2", color:"#b91c1c", dot:"#ef4444" },
+  "Suspenso":     { bg:"#fef9c3", color:"#a16207", dot:"#eab308" },
+  "Finalizado":   { bg:"#dcfce7", color:"#15803d", dot:"#22c55e" },
+};
+
+// ─── KPI definitions ─────────────────────────────────────────────────────────
+const kpiDefs = (c) => [
+  { Icon: IBrief, label:"Total de projetos", value: c.length },
+  { Icon: ITrend, label:"Em andamento",      value: c.filter(x=>x.status==="Em Andamento").length },
+  { Icon: IClock, label:"Planejado",         value: c.filter(x=>x.status==="Planejado").length },
+  { Icon: IXCirc, label:"Cancelado",         value: c.filter(x=>x.status==="Cancelado").length },
+  { Icon: IPause, label:"Suspenso",          value: c.filter(x=>x.status==="Suspenso").length },
+  { Icon: ICheck, label:"Finalizado",        value: c.filter(x=>x.status==="Finalizado").length },
+];
+
+// ─── Clientes + form inicial + helpers de Cadastrar Projeto ──────────────────
+const CLIENTES = ["Petrobras","Transpetro","Pré-Sal Petróleo","BR Distribuidora","Petrobras Biocombustível"];
+const INITIAL_FORM = { title:"", description:"", company:"", startDate:"", endDate:"", docLink:"", focalPoint:"", email:"", contractNumber:"" };
+const genICJ      = () => { const yy=new Date().getFullYear().toString().slice(-2); const rand=String(Math.floor(Math.random()*9000000)+1000000); const seq=Math.floor(Math.random()*9)+1; return `ICJ 5900.${rand}.${yy}.${seq}`; };
+const calcMonths  = (s,e) => { if(!s||!e) return ""; const sd=new Date(s),ed=new Date(e); if(ed<=sd) return 0; return (ed.getFullYear()-sd.getFullYear())*12+(ed.getMonth()-sd.getMonth()); };
+const isURL       = (v) => { try { new URL(v); return true; } catch { return false; } };
+const isEmail     = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const fmtDate  = (d) => d instanceof Date ? d.toLocaleDateString("pt-BR") : "—";
+const fmtMoney = (v) => new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(v);
+
+const statusBadgeClass = (s) => {
+  switch (s) {
+    case "completed":  return { bg:"#dcfce7", color:"#15803d" };
+    case "in_progress":return { bg:"#dbeafe", color:"#1d4ed8" };
+    case "delayed":    return { bg:"#fee2e2", color:"#b91c1c" };
+    default:           return { bg:"#f3f4f6", color:"#374151" };
+  }
+};
+const statusLabel = (s) => {
+  switch (s) {
+    case "completed":  return "Concluída";
+    case "in_progress":return "Em Andamento";
+    case "delayed":    return "Atrasado";
+    default:           return "Pendente";
+  }
+};
+
+const calcProgress = (detail) => {
+  if (!detail) return 0;
+  if (detail.progress.length > 0) {
+    const avg = detail.progress.reduce((a, b) => a + b.completion_pct, 0) / detail.progress.length;
+    return Math.round(avg);
+  }
+  const allSprints = detail.phases.flatMap(p => p.sprints);
+  if (!allSprints.length) return 0;
+  const done = allSprints.filter(s => s.status === "completed").length;
+  return Math.round(done / allSprints.length * 100);
+};
+
+const calcMilestones = (detail) => {
+  const m = detail?.milestones ?? [];
+  return {
+    total:      m.length,
+    completed:  m.filter(x => x.status === "completed").length,
+    inProgress: m.filter(x => x.status === "in_progress").length,
+    pending:    m.filter(x => x.status === "pending").length,
+  };
+};
+
+// ─── Highlight (busca no texto) ─────────────────────────────────────────────
+const Highlight = ({ text, query }) => {
+  if (!query || !text) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = String(text).split(new RegExp(`(${escaped})`, "gi"));
+  return <>
+    {parts.map((p, i) =>
+      p.toLowerCase() === query.toLowerCase()
+        ? <mark key={i} style={{ background:"#fef08a", color:"#713f12", borderRadius:4, padding:"0 2px" }}>{p}</mark>
+        : p
+    )}
+  </>;
+};
+
+// ─── FilterDropdown ──────────────────────────────────────────────────────────
+const FilterDropdown = ({ label, value, options, onChange, isActive, width = 148 }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+  const selectedLabel = options.find(o => o.value === value)?.label ?? label;
+  return (
+    <div ref={ref} style={{ position:"relative", width, flexShrink:0 }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", gap:6,
+          padding:"8px 12px", borderRadius:8,
+          border: isActive ? "1.5px solid #201547" : "1px solid #d1d5db",
+          background: isActive ? "#201547" : "#fff",
+          color: isActive ? "#fff" : "#374151",
+          fontSize:13, fontWeight:500, cursor:"pointer", overflow:"hidden",
+        }}
+      >
+        <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{selectedLabel}</span>
+        <span style={{ flexShrink:0 }}><IChevron open={open} /></span>
+      </button>
+      {open && (
+        <div style={{
+          position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:200,
+          background:"#fff", border:"1px solid #e5e7eb", borderRadius:8,
+          boxShadow:"0 10px 20px -5px rgba(32,21,71,.15)", minWidth:190,
+          overflow:"hidden", padding:"4px 0",
+        }}>
+          {options.map(opt => {
+            const isSel = value === opt.value;
+            return (
+              <button key={opt.value}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                style={{
+                  width:"100%", textAlign:"left", display:"flex", alignItems:"center", gap:6,
+                  padding:"8px 12px", fontSize:13, cursor:"pointer", border:"none",
+                  background: isSel ? "rgba(32,21,71,0.05)" : "transparent",
+                  color: isSel ? "#201547" : "#374151", fontWeight: isSel ? 500 : 400,
+                }}
+                onMouseEnter={e => { if (!isSel) e.currentTarget.style.background="#f9fafb"; }}
+                onMouseLeave={e => { if (!isSel) e.currentTarget.style.background="transparent"; }}
+              >
+                {isSel
+                  ? <span style={{ color:"#FA4616", flexShrink:0 }}><ICheckMark /></span>
+                  : <span style={{ width:13, flexShrink:0 }} />
+                }
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Field (helper para formulário de cadastro) ──────────────────────────────
+const fieldWrap = { display:"flex", flexDirection:"column", gap:4 };
+const labelStyle = { fontSize:13, fontWeight:500, color:"#374151", marginBottom:4, display:"block" };
+const Field = ({ label, required, error, icon: Icon, children }) => (
+  <div style={fieldWrap}>
+    <label style={labelStyle}>
+      {label}{required && <span style={{ color:"#FA4616", marginLeft:2 }}>*</span>}
+    </label>
+    <div style={{ position:"relative" }}>
+      {Icon && <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:"#9ca3af", pointerEvents:"none", display:"flex" }}><Icon /></span>}
+      {children}
+    </div>
+    {error && (
+      <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:12, color:"#dc2626" }}>
+        <IAlertSm /> {error}
+      </span>
+    )}
+  </div>
+);
+
+// ─── NewProjectPage ───────────────────────────────────────────────────────────
+const NewProjectPage = ({ onSave, onOpen, onCancel, editProject = null }) => {
+  const [form,    setForm]    = useState(() =>
+    editProject
+      ? { title: editProject.title || "", description: editProject.description || "",
+          company: editProject.company || "", startDate: editProject.startDate || "",
+          endDate: editProject.endDate || "", docLink: editProject.docLink || "",
+          focalPoint: editProject.focalPoint || "", email: editProject.email || "",
+          contractNumber: editProject.contractNumber || editProject.number || "" }
+      : INITIAL_FORM
+  );
+  const [errors,  setErrors]  = useState({});
+  const [touched, setTouched] = useState({});
+  const [saving,       setSaving]      = useState(false);
+  const [savedProject,  setSavedProject] = useState(null);
+
+  const months = calcMonths(form.startDate, form.endDate);
+
+  const change = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    setTouched(t => ({ ...t, [k]: true }));
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.title.trim())                                                    e.title       = "Campo obrigatório.";
+    if (!form.description.trim())                                              e.description = "Campo obrigatório.";
+    if (!form.company)                                                         e.company     = "Selecione um cliente.";
+    if (!form.startDate)                                                       e.startDate   = "Campo obrigatório.";
+    if (!form.endDate)                                                         e.endDate     = "Campo obrigatório.";
+    if (form.startDate && form.endDate && new Date(form.endDate) <= new Date(form.startDate))
+                                                                               e.endDate     = "Deve ser posterior à data de início.";
+    if (!form.docLink.trim())                                                  e.docLink     = "Campo obrigatório.";
+    else if (!isURL(form.docLink))                                             e.docLink     = "URL inválida (ex: https://…).";
+    if (form.email && !isEmail(form.email))                                    e.email       = "E-mail inválido.";
+    return e;
+  };
+
+  useEffect(() => {
+    const e = validate();
+    setErrors(Object.fromEntries(Object.entries(e).filter(([k]) => touched[k])));
+  }, [form, touched]);
+
+  const submit = async () => {
+    setTouched(Object.fromEntries(Object.keys(INITIAL_FORM).map(k => [k, true])));
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
+    setSaving(true);
+    await new Promise(r => setTimeout(r, 350));
+    const newProject = editProject
+      ? { ...editProject, ...form, title: form.title.trim(),
+          description: form.description.trim(), durationMonths: months }
+      : { id: String(Date.now()), number: genICJ(), ...form,
+          title: form.title.trim(), description: form.description.trim(),
+          durationMonths: months, status: "Planejado", progress: 0 };
+    setSaving(false);
+    setSavedProject(newProject);
+  };
+
+  const inpStyle = (err) => ({
+    width:"100%", boxSizing:"border-box", padding:"10px 12px 10px 36px", fontSize:13,
+    border: err ? "1px solid #f87171" : "1px solid #d1d5db", borderRadius:8, outline:"none",
+    background: err ? "#fef2f2" : "#fff", color:"#1f2937", fontFamily:"inherit",
+  });
+  const card    = { background:"#fff", borderRadius:12, boxShadow:"0 4px 6px -1px rgba(32,21,71,.1)", padding:32, display:"flex", flexDirection:"column", gap:20 };
+  const section = { fontSize:14, fontWeight:600, color:"#201547", borderBottom:"1px solid #f3f4f6", paddingBottom:12, margin:0 };
+  const grid2   = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 };
+  const grid3   = { display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:20 };
+
+  return (
+    <>
+    <div style={{ minHeight:"100vh", background:"#f9fafb", fontFamily:"Poppins,system-ui,sans-serif" }}>
+      <AppHeader />
+
+      {/* Sub-header + breadcrumb */}
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", height:56, display:"flex", alignItems:"center", padding:"0 32px", gap:8 }}>
+        <button onClick={onCancel}
+          style={{ background:"none", border:"none", fontSize:13, color:"#6b7280", cursor:"pointer", padding:0 }}
+          onMouseEnter={e => e.currentTarget.style.color="#201547"}
+          onMouseLeave={e => e.currentTarget.style.color="#6b7280"}
+        >Visão geral</button>
+        <span style={{ color:"#d1d5db" }}><IChevR /></span>
+        <span style={{ fontSize:13, fontWeight:500, color:"#201547" }}>{editProject ? "Editar Projeto" : "Cadastrar Projeto"}</span>
+      </div>
+
+      <main style={{ padding:"40px 16px 80px" }}>
+        <div style={{ maxWidth:768, margin:"0 auto", display:"flex", flexDirection:"column", gap:24 }}>
+
+          <div>
+            <h1 style={{ fontSize:24, fontWeight:600, color:"#201547", margin:"0 0 4px" }}>{editProject ? "Editar Projeto" : "Cadastrar Novo Projeto"}</h1>
+            <p style={{ fontSize:13, color:"#6b7280", margin:0 }}>Campos marcados com <span style={{ color:"#FA4616" }}>*</span> são obrigatórios.</p>
+          </div>
+
+          {/* Card 1: Informações do Projeto */}
+          <div style={card}>
+            <p style={section}>Informações do Projeto</p>
+
+            <Field label="Nome do Projeto" required error={errors.title} icon={IFile}>
+              <input value={form.title} onChange={e => change("title", e.target.value)}
+                placeholder="Ex: Modernização do Sistema de Controle de Frota"
+                style={inpStyle(!!errors.title)}
+                onFocus={e => e.target.style.borderColor="#FA4616"}
+                onBlur={e => e.target.style.borderColor=errors.title?"#f87171":"#d1d5db"} />
+            </Field>
+
+            <Field label="Descrição" required error={errors.description}>
+              <textarea value={form.description} onChange={e => change("description", e.target.value)}
+                placeholder="Descreva objetivo, escopo e principais entregas…" rows={4}
+                style={{ ...inpStyle(!!errors.description), padding:"10px 12px", resize:"vertical" }}
+                onFocus={e => e.target.style.borderColor="#FA4616"}
+                onBlur={e => e.target.style.borderColor=errors.description?"#f87171":"#d1d5db"} />
+            </Field>
+
+            <div style={grid2}>
+              <Field label="Cliente" required error={errors.company} icon={IBuild}>
+                <select value={form.company} onChange={e => change("company", e.target.value)}
+                  style={{ ...inpStyle(!!errors.company), appearance:"none" }}>
+                  <option value="">Selecione o cliente…</option>
+                  {CLIENTES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </Field>
+              <Field label="Link de Documentação" required error={errors.docLink} icon={ILink2}>
+                <input type="url" value={form.docLink} onChange={e => change("docLink", e.target.value)}
+                  placeholder="https://…" style={inpStyle(!!errors.docLink)}
+                  onFocus={e => e.target.style.borderColor="#FA4616"}
+                  onBlur={e => e.target.style.borderColor=errors.docLink?"#f87171":"#d1d5db"} />
+              </Field>
+            </div>
+
+            <div style={grid3}>
+              <Field label="Data de Início" required error={errors.startDate} icon={ICalendar}>
+                <input type="date" value={form.startDate} onChange={e => change("startDate", e.target.value)}
+                  style={inpStyle(!!errors.startDate)} />
+              </Field>
+              <Field label="Data de Término" required error={errors.endDate} icon={ICalendar}>
+                <input type="date" value={form.endDate} min={form.startDate || undefined}
+                  onChange={e => change("endDate", e.target.value)}
+                  style={inpStyle(!!errors.endDate)} />
+              </Field>
+              <Field label="Período (meses)" icon={IClock}>
+                <input readOnly value={months !== "" ? `${months} ${months === 1 ? "mês" : "meses"}` : ""}
+                  placeholder="Calculado automaticamente"
+                  style={{ ...inpStyle(false), padding:"10px 12px 10px 36px", background:"#f9fafb", color:"#9ca3af", cursor:"default" }} />
+              </Field>
+            </div>
+          </div>
+
+          {/* Card 2: Contato (opcional) */}
+          <div style={card}>
+            <p style={section}>Informações de Contato <span style={{ fontSize:12, fontWeight:400, color:"#9ca3af", marginLeft:6 }}>(opcionais)</span></p>
+            <div style={grid2}>
+              <Field label="Ponto Focal" icon={IUser}>
+                <input value={form.focalPoint} onChange={e => change("focalPoint", e.target.value)}
+                  placeholder="Nome do responsável" style={inpStyle(false)}
+                  onFocus={e => e.target.style.borderColor="#FA4616"}
+                  onBlur={e => e.target.style.borderColor="#d1d5db"} />
+              </Field>
+              <Field label="E-mail" error={errors.email} icon={IMail}>
+                <input type="email" value={form.email} onChange={e => change("email", e.target.value)}
+                  placeholder="responsavel@empresa.com.br" style={inpStyle(!!errors.email)}
+                  onFocus={e => e.target.style.borderColor="#FA4616"}
+                  onBlur={e => e.target.style.borderColor=errors.email?"#f87171":"#d1d5db"} />
+              </Field>
+            </div>
+            <div style={grid2}>
+              <Field label="Número do Contrato" icon={IFile}>
+                <input value={form.contractNumber} onChange={e => change("contractNumber", e.target.value)}
+                  placeholder="Ex: 5900.0131123.25.2" style={inpStyle(false)}
+                  onFocus={e => e.target.style.borderColor="#FA4616"}
+                  onBlur={e => e.target.style.borderColor="#d1d5db"} />
+              </Field>
+            </div>
+          </div>
+
+          {/* Ações */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", paddingTop:8 }}>
+            <button onClick={onCancel}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 24px", borderRadius:8, border:"1px solid #d1d5db", background:"#fff", fontSize:13, fontWeight:500, color:"#4b5563", cursor:"pointer" }}
+              onMouseEnter={e => { e.currentTarget.style.background="#f9fafb"; e.currentTarget.style.borderColor="#9ca3af"; }}
+              onMouseLeave={e => { e.currentTarget.style.background="#fff"; e.currentTarget.style.borderColor="#d1d5db"; }}
+            ><IXIcon /> Cancelar</button>
+            <button onClick={submit} disabled={saving}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 32px", borderRadius:8, border:"none", background:saving?"#9ca3af":"#FA4616", fontSize:13, fontWeight:500, color:"#fff", cursor:saving?"not-allowed":"pointer", boxShadow:"0 2px 4px rgba(250,70,22,.3)" }}
+              onMouseEnter={e => { if(!saving) e.currentTarget.style.background="#e03d12"; }}
+              onMouseLeave={e => { if(!saving) e.currentTarget.style.background="#FA4616"; }}
+            ><ISave /> {saving ? "Salvando…" : editProject ? "Salvar Alterações" : "Salvar Projeto"}</button>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+      {/* ── Modal de confirmação de cadastro ─────────────────────────── */}
+      {savedProject && (
+        <div style={{
+          position:"fixed", inset:0, background:"rgba(32,21,71,0.45)", zIndex:1000,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:24,
+        }}>
+          <div style={{
+            background:"#fff", borderRadius:12, padding:"32px 32px 28px", maxWidth:420, width:"100%",
+            boxShadow:"0 20px 60px rgba(32,21,71,0.2)",
+          }}>
+            <h2 style={{ fontSize:18, fontWeight:700, color:"#111827", margin:"0 0 8px" }}>
+              {editProject ? "Projeto Atualizado" : "Projeto Criado"}
+            </h2>
+            <p style={{ fontSize:14, color:"#6b7280", margin:"0 0 28px", lineHeight:1.5 }}>
+              O projeto <strong style={{ color:"#201547" }}>{savedProject.title}</strong> foi {editProject ? "atualizado" : "criado"} com sucesso.
+            </p>
+            <div style={{ display:"flex", gap:12, justifyContent:"flex-end" }}>
+              <button
+                onClick={() => onSave(savedProject)}
+                style={{
+                  padding:"10px 24px", borderRadius:8, border:"1px solid #d1d5db",
+                  background:"#fff", fontSize:13, fontWeight:500, color:"#4b5563",
+                  cursor:"pointer",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background="#f9fafb"}
+                onMouseLeave={e => e.currentTarget.style.background="#fff"}
+              >Fechar</button>
+              <button
+                onClick={() => onOpen(savedProject)}
+                style={{
+                  padding:"10px 24px", borderRadius:8, border:"none",
+                  background:"#FA4616", fontSize:13, fontWeight:500, color:"#fff",
+                  cursor:"pointer", boxShadow:"0 2px 4px rgba(250,70,22,.3)",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background="#e03d12"}
+                onMouseLeave={e => e.currentTarget.style.background="#FA4616"}
+              >Abrir</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+// ─── AppHeader — logoDesliza ─────────────────────────────────────────────────
+// hasSidebar: false → Visão Geral (sem hamburger)
+//             true  → demais páginas (hamburger visível, logo desliza)
+// contextLabel: string | null — se fornecido, exibe pill contextual à direita
+const AppHeader = ({ onToggleSidebar, hasSidebar = true, contextLabel = null }) => (
+  <header style={{
+    background: C.navy, height: 72, display:"flex", alignItems:"center",
+    padding:"0 32px", gap:16, flexShrink:0,
+    boxShadow:"0 2px 8px rgba(32,21,71,0.3)", zIndex:50, position:"relative",
+  }}>
+    {/* Hamburger — ausente na Visão Geral, visível nas demais */}
+    {hasSidebar && (
+      <button
+        onClick={onToggleSidebar || (() => {})}
+        style={{ background:"transparent", border:"none", color:C.white, cursor:"pointer",
+                 padding:8, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center",
+                 transition:"background 0.15s", flexShrink:0, minWidth:36, minHeight:36 }}
+        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+      ><IMenu /></button>
+    )}
+
+    {/* Logo — desliza com a presença/ausência do hamburger */}
+    <div style={{
+      display:"flex", alignItems:"center", flexShrink:0,
+      marginLeft: hasSidebar ? 0 : 0,
+      transition:"margin-left 0.3s ease",
+    }}>
+      <SpassuLogo />
+    </div>
+
+    {/* Título — absolutamente centralizado em todas as páginas */}
+    <div style={{ position:"absolute", left:0, right:0, textAlign:"center", pointerEvents:"none" }}>
+      <span style={{ color:C.white, fontSize:24, fontWeight:600 }}>Orquestra</span>
+      <span style={{ color:"rgba(255,255,255,0.8)", fontSize:22, fontWeight:400 }}> — Gestão de Projeto de Produto</span>
+    </div>
+
+    {/* Pill contextual — só exibida quando contextLabel for fornecido */}
+    {contextLabel && (
+      <div style={{ marginLeft:"auto", flexShrink:0 }}>
+        <span style={{
+          color:"rgba(255,255,255,0.75)", fontSize:11, fontWeight:500,
+          border:"1px solid rgba(255,255,255,0.2)", background:"rgba(255,255,255,0.1)",
+          borderRadius:24, padding:"4px 12px", letterSpacing:"1px", textTransform:"uppercase",
+        }}>{contextLabel}</span>
+      </div>
+    )}
+  </header>
+);
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+const SIDEBAR_GROUPS = [
+  {
+    title: "Dashboard",
+    items: [
+      { id:"operational",  label:"Operacional",     icon: ITarget    },
+      { id:"financial",    label:"Financeiro",       icon: IDollar    },
+      { id:"process",      label:"Processo TO BE",   icon: IGitBranch },
+      { id:"usecases",     label:"Casos de Uso",     icon: IUsers     },
+      { id:"timeline",     label:"Cronograma",       icon: ICalendar  },
+      { id:"issues",       label:"Problemas",        icon: IAlertC    },
+    ],
+  },
+  {
+    title: "Cadastro",
+    items: [
+      { id:"data-entry",   label:"Entrada de Dados", icon: IDatabase  },
+    ],
+  },
+  {
+    title: "Configurações",
+    items: [
+      { id:"notifications",label:"Notificações",     icon: IBell      },
+    ],
+  },
+];
+
+const Sidebar = ({ collapsed, activeTab, onTabChange, onCollapse }) => (
+  <div style={{
+    width: collapsed ? 0 : 256,
+    overflow: "hidden",
+    flexShrink: 0,
+    transition: "width 0.3s ease",
+    background: "#ffffff",
+    borderRight: "1px solid #e5e7eb",
+    display:"flex", flexDirection:"column",
+    boxShadow: collapsed ? "none" : "2px 0 8px rgba(32,21,71,0.06)",
+  }}>
+    <div style={{ width:256, height:"100%", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+
+      {/* Cabeçalho: Navegação + botão fechar */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        padding:"20px 16px 16px", borderBottom:"1px solid #f3f4f6", flexShrink:0,
+      }}>
+        <span style={{ fontSize:14, fontWeight:600, color:"#111827" }}>Navegação</span>
+        <button
+          onClick={onCollapse}
+          style={{ background:"none", border:"none", cursor:"pointer", padding:4, borderRadius:4,
+                   color:"#9ca3af", display:"flex", alignItems:"center", justifyContent:"center",
+                   transition:"color 0.15s, background 0.15s" }}
+          onMouseEnter={e => { e.currentTarget.style.color="#374151"; e.currentTarget.style.background="#f3f4f6"; }}
+          onMouseLeave={e => { e.currentTarget.style.color="#9ca3af"; e.currentTarget.style.background="none"; }}
+          title="Fechar menu"
+        >
+          <IXSmall />
+        </button>
+      </div>
+
+      {/* Nav groups */}
+      <nav style={{ flex:1, padding:"8px 0" }}>
+        {SIDEBAR_GROUPS.map(group => (
+          <div key={group.title} style={{ marginBottom:4 }}>
+            <p style={{
+              fontSize:10, fontWeight:600, color:"#9ca3af",
+              textTransform:"uppercase", letterSpacing:"1.2px",
+              padding:"12px 16px 4px", margin:0,
+            }}>{group.title}</p>
+            {group.items.map(item => {
+              const isActive = item.id === activeTab;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onTabChange(item.id)}
+                  style={{
+                    width:"100%", display:"flex", alignItems:"center", gap:10,
+                    padding:"10px 16px", border:"none", cursor:"pointer",
+                    background: isActive ? "#FA4616" : "transparent",
+                    color: isActive ? "#ffffff" : "#374151",
+                    fontSize:13, fontWeight: isActive ? 600 : 400,
+                    textAlign:"left", transition:"background 0.15s, color 0.15s",
+                    borderLeft:"none",
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background="#f9fafb"; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background="transparent"; }}
+                >
+                  <Icon />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+    </div>
+  </div>
+);
+
+// ─── Sub-header (breadcrumb + meta) ──────────────────────────────────────────
+const SubHeader = ({ contract, progress, onBack }) => (
+  <div style={{
+    background: C.white, borderBottom:`1px solid ${C.gray200}`,
+    padding:"0 32px", height:56,
+    display:"flex", alignItems:"center", gap:12, flexShrink:0,
+  }}>
+    <button
+      onClick={onBack}
+      style={{ background:"none", border:"none", cursor:"pointer", color:C.gray500,
+               display:"flex", alignItems:"center", gap:4, fontSize:13, padding:"4px 8px",
+               borderRadius:6, transition:"color 0.15s" }}
+      onMouseEnter={e => e.currentTarget.style.color = C.navy}
+      onMouseLeave={e => e.currentTarget.style.color = C.gray500}
+    >
+      <IArrowLeft /> Visão geral
+    </button>
+    <span style={{ color:C.gray200 }}><IChevR /></span>
+    <span style={{ fontSize:13, fontWeight:500, color:C.navy,
+                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>
+      {contract.title}
+    </span>
+    <div style={{ display:"flex", alignItems:"center", gap:16, flexShrink:0 }}>
+      <span style={{ fontSize:12, color:C.gray500 }}>
+        Última atualização: {fmtDate(contract.lastUpdate)}
+      </span>
+      <span style={{
+        fontSize:13, fontWeight:700, color: progress > 0 ? C.orange : C.gray500,
+        background: progress > 0 ? "rgba(250,70,22,0.08)" : C.gray100,
+        border:`1px solid ${progress > 0 ? "rgba(250,70,22,0.2)" : C.gray200}`,
+        borderRadius:24, padding:"3px 12px",
+      }}>
+        {progress}%
+      </span>
+    </div>
+  </div>
+);
+
+// ─── KPI Card ─────────────────────────────────────────────────────────────────
+const KpiCard = ({ Icon, label, value, accentColor }) => (
+  <div style={{
+    background: C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)",
+    padding:24, display:"flex", alignItems:"center", gap:16,
+    borderLeft:`4px solid ${accentColor}`,
+  }}>
+    <div style={{
+      width:48, height:48, borderRadius:9999, flexShrink:0,
+      background:`${accentColor}18`,
+      display:"flex", alignItems:"center", justifyContent:"center",
+      color:accentColor,
+    }}>
+      <Icon />
+    </div>
+    <div>
+      <div style={{ fontSize:28, fontWeight:700, color:C.navy, lineHeight:1 }}>{value}</div>
+      <div style={{ fontSize:13, color:C.gray500, marginTop:4 }}>{label}</div>
+    </div>
+  </div>
+);
+
+// ─── Phase Card ───────────────────────────────────────────────────────────────
+const PhaseCard = ({ phase }) => {
+  const pct = phase.percentage ?? 0;
+  return (
+    <div style={{
+      background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)",
+      border:`1px solid ${C.gray200}`, overflow:"hidden",
+    }}>
+      {/* Phase header */}
+      <div style={{ padding:"14px 18px", background:"rgba(32,21,71,0.05)" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <h3 style={{ fontSize:15, fontWeight:700, color:C.navy, margin:0 }}>{phase.name}</h3>
+          <span style={{
+            fontSize:12, fontWeight:700, color:C.navy,
+            background:C.avocado, borderRadius:24, padding:"3px 10px",
+          }}>{pct}%</span>
+        </div>
+        <p style={{ fontSize:12, color:C.gray500, margin:"4px 0 0" }}>{phase.duration}</p>
+      </div>
+      {/* Sprint list */}
+      <div style={{ padding:16, display:"flex", flexDirection:"column", gap:12 }}>
+        {phase.sprints.slice(0, 3).map(sprint => {
+          const badge = statusBadgeClass(sprint.status);
+          // Fix: ensure deliverables are strings
+          const delivs = (sprint.deliverables ?? [])
+            .slice(0, 2)
+            .map(d => typeof d === "string" ? d : d?.description ?? "")
+            .filter(Boolean);
+          return (
+            <div key={sprint.id} style={{
+              borderLeft:`3px solid ${sprint.status === "completed" ? C.avocado : C.orange}`,
+              paddingLeft:12,
+            }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
+                <p style={{ fontSize:13, fontWeight:500, color:C.navy, margin:0, flex:1, lineHeight:1.4 }}>
+                  {sprint.name}
+                </p>
+                <span style={{
+                  fontSize:11, fontWeight:500, whiteSpace:"nowrap",
+                  background:badge.bg, color:badge.color,
+                  borderRadius:4, padding:"2px 8px", flexShrink:0,
+                }}>
+                  {statusLabel(sprint.status)}
+                </span>
+              </div>
+              {delivs.length > 0 && (
+                <p style={{ fontSize:11, color:C.gray500, margin:"4px 0 0" }}>
+                  {delivs.join(" • ")}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ─── PlaceholderView ──────────────────────────────────────────────────────────
+const PlaceholderView = ({ tabId }) => {
+  const labels = {
+    financial:    "Gestão Financeira",
+    process:      "Processo TO BE",
+    usecases:     "Casos de Uso",
+    timeline:     "Cronograma",
+    issues:       "Problemas",
+    "data-entry": "Entrada de Dados",
+    notifications:"Notificações",
+  };
+  return (
+    <div style={{
+      flex:1, display:"flex", flexDirection:"column", alignItems:"center",
+      justifyContent:"center", gap:16, color:C.gray500, padding:48,
+    }}>
+      <IFolder />
+      <div style={{ textAlign:"center" }}>
+        <p style={{ fontSize:18, fontWeight:600, color:C.navy, margin:"0 0 8px" }}>
+          {labels[tabId] ?? tabId}
+        </p>
+        <p style={{ fontSize:14, margin:0 }}>Esta seção está em desenvolvimento.</p>
+        <p style={{ fontSize:12, margin:"6px 0 0", color:"#9ca3af" }}>
+          Volte em breve para acompanhar as atualizações.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// ─── OperacionalView ──────────────────────────────────────────────────────────
+const OperacionalView = ({ contract, detail }) => {
+  const ms   = useMemo(() => calcMilestones(detail), [detail]);
+  const prog = useMemo(() => calcProgress(detail),   [detail]);
+  const kpis = [
+    { Icon:ITarget,  label:"Total Marcos",  value:ms.total,      accentColor:C.orange },
+    { Icon:ICheckC,  label:"Concluídas",    value:ms.completed,  accentColor:C.avocado   },
+    { Icon:IPause,   label:"Em Andamento",  value:ms.inProgress, accentColor:C.orange },
+    { Icon:ICalendar,label:"Pendentes",     value:ms.pending,    accentColor:"#D9D9D6"},
+  ];
+
+  return (
+    <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+
+      {/* Detalhes do Contrato */}
+      <div style={{
+        background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)",
+        padding:"20px 24px", borderLeft:`4px solid ${C.navy}`,
+      }}>
+        <h3 style={{ fontSize:15, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>
+          Detalhes do Contrato
+        </h3>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:24 }}>
+          {[
+            { label:"Contratada",  value: contract.contractor || "—"         },
+            { label:"Duração",     value: contract.duration   || "—"         },
+            { label:"Data Início", value: fmtDate(contract.startDate)        },
+            { label:"Data Fim",    value: fmtDate(contract.endDate)          },
+          ].map((f) => (
+            <div key={f.label}>
+              <p style={{ fontSize:11, color:C.gray500, margin:"0 0 4px" }}>{f.label}</p>
+              <p style={{ fontSize:14, fontWeight:500, color:C.navy, margin:0 }}>{f.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:20 }}>
+        {kpis.map(k => <KpiCard key={k.label} {...k} />)}
+      </div>
+
+      {/* Progresso Geral */}
+      <div style={{
+        background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", padding:"20px 24px",
+      }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+          <h2 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:0 }}>Progresso Geral do Projeto</h2>
+          <span style={{ fontSize:16, fontWeight:700, color:C.orange }}>{prog}%</span>
+        </div>
+        <div style={{ height:8, borderRadius:9999, background:"#D9D9D6", overflow:"hidden" }}>
+          <div style={{
+            height:"100%", borderRadius:9999, transition:"width 0.5s ease",
+            width:`${prog}%`,
+            background: prog > 0 ? `linear-gradient(90deg, ${C.orange} 0%, ${C.avocado} 100%)` : "transparent",
+          }} />
+        </div>
+      </div>
+
+      {/* Marcos table — only when data exists */}
+      {detail?.milestones?.length > 0 && (
+        <div style={{ background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", padding:"20px 24px" }}>
+          <h2 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>Marcos do Projeto</h2>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+            <thead>
+              <tr style={{ background:"rgba(32,21,71,0.06)" }}>
+                {["Marco","Fase","Data Alvo","Status"].map((h, i) => (
+                  <th key={h} style={{ padding:"10px 14px", textAlign: i===3?"center":"left",
+                                        color:C.navy, fontWeight:600, borderRadius: i===0?"6px 0 0 6px":i===3?"0 6px 6px 0":0 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {detail.milestones.map(m => {
+                const badge = statusBadgeClass(m.status);
+                return (
+                  <tr key={m.id} style={{ borderTop:`1px solid ${C.gray100}` }}>
+                    <td style={{ padding:"12px 14px", fontWeight:500, color:C.navy }}>{m.name}</td>
+                    <td style={{ padding:"12px 14px", color:C.gray700 }}>{m.phase || "—"}</td>
+                    <td style={{ padding:"12px 14px", color:C.gray700 }}>{m.target_date ? new Date(m.target_date).toLocaleDateString("pt-BR") : "—"}</td>
+                    <td style={{ padding:"12px 14px", textAlign:"center" }}>
+                      <span style={{ background:badge.bg, color:badge.color, fontSize:11, fontWeight:500,
+                                      borderRadius:4, padding:"3px 10px" }}>
+                        {statusLabel(m.status)}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Bottom grid: Histórico + Phase cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:20, alignItems:"start" }}>
+
+        {/* Histórico de Progresso */}
+        <div style={{
+          background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)",
+          border:`1px solid ${C.gray200}`, overflow:"hidden",
+        }}>
+          <div style={{ padding:"14px 18px", background:"rgba(32,21,71,0.05)" }}>
+            <h3 style={{ fontSize:15, fontWeight:700, color:C.navy, margin:0 }}>Histórico de Progresso</h3>
+          </div>
+          <div style={{ padding:16, maxHeight:320, overflowY:"auto" }}>
+            {detail?.progress?.length > 0
+              ? [...detail.progress]
+                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                  .map(entry => (
+                    <div key={entry.id} style={{
+                      borderLeft:`3px solid ${entry.completion_pct >= 100 ? "#10B981" : C.orange}`,
+                      paddingLeft:12, marginBottom:16,
+                    }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                        <span style={{ fontSize:11, color:C.gray500 }}>
+                          {new Date(entry.date).toLocaleDateString("pt-BR")}
+                        </span>
+                        <span style={{ fontSize:13, fontWeight:700, color:C.navy }}>
+                          {entry.completion_pct}%
+                        </span>
+                      </div>
+                      <p style={{ fontSize:13, fontWeight:500, color:C.navy, margin:0 }}>{entry.sprint_name}</p>
+                    </div>
+                  ))
+              : (
+                <div style={{ textAlign:"center", padding:"32px 16px", color:C.gray500 }}>
+                  <div style={{ marginBottom:8, opacity:0.4 }}><IBarChart /></div>
+                  <p style={{ fontSize:13, margin:"0 0 4px" }}>Nenhum registro de progresso.</p>
+                  <p style={{ fontSize:11, color:"#9ca3af", margin:0 }}>Cadastre na aba "Entrada de Dados".</p>
+                </div>
+              )
+            }
+          </div>
+        </div>
+
+        {/* Phase cards (first 2) */}
+        {detail?.phases?.slice(0, 2).map(phase => (
+          <PhaseCard key={phase.id} phase={phase} />
+        ))}
+      </div>
+
+    </div>
+  );
+};
+
+// ─── FinanceiroView ─────────────────────────────────────────────────────────
+const FinanceiroView = ({ contract, detail }) => {
+  const fmtCur = (v) =>
+    new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(v ?? 0);
+
+  const entries = detail?.financial ?? [];
+  const phases  = detail?.phases   ?? [];
+
+  // ── Totais — fiel ao cálculo do sistema original ──────────────────────────
+  const executed   = entries.reduce((s, e) => s + (e.actual   ?? 0), 0);
+  const sumPlanned = entries.reduce((s, e) => s + (e.planned  ?? 0), 0);
+  const planned    = sumPlanned > 0 ? sumPlanned : (contract.totalValue ?? 0);
+  const remaining  = planned - executed;
+  const progress   = planned > 0 ? Math.round(executed / planned * 100) : 0;
+
+  // ── Resumo por Categoria ──────────────────────────────────────────────────
+  const byCategory = useMemo(() => {
+    const map = {};
+    entries.forEach(e => {
+      const cat = e.category ?? "Outros";
+      if (!map[cat]) map[cat] = { category:cat, planned:0, actual:0, count:0 };
+      map[cat].planned += e.planned ?? 0;
+      map[cat].actual  += e.actual  ?? 0;
+      map[cat].count   += 1;
+    });
+    return Object.values(map).map(c => ({ ...c, variance: c.planned - c.actual }));
+  }, [entries]);
+
+  const kpis = [
+    { label:"Executado",  sub:"Total Realizado", value:fmtCur(executed),  borderColor:C.avocado, textColor:C.avocadoDark },
+    { label:"Planejado",  sub:"Total Orçado",    value:fmtCur(planned),   borderColor:C.orange,  textColor:C.orangeText  },
+    { label:"A Executar", sub:"Saldo Restante",  value:fmtCur(remaining), borderColor:"#D9D9D6", textColor:C.navy        },
+    { label:"Progresso",  sub:"Financeiro",      value:`${progress}%`,    borderColor:C.orange,  textColor:C.orangeText  },
+  ];
+
+  return (
+    <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+
+      {/* ── KPI Cards ── */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:24 }}>
+        {kpis.map(k => (
+          <div key={k.label} style={{
+            background:C.white, borderRadius:8, padding:24,
+            boxShadow:"0 2px 8px rgba(32,21,71,0.06)",
+            borderLeft:`4px solid ${k.borderColor}`,
+            textAlign:"center",
+          }}>
+            <div style={{ fontSize:24, fontWeight:700, color:k.textColor, marginBottom:4 }}>{k.value}</div>
+            <div style={{ fontSize:14, color:C.navy, fontWeight:500 }}>{k.label}</div>
+            <div style={{ fontSize:12, color:C.gray500, marginTop:2 }}>{k.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Grid 2 cols ── */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+
+        {/* Resumo por Categoria */}
+        <div style={{
+          background:C.white, borderRadius:8, padding:"20px 24px",
+          boxShadow:"0 2px 8px rgba(32,21,71,0.06)",
+        }}>
+          <h3 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>
+            Resumo por Categoria
+          </h3>
+          {byCategory.length === 0 ? (
+            <p style={{ textAlign:"center", color:C.gray500, padding:"16px 0" }}>
+              Nenhuma entrada financeira cadastrada.
+            </p>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+              {byCategory.map(cat => {
+                const pct     = cat.planned > 0 ? (cat.actual / cat.planned * 100).toFixed(1) : 0;
+                const acima   = cat.actual > cat.planned;
+                const barColor = acima ? "#ef4444" : "#10b981";
+                return (
+                  <div key={cat.category} style={{ borderBottom:`1px solid ${C.gray100}`, paddingBottom:12 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                      <span style={{ fontSize:14, fontWeight:500, color:C.navy }}>{cat.category}</span>
+                      <span style={{ fontSize:12, color:C.gray500 }}>{cat.count} entrada{cat.count > 1 ? "s":""}</span>
+                    </div>
+                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:4 }}>
+                      <span style={{ color:C.gray500 }}>Planejado: <strong>{fmtCur(cat.planned)}</strong></span>
+                      <span style={{ color:C.gray500 }}>Realizado: <strong>{fmtCur(cat.actual)}</strong></span>
+                    </div>
+                    <div style={{ height:6, background:"#D9D9D6", borderRadius:99, overflow:"hidden" }}>
+                      <div style={{ height:"100%", width:`${Math.min(Number(pct),100)}%`, background:barColor, borderRadius:99 }} />
+                    </div>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginTop:4, fontSize:12 }}>
+                      <span style={{ color:C.gray500 }}>{pct}% executado</span>
+                      <span style={{ color:barColor, fontWeight:600 }}>
+                        {acima ? "▲" : "▼"} {fmtCur(Math.abs(cat.variance))} {acima ? "acima" : "economia"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Distribuição por MVP */}
+        <div style={{
+          background:C.white, borderRadius:8, padding:"20px 24px",
+          boxShadow:"0 2px 8px rgba(32,21,71,0.06)",
+        }}>
+          <h3 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>
+            Distribuição por MVP
+          </h3>
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {phases.map((ph, i) => (
+              <div key={ph.id} style={{ display:"flex", alignItems:"center", gap:16 }}>
+                <div style={{ width:180, fontSize:13, fontWeight:500, color:C.navy, flexShrink:0 }}>
+                  {ph.name}
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:4 }}>
+                    <span style={{ color:C.navy }}>{fmtCur(ph.value ?? 0)}</span>
+                    <span style={{ color:C.orange, fontWeight:600 }}>{ph.percentage}%</span>
+                  </div>
+                  <div style={{ height:10, background:"#D9D9D6", borderRadius:99, overflow:"hidden" }}>
+                    <div style={{
+                      height:"100%", borderRadius:99,
+                      width:`${(ph.percentage ?? 0) * 2.5}%`,
+                      background: i % 2 === 0 ? C.orange : C.avocado,
+                    }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Detalhamento de Entradas Financeiras ── */}
+      <div style={{
+        background:C.white, borderRadius:8, padding:"20px 24px",
+        boxShadow:"0 2px 8px rgba(32,21,71,0.06)",
+      }}>
+        <h3 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>
+          Detalhamento de Entradas Financeiras
+        </h3>
+        {entries.length === 0 ? (
+          <div style={{ textAlign:"center", padding:"32px 0", color:C.gray500 }}>
+            <IFolder />
+            <p style={{ marginTop:12, fontWeight:600, color:C.navy }}>Nenhuma entrada financeira cadastrada.</p>
+            <p style={{ fontSize:13, marginTop:4 }}>Acesse "Entrada de Dados" para cadastrar entradas financeiras.</p>
+          </div>
+        ) : (
+          <table style={{ width:"100%", fontSize:13, borderCollapse:"collapse" }}>
+            <thead>
+              <tr style={{ background:"rgba(32,21,71,0.04)" }}>
+                {["Categoria","Período","Planejado","Realizado","Variação","Status"].map(h => (
+                  <th key={h} style={{
+                    padding:"10px 16px", textAlign: ["Planejado","Realizado","Variação"].includes(h) ? "right" : h === "Status" ? "center" : "left",
+                    fontWeight:600, color:C.navy, fontSize:13,
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map(e => {
+                const variacao = (e.planned ?? 0) - (e.actual ?? 0);
+                const acima    = (e.actual ?? 0) > (e.planned ?? 0);
+                return (
+                  <tr key={e.id} style={{ borderTop:`1px solid ${C.gray100}` }}>
+                    <td style={{ padding:"10px 16px", fontWeight:500, color:C.navy }}>{e.category}</td>
+                    <td style={{ padding:"10px 16px", color:C.navy }}>{e.period}</td>
+                    <td style={{ padding:"10px 16px", textAlign:"right", color:C.navy }}>{fmtCur(e.planned)}</td>
+                    <td style={{ padding:"10px 16px", textAlign:"right", color:C.navy }}>{fmtCur(e.actual)}</td>
+                    <td style={{ padding:"10px 16px", textAlign:"right" }}>
+                      <span style={{ fontWeight:600, color: acima ? "#ef4444" : "#10b981" }}>
+                        {acima ? "-" : "+"}{fmtCur(Math.abs(variacao))}
+                      </span>
+                    </td>
+                    <td style={{ padding:"10px 16px", textAlign:"center" }}>
+                      <span style={{
+                        padding:"3px 10px", borderRadius:4, fontSize:12, fontWeight:600,
+                        background: acima ? "#fee2e2" : "#d1fae5",
+                        color:      acima ? "#991b1b" : "#065f46",
+                      }}>
+                        {acima ? "Acima" : "Dentro"}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
+// ─── ProcessoToBEView ─────────────────────────────────────────────────────────
+const PROCESS_STEPS = [
+  { id:1,  title:"Planejamento e Alinhamento",          desc:"Definição de escopo, levantamento de requisitos e entendimento do processo.",                     actor:"Time SPASSU / Petrobras",  system:"Gerência de Projeto"                  },
+  { id:2,  title:"Reservar hotel",                      desc:"Colaborador realiza reserva no sistema Petrobras (OBT).",                                          actor:"Viajante",                  system:"Sistema de Reservas Petrobras (Reserve)"},
+  { id:3,  title:"Gerar reserva do Hotel",              desc:"Plataforma Spassu recebe via API os dados da reserva.",                                            actor:"Tarefa automática",         system:"Integração API"                       },
+  { id:4,  title:"Armazenar dados de reserva",          desc:"Dados armazenados e utilizados para rastreabilidade.",                                             actor:"Sistema",                   system:"Módulo Gestão"                        },
+  { id:5,  title:"Atualizar status da reserva",         desc:"Sistema atualiza status automaticamente com base na execução da viagem.",                          actor:"Sistema",                   system:"Módulo Gestão"                        },
+  { id:6,  title:"Realizar a Viagem",                   desc:"Colaborador está em viagem (data da viagem).",                                                     actor:"Viajante",                  system:"Módulo Gestão"                        },
+  { id:7,  title:"Solicitar envio de Nota Fiscal",      desc:"Após check-out, sistema envia solicitação de NF ao hotel.",                                        actor:"Tarefa automática",         system:"Módulo Hotel"                         },
+  { id:8,  title:"Upload nota fiscal",                  desc:"Hotel faz upload da nota fiscal.",                                                                 actor:"Hotel",                     system:"Módulo Hotel"                         },
+  { id:9,  title:"Upload demais documentos",            desc:"Hotel envia documentos complementares.",                                                           actor:"Hotel",                     system:"Módulo Hotel"                         },
+  { id:10, title:"Validar dados da NF com a reserva",   desc:"Módulo IA compara dados da NF e da reserva automaticamente.",                                      actor:"IA Generativa",             system:"Módulo IA"                            },
+  { id:11, title:"Solicitar ajustes necessários",       desc:"Sistema identifica divergências e solicita ajustes ao hotel.",                                     actor:"Sistema",                   system:"Módulo IA / Módulo Hotel"             },
+  { id:12, title:"Realizar ações necessárias",          desc:"Hotel realiza correções e reenvia documentação.",                                                  actor:"Hotel",                     system:"Módulo Hotel"                         },
+  { id:13, title:"Validar reserva",                     desc:"Aguardando atendimento N2 para validação manual.",                                                 actor:"Equipe N2",                 system:"Módulo Gestão"                        },
+  { id:14, title:"Dados Validados",                     desc:"Dados validados com sucesso.",                                                                     actor:"Sistema",                   system:"Módulo Gestão"                        },
+  { id:15, title:"Gerar pedido (ZSTV)",                 desc:"Sistema gera pedido no SAP após validação da NF.",                                                 actor:"Integração SAP",            system:"SAP"                                  },
+  { id:16, title:"Gerar FRS / NL",                      desc:"FRS e NL geradas automaticamente no SAP.",                                                         actor:"Sistema",                   system:"SAP"                                  },
+  { id:17, title:"Aprovar NL",                          desc:"Nota de Lançamento aprovada no SAP.",                                                              actor:"Aprovador",                 system:"SAP"                                  },
+  { id:18, title:"Criar pedido no ARIBA",               desc:"FRS enviada ao hotel, que pode subir a NF no ARIBA.",                                              actor:"Sistema / Hotel",           system:"ARIBA"                                },
+  { id:19, title:"Upload dos documentos",               desc:"Hotel envia XMLs e recibos via ARIBA.",                                                            actor:"Hotel",                     system:"ARIBA"                                },
+  { id:20, title:"Realizar validação",                  desc:"Sistema valida consistência dos documentos enviados.",                                             actor:"Sistema",                   system:"Módulo Faturamento / Financeiro"      },
+  { id:21, title:"Verificar pendências / Notificar fiscal", desc:"Sistema notifica o fiscal sobre pendências encontradas.",                                      actor:"Sistema",                   system:"Módulo Faturamento"                   },
+  { id:22, title:"Agendar / Realizar pagamento",        desc:"Pagamento é agendado e executado após resolução de pendências.",                                   actor:"Setor de Compras",          system:"SAP / Financeiro"                     },
+  { id:23, title:"Painel de Reservas / Indicadores",   desc:"Eventos atualizados em dashboards com relatórios e acompanhamento.",                               actor:"Sistema",                   system:"Módulo Gestão"                        },
+];
+
+const PROCESS_OBJECTIVES = {
+  operacional: [
+    "Redução de 70% no tempo de processamento",
+    "Validação automática com >90% de precisão",
+    "Redução de 90% no processamento manual",
+  ],
+  tecnico: [
+    "Integração completa SAP/OBTs",
+    "Rastreabilidade completa do processo",
+    "Notificações automáticas em tempo real",
+  ],
+};
+
+const ProcessoToBEView = ({ contract }) => {
+  const tag = (label, variant) => (
+    <span style={{
+      fontSize:11, padding:"3px 8px", borderRadius:4, fontWeight:500,
+      background: variant === "actor"  ? "rgba(32,21,71,0.10)"  : "rgba(250,70,22,0.10)",
+      color:      variant === "actor"  ? C.navy                  : C.orangeText,
+    }}>{label}</span>
+  );
+
+  return (
+    <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+
+      {/* Cabeçalho da view */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div>
+          <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:C.navy }}>Processo TO BE</h2>
+          <p style={{ margin:"4px 0 0", fontSize:13, color:C.gray500 }}>
+            Fluxo automatizado de gestão de pagamento de hotéis — {PROCESS_STEPS.length} etapas
+          </p>
+        </div>
+        <div style={{
+          background:C.avocado, borderRadius:24, padding:"6px 16px",
+          fontSize:13, fontWeight:700, color:C.avocadoDark,
+        }}>
+          {PROCESS_STEPS.length} Etapas Automatizadas
+        </div>
+      </div>
+
+      {/* Objetivos */}
+      <div style={{ background:C.white, borderRadius:12, boxShadow:"0 4px 6px -1px rgba(32,21,71,.08)", padding:24 }}>
+        <h3 style={{ margin:"0 0 16px", fontSize:14, fontWeight:700, color:C.navy }}>Objetivos do Processo TO BE</h3>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+          {[
+            { title:"Melhorias Operacionais", items:PROCESS_OBJECTIVES.operacional },
+            { title:"Benefícios Técnicos",    items:PROCESS_OBJECTIVES.tecnico     },
+          ].map(col => (
+            <div key={col.title}>
+              <p style={{ margin:"0 0 10px", fontSize:13, fontWeight:600, color:C.orangeText }}>{col.title}</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {col.items.map((item, i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color:C.navy }}>
+                    <div style={{ width:8, height:8, borderRadius:999, background:C.avocado, flexShrink:0 }} />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Fluxo de etapas */}
+      <div style={{ background:C.white, borderRadius:12, boxShadow:"0 4px 6px -1px rgba(32,21,71,.08)", padding:24 }}>
+        <h3 style={{ margin:"0 0 20px", fontSize:14, fontWeight:700, color:C.navy }}>Fluxo do Processo</h3>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+          {PROCESS_STEPS.map(step => (
+            <div key={step.id} style={{
+              border:"1px solid", borderColor:C.gray200, borderRadius:10,
+              padding:14, display:"flex", flexDirection:"column", gap:8,
+              transition:"box-shadow .15s",
+            }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow="0 4px 12px rgba(32,21,71,.10)"}
+              onMouseLeave={e => e.currentTarget.style.boxShadow="none"}
+            >
+              <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+                {/* Número */}
+                <div style={{
+                  flexShrink:0, width:28, height:28, borderRadius:999,
+                  background:C.navy, color:C.white,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:11, fontWeight:700,
+                }}>{step.id}</div>
+                {/* Título + descrição */}
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:600, color:C.navy, lineHeight:1.4 }}>{step.title}</p>
+                  <p style={{ margin:0, fontSize:11, color:C.gray500, lineHeight:1.5,
+                    display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden",
+                  }}>{step.desc}</p>
+                </div>
+              </div>
+              {/* Tags de ator e sistema */}
+              <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
+                {tag(step.actor,  "actor")}
+                {tag(step.system, "system")}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+// ─── ContractDetailPage ───────────────────────────────────────────────────────
+const ContractDetailPage = ({ contract, detail, onBack }) => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);   // inicia colapsada
+  const [activeTab,        setActiveTab]        = useState("operational");
+  const progress = calcProgress(detail);
+
+  return (
+    <div style={{
+      display:"flex", flexDirection:"column", height:"100vh",
+      fontFamily:"'Poppins', system-ui, sans-serif", overflow:"hidden",
+    }}>
+      <AppHeader onToggleSidebar={() => setSidebarCollapsed(v => !v)} contextLabel="Operacional" />
+
+      <div style={{ display:"flex", flex:1, overflow:"hidden" }}>
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onCollapse={() => setSidebarCollapsed(true)}
+        />
+
+        <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+          <SubHeader contract={contract} progress={progress} onBack={onBack} />
+
+          <main style={{ flex:1, overflowY:"auto", background:C.gray50 }}>
+            {activeTab === "operational" ? <OperacionalView    contract={contract} detail={detail} /> :
+             activeTab === "financial"   ? <FinanceiroView     contract={contract} detail={detail} /> :
+             activeTab === "process"     ? <ProcessoToBEView   contract={contract} detail={detail} /> :
+             <PlaceholderView tabId={activeTab} />
+            }
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── NavSwitch — pill de navegação fixo entre Preview e Design System ────────
+const NavSwitch = () => (
+  <div style={{
+    position:"fixed", bottom:16, right:16, zIndex:999999,
+    display:"flex", background:"rgba(0,0,0,0.75)", borderRadius:999,
+    overflow:"hidden", fontFamily:"sans-serif", fontSize:12,
+    boxShadow:"0 4px 12px rgba(0,0,0,0.2)", opacity:0.7,
+  }}
+    onMouseOver={e => e.currentTarget.style.opacity = "1"}
+    onMouseOut={e  => e.currentTarget.style.opacity = "0.7"}
+  >
+    <span style={{ padding:"8px 12px", background:"#fff", color:"#000", fontWeight:600 }}>Preview</span>
+    <a href="design-system.html" style={{ padding:"8px 12px", color:"#fff", textDecoration:"none" }}>Design System</a>
+  </div>
+);
+
+// ─── App (roteador simples: "home" | "new" | "detail") ──────────────────────
+function App() {
+  const [page,          setPage]         = useState("home");
+  const [selectedId,    setSelectedId]   = useState(null);
+  const [projects,      setProjects]     = useState(MOCK_PROJECTS);
+  const [q,             setQ]            = useState("");
+  const [filterStatus,  setFilterStatus] = useState("todos");
+  const [filterCliente, setFilterCliente]= useState("todos");
+  const [lastAction,    setLastAction]    = useState(null);
+  // Modal de exclusão
+  const [deleteTarget,  setDeleteTarget] = useState(null); // { id, title }
+  const [editTarget,    setEditTarget]   = useState(null); // projeto em edição
+
+  // ── Toast com auto-dismiss (3 s) ─────────────────────────────────────────
+  const triggerToast = (msg) => {
+    setLastAction(msg);
+    setTimeout(() => setLastAction(null), 3000);
+  };
+  // Paginação
+  const [currentPage,   setCurrentPage]  = useState(1);
+  const [itemsPerPage,  setItemsPerPage] = useState(() => {
+    try { return Number(localStorage.getItem("orq_ipp")) || 25; } catch { return 25; }
+  });
+
+  // ── Navegar para detalhes ────────────────────────────────────────────────
+  const handleViewDetail = (id) => {
+    setSelectedId(id);
+    setPage("detail");
+  };
+
+  // ── Voltar para Visão Geral ──────────────────────────────────────────────
+  const handleBack = () => {
+    setPage("home");
+    setSelectedId(null);
+  };
+
+  // Resetar para p.1 ao filtrar; persistir itemsPerPage
+  useEffect(() => { setCurrentPage(1); }, [q, filterStatus, filterCliente]);
+  useEffect(() => {
+    setCurrentPage(1);
+    try { localStorage.setItem("orq_ipp", String(itemsPerPage)); } catch {}
+  }, [itemsPerPage]);
+
+  // ── Salvar novo projeto e voltar ─────────────────────────────────────────
+  const handleSaveProject = (project) => {
+    if (editTarget) {
+      setProjects(prev => prev.map(p => p.id === project.id ? project : p));
+      triggerToast("Projeto atualizado.");
+    } else {
+      setProjects(prev => [...prev, project]);
+    }
+    setEditTarget(null);
+    setPage("home");
+  };
+
+  // ── Salvar novo projeto e abrir detalhe ──────────────────────────────────
+  const handleOpenProject = (project) => {
+    if (editTarget) {
+      setProjects(prev => prev.map(p => p.id === project.id ? project : p));
+    } else {
+      setProjects(prev => [...prev, project]);
+    }
+    setEditTarget(null);
+    setSelectedId(project.id);
+    setPage("detail");
+  };
+
+  // ── Página Cadastrar Projeto ─────────────────────────────────────────────
+  if (page === "new") {
+    return (
+      <><NewProjectPage
+        editProject={editTarget}
+        onSave={handleSaveProject}
+        onOpen={handleOpenProject}
+        onCancel={() => { setEditTarget(null); setPage("home"); }}
+      /><NavSwitch /></>
+    );
+  }
+
+  // ── Página de Detalhes ───────────────────────────────────────────────────
+  if (page === "detail") {
+    const selProj     = projects.find(p => p.id === selectedId) || projects[0];
+    const contractObj = {
+      id:         selProj.id,
+      number:     selProj.number || selProj.contractNumber || "",
+      title:      selProj.title,
+      company:    selProj.company,
+      status:     selProj.status   || "Planejado",
+      progress:   selProj.progress ?? 0,
+      contractor: selProj.contractor || "SPASSU TECNOLOGIA E SERVIÇOS S.A.",
+      duration:   calcMonths(selProj.startDate, selProj.endDate)
+                    ? `${calcMonths(selProj.startDate, selProj.endDate)} meses`
+                    : "—",
+      startDate:  selProj.startDate ? new Date(selProj.startDate) : null,
+      endDate:    selProj.endDate   ? new Date(selProj.endDate)   : null,
+      totalValue: selProj.totalValue || 0,
+      lastUpdate: new Date(),
+    };
+    const detailObj = selProj.id === "1" ? MOCK_DETAIL : {
+      milestones: [], phases: [], progress: [], financial: [], issues: [],
+    };
+    return (
+      <><ContractDetailPage
+        contract={contractObj}
+        detail={detailObj}
+        onBack={handleBack}
+      /><NavSwitch /></>
+    );
+  }
+
+  // ── Visão Geral (página inicial) ─────────────────────────────────────────
+  const clienteOptions = [
+    { value:"todos", label:"Todos os clientes" },
+    ...[...new Set(projects.map(c => c.company))].sort().map(c => ({ value:c, label:c })),
+  ];
+  const statusOptions = [
+    { value:"todos",        label:"Todos os status"  },
+    { value:"Em Andamento", label:"Em Andamento"     },
+    { value:"Planejado",    label:"Planejado"        },
+    { value:"Suspenso",     label:"Suspenso"         },
+    { value:"Cancelado",    label:"Cancelado"        },
+    { value:"Finalizado",   label:"Finalizado"       },
+  ];
+  const lq = q.toLowerCase().trim();
+  const filtered = projects.filter(c => {
+    const mStatus  = filterStatus  === "todos" || c.status  === filterStatus;
+    const mCliente = filterCliente === "todos" || c.company === filterCliente;
+    const mText    = !lq || c.title.toLowerCase().includes(lq) || c.company.toLowerCase().includes(lq) || c.number.toLowerCase().includes(lq);
+    return mStatus && mCliente && mText;
+  });
+  const kpis       = kpiDefs(filtered);
+  const isFiltered = q.trim() !== "" || filterStatus !== "todos" || filterCliente !== "todos";
+
+  // Paginação derivada
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginated  = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Gera array de páginas visíveis com ellipsis (max 5 + pontas)
+  const getPageNums = (cur, total) => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const left  = Math.max(2, cur - 2);
+    const right = Math.min(total - 1, cur + 2);
+    const pages = [1];
+    if (left > 2)          pages.push("…");
+    for (let i = left; i <= right; i++) pages.push(i);
+    if (right < total - 1) pages.push("…");
+    pages.push(total);
+    return pages;
+  };
+  const clearAll   = () => { setQ(""); setFilterStatus("todos"); setFilterCliente("todos"); };
+  const iconBtn    = {
+    background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:4,
+    padding:6, cursor:"pointer", color:"#6b7280",
+    display:"flex", alignItems:"center", justifyContent:"center",
+  };
+
+  return (
+    <>
+    <div style={{ minHeight:"100vh", background:"#f9fafb", fontFamily:"Poppins, system-ui, sans-serif" }}>
+
+      {/* ── Header — logoDesliza (sem hamburger na Visão Geral) ──────── */}
+      <AppHeader hasSidebar={false} />
+
+      {/* ── Sub-header ─────────────────────────────────────────────────── */}
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", height:56, display:"flex", alignItems:"center", padding:"0 32px", gap:16 }}>
+        <h1 style={{ fontSize:24, fontWeight:500, color:"#111827", flex:1, margin:0 }}>Visão geral</h1>
+        {lastAction && (
+          <span style={{ fontSize:12, color:"#16a34a", background:"#f0fdf4", border:"1px solid #bbf7d0", padding:"4px 10px", borderRadius:6 }}>{lastAction}</span>
+        )}
+        <button
+          style={{ background:"#FA4616", color:"#fff", border:"none", borderRadius:8, padding:"10px 16px",
+                   fontSize:13, fontWeight:500, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}
+          onMouseEnter={e => e.currentTarget.style.background="#e03d12"}
+          onMouseLeave={e => e.currentTarget.style.background="#FA4616"}
+          onClick={() => setPage("new")}
+        >
+          <IPlus /> Cadastrar Projeto
+        </button>
+      </div>
+
+      {/* ── Conteúdo ───────────────────────────────────────────────────── */}
+      <main style={{ padding:32, display:"flex", flexDirection:"column", gap:24 }}>
+
+        {/* KPI Strip */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:24 }}>
+          {kpis.map(({ Icon, label, value }) => (
+            <div key={label} style={{ background:"#fff", borderRadius:8, boxShadow:"0 4px 6px -1px rgba(32,21,71,.1)",
+                                      padding:24, display:"flex", alignItems:"center", justifyContent:"space-between", height:100 }}>
+              <div style={{ display:"flex", flexDirection:"column", justifyContent:"space-between", height:"100%" }}>
+                <span style={{ fontSize:13, fontWeight:500, color:"#201547" }}>{label}</span>
+                <span style={{ fontSize:24, fontWeight:600, color:"#201547" }}>{value}</span>
+              </div>
+              <div style={{ width:48, height:48, borderRadius:9999, background:"rgba(250,70,22,0.08)",
+                             display:"flex", alignItems:"center", justifyContent:"center", color:"#FA4616", flexShrink:0 }}>
+                <Icon />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Barra de Busca + Filtros ───────────────────────────────── */}
+        <div style={{ background:"#fff", borderRadius:8, boxShadow:"0 4px 6px -1px rgba(32,21,71,.1)", padding:"14px 20px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+            <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"center", gap:8, background:"#f9fafb",
+                           border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 12px" }}
+              onFocusCapture={e => e.currentTarget.style.borderColor="#FA4616"}
+              onBlurCapture={e => e.currentTarget.style.borderColor="#e5e7eb"}
+            >
+              <span style={{ color:"#9ca3af", flexShrink:0 }}><ISearch /></span>
+              <input
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                placeholder="Buscar por título, cliente ou código ICJ…"
+                style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:13, color:"#374151", minWidth:0 }}
+              />
+              {q && (
+                <button onClick={() => setQ("")} style={{ background:"none", border:"none", cursor:"pointer",
+                          color:"#9ca3af", display:"flex", padding:0, flexShrink:0 }}
+                  onMouseEnter={e => e.currentTarget.style.color="#374151"}
+                  onMouseLeave={e => e.currentTarget.style.color="#9ca3af"}
+                ><IXSmall /></button>
+              )}
+            </div>
+            <FilterDropdown label="Status"  value={filterStatus}  options={statusOptions}  onChange={setFilterStatus}  isActive={filterStatus  !== "todos"} width={148} />
+            <FilterDropdown label="Cliente" value={filterCliente} options={clienteOptions} onChange={setFilterCliente} isActive={filterCliente !== "todos"} width={164} />
+            <button
+              onClick={isFiltered ? clearAll : undefined}
+              style={{
+                display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:500,
+                borderRadius:8, padding:"8px 12px", whiteSpace:"nowrap",
+                cursor: isFiltered ? "pointer" : "not-allowed",
+                border: isFiltered ? "1px solid #fecaca" : "1px solid #e5e7eb",
+                background: isFiltered ? "#fef2f2" : "#f9fafb",
+                color: isFiltered ? "#b91c1c" : "#d1d5db",
+                opacity: isFiltered ? 1 : 0.7,
+              }}
+              onMouseEnter={e => { if (isFiltered) { e.currentTarget.style.background="#fee2e2"; e.currentTarget.style.borderColor="#f87171"; } }}
+              onMouseLeave={e => { if (isFiltered) { e.currentTarget.style.background="#fef2f2"; e.currentTarget.style.borderColor="#fecaca"; } }}
+            ><IXSmall /> Limpar filtros</button>
+          </div>
+        </div>
+
+        {/* ── Tabela de Projetos ─────────────────────────────────────── */}
+        <div style={{ background:"#fff", borderRadius:8, boxShadow:"0 4px 6px -1px rgba(32,21,71,.1)", padding:24 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+            <h2 style={{ fontSize:22, fontWeight:600, color:"#201547", margin:0 }}>Projetos Cadastrados</h2>
+            <span style={{ fontSize:13, fontWeight:500, color: isFiltered ? "#FA4616" : "#9ca3af" }}>
+              {filtered.length} projeto{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse" }}>
+            <thead>
+              <tr style={{ background:"rgba(217,217,214,0.35)" }}>
+                {["Título","Cliente","Status","Progresso","Ações"].map((h, i, arr) => (
+                  <th key={h} style={{
+                    padding:"14px 16px", fontSize:13, fontWeight:500, color:"#201547",
+                    textAlign: h==="Ações" ? "right" : "left",
+                    borderRadius: i===0 ? "8px 0 0 8px" : i===arr.length-1 ? "0 8px 8px 0" : 0,
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ padding:"48px 16px", textAlign:"center", color:"#9ca3af" }}>
+                    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
+                      <span style={{ color:"#d1d5db" }}><IFolder /></span>
+                      <span style={{ fontSize:14, fontWeight:500 }}>
+                        {isFiltered ? "Nenhum projeto corresponde aos filtros." : "Nenhum projeto encontrado."}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginated.map((c, idx) => {
+                const s = STATUS_MAP[c.status] ?? STATUS_MAP["Planejado"];
+                return (
+                  <tr key={c.id} style={{ borderTop: idx > 0 ? "1px solid #f3f4f6" : "none" }}
+                    onMouseEnter={e => e.currentTarget.style.background="#fafafa"}
+                    onMouseLeave={e => e.currentTarget.style.background="transparent"}
+                  >
+                    {/* Título — clicável para Ver detalhes */}
+                    <td style={{ padding:16, verticalAlign:"middle" }}>
+                      <button
+                        onClick={() => handleViewDetail(c.id)}
+                        title="Ver detalhes do projeto"
+                        style={{ background:"none", border:"none", cursor:"pointer", padding:0, textAlign:"left" }}
+                        onMouseEnter={e => {
+                          e.currentTarget.querySelector(".ttl").style.color="#FA4616";
+                          e.currentTarget.querySelector(".ttl").style.textDecoration="underline";
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.querySelector(".ttl").style.color="#201547";
+                          e.currentTarget.querySelector(".ttl").style.textDecoration="none";
+                        }}
+                      >
+                        <span className="ttl" style={{ fontSize:13, fontWeight:500, color:"#201547", display:"block", transition:"color 0.15s" }}>
+                          <Highlight text={c.title} query={q} />
+                        </span>
+                        <span style={{ fontSize:11, color:"#9ca3af", display:"block", marginTop:2 }}>
+                          <Highlight text={c.number} query={q} />
+                        </span>
+                      </button>
+                    </td>
+                    {/* Cliente */}
+                    <td style={{ padding:16, fontSize:13, color:"#201547" }}>
+                      <Highlight text={c.company} query={q} />
+                    </td>
+                    {/* Status */}
+                    <td style={{ padding:16 }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:6, background:s.bg,
+                                     color:s.color, fontSize:12, fontWeight:500, padding:"4px 10px", borderRadius:6 }}>
+                        <span style={{ width:6, height:6, borderRadius:"50%", background:s.dot, flexShrink:0 }} />
+                        {c.status}
+                      </span>
+                    </td>
+                    {/* Progresso */}
+                    <td style={{ padding:16 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, width:120 }}>
+                        <div style={{ flex:1, background:"#e5e7eb", borderRadius:9999, height:6, overflow:"hidden" }}>
+                          <div style={{ height:"100%", width:`${Math.min(c.progress ?? 0, 100)}%`,
+                                        background:"#FA4616", borderRadius:9999 }} />
+                        </div>
+                        <span style={{ fontSize:12, fontWeight:500, color:"#FA4616", width:28,
+                                       textAlign:"right", flexShrink:0 }}>{c.progress ?? 0}%</span>
+                      </div>
+                    </td>
+                    {/* Ações */}
+                    <td style={{ padding:16 }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", gap:4 }}>
+                        <button style={iconBtn} title="Ver detalhes" onClick={() => handleViewDetail(c.id)}
+                          onMouseEnter={e => { e.currentTarget.style.background="#eff6ff"; e.currentTarget.style.borderColor="#bfdbfe"; e.currentTarget.style.color="#1d4ed8"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background="#f9fafb"; e.currentTarget.style.borderColor="#e5e7eb"; e.currentTarget.style.color="#6b7280"; }}
+                        ><ILink /></button>
+                        <button style={iconBtn} title="Editar" onClick={() => { setEditTarget(c); setPage("new"); }}
+                          onMouseEnter={e => e.currentTarget.style.background="#f3f4f6"}
+                          onMouseLeave={e => e.currentTarget.style.background="#f9fafb"}
+                        ><IPencil /></button>
+                        <button style={iconBtn} title="Excluir"
+                          onClick={() => setDeleteTarget({ id: c.id, title: c.title })}
+                          onMouseEnter={e => { e.currentTarget.style.background="#fef2f2"; e.currentTarget.style.borderColor="#fecaca"; e.currentTarget.style.color="#b91c1c"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background="#f9fafb"; e.currentTarget.style.borderColor="#e5e7eb"; e.currentTarget.style.color="#6b7280"; }}
+                        ><ITrash /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          </div>
+
+          {/* ── Footer de paginação ─────────────────────────────────────── */}
+          {totalPages > 1 && (
+            <div style={{
+              borderTop:"1px solid #f3f4f6", padding:"16px 24px",
+              display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12,
+            }}>
+              {/* Contador descritivo */}
+              <span style={{ fontSize:13, color:"#6b7280", flexShrink:0 }}>
+                Exibindo {Math.min((currentPage-1)*itemsPerPage+1, filtered.length)}–{Math.min(currentPage*itemsPerPage, filtered.length)} de {filtered.length} projeto{filtered.length!==1?"s":""}
+              </span>
+
+              {/* Navegação central */}
+              <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                {/* Anterior */}
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p-1))}
+                  disabled={currentPage === 1}
+                  style={{ padding:"6px 10px", borderRadius:6, border:"1px solid #e5e7eb",
+                           background:"#fff", color: currentPage===1 ? "#d1d5db" : "#374151",
+                           cursor: currentPage===1 ? "default" : "pointer", fontSize:13, lineHeight:1 }}
+                >←</button>
+
+                {/* Números */}
+                {getPageNums(currentPage, totalPages).map((p, i) =>
+                  p === "…" ? (
+                    <span key={"e"+i} style={{ padding:"6px 4px", fontSize:13, color:"#9ca3af" }}>…</span>
+                  ) : (
+                    <button key={p}
+                      onClick={() => setCurrentPage(p)}
+                      style={{
+                        padding:"6px 10px", borderRadius:6, border:"1px solid",
+                        borderColor: p===currentPage ? "#FA4616" : "#e5e7eb",
+                        background: p===currentPage ? "#FA4616" : "#fff",
+                        color:       p===currentPage ? "#fff"    : "#374151",
+                        cursor:"pointer", fontSize:13, fontWeight: p===currentPage ? 600 : 400,
+                        minWidth:32,
+                      }}
+                    >{p}</button>
+                  )
+                )}
+
+                {/* Próximo */}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))}
+                  disabled={currentPage === totalPages}
+                  style={{ padding:"6px 10px", borderRadius:6, border:"1px solid #e5e7eb",
+                           background:"#fff", color: currentPage===totalPages ? "#d1d5db" : "#374151",
+                           cursor: currentPage===totalPages ? "default" : "pointer", fontSize:13, lineHeight:1 }}
+                >→</button>
+              </div>
+
+              {/* Pills de densidade */}
+              <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+                {[10, 25, 50].map(n => (
+                  <button key={n}
+                    onClick={() => setItemsPerPage(n)}
+                    style={{
+                      padding:"5px 12px", borderRadius:24, border:"1px solid",
+                      borderColor: n===itemsPerPage ? "#FA4616" : "#e5e7eb",
+                      background:  n===itemsPerPage ? "#FA4616" : "#fff",
+                      color:       n===itemsPerPage ? "#fff"    : "#6b7280",
+                      cursor:"pointer", fontSize:12, fontWeight: n===itemsPerPage ? 600 : 400,
+                    }}
+                  >{n}</button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+      {/* ── Modal de confirmação de exclusão ────────────────────────────── */}
+      {deleteTarget && (
+        <div style={{
+          position:"fixed", inset:0, background:"rgba(32,21,71,0.45)", zIndex:1000,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:24,
+        }}>
+          <div style={{
+            background:"#fff", borderRadius:12, padding:"32px 32px 28px", maxWidth:420, width:"100%",
+            boxShadow:"0 20px 60px rgba(32,21,71,0.2)",
+          }}>
+            {/* Ícone de alerta */}
+            <div style={{ width:44, height:44, borderRadius:8, background:"#fef2f2",
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          color:"#b91c1c", marginBottom:16 }}>
+              <ITrash />
+            </div>
+            <h2 style={{ fontSize:17, fontWeight:700, color:"#111827", margin:"0 0 8px" }}>
+              Excluir projeto
+            </h2>
+            <p style={{ fontSize:14, color:"#6b7280", margin:"0 0 24px", lineHeight:1.6 }}>
+              Tem certeza que deseja excluir{" "}
+              <strong style={{ color:"#201547" }}>{deleteTarget.title}</strong>?
+              Esta ação não pode ser desfeita.
+            </p>
+            <div style={{ display:"flex", gap:12, justifyContent:"flex-end" }}>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                style={{ padding:"10px 24px", borderRadius:8, border:"1px solid #d1d5db",
+                         background:"#fff", fontSize:13, fontWeight:500, color:"#4b5563", cursor:"pointer" }}
+                onMouseEnter={e => e.currentTarget.style.background="#f9fafb"}
+                onMouseLeave={e => e.currentTarget.style.background="#fff"}
+              >Cancelar</button>
+              <button
+                onClick={() => {
+                  setProjects(prev => prev.filter(p => p.id !== deleteTarget.id));
+                  triggerToast("Projeto excluído.");
+                  setDeleteTarget(null);
+                  setCurrentPage(1);
+                }}
+                style={{ padding:"10px 24px", borderRadius:8, border:"none",
+                         background:"#b91c1c", fontSize:13, fontWeight:500, color:"#fff",
+                         cursor:"pointer", boxShadow:"0 2px 4px rgba(32,21,71,0.15)" }}
+                onMouseEnter={e => e.currentTarget.style.background="#991b1b"}
+                onMouseLeave={e => e.currentTarget.style.background="#b91c1c"}
+              >Excluir</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <NavSwitch />
+    </>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+  </script>
+</body>
+</html>
