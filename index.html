@@ -1230,6 +1230,140 @@ const FinanceiroView = ({ contract, detail }) => {
 };
 
 
+// ─── ProcessoToBEView ─────────────────────────────────────────────────────────
+const PROCESS_STEPS = [
+  { id:1,  title:"Planejamento e Alinhamento",          desc:"Definição de escopo, levantamento de requisitos e entendimento do processo.",                     actor:"Time SPASSU / Petrobras",  system:"Gerência de Projeto"                  },
+  { id:2,  title:"Reservar hotel",                      desc:"Colaborador realiza reserva no sistema Petrobras (OBT).",                                          actor:"Viajante",                  system:"Sistema de Reservas Petrobras (Reserve)"},
+  { id:3,  title:"Gerar reserva do Hotel",              desc:"Plataforma Spassu recebe via API os dados da reserva.",                                            actor:"Tarefa automática",         system:"Integração API"                       },
+  { id:4,  title:"Armazenar dados de reserva",          desc:"Dados armazenados e utilizados para rastreabilidade.",                                             actor:"Sistema",                   system:"Módulo Gestão"                        },
+  { id:5,  title:"Atualizar status da reserva",         desc:"Sistema atualiza status automaticamente com base na execução da viagem.",                          actor:"Sistema",                   system:"Módulo Gestão"                        },
+  { id:6,  title:"Realizar a Viagem",                   desc:"Colaborador está em viagem (data da viagem).",                                                     actor:"Viajante",                  system:"Módulo Gestão"                        },
+  { id:7,  title:"Solicitar envio de Nota Fiscal",      desc:"Após check-out, sistema envia solicitação de NF ao hotel.",                                        actor:"Tarefa automática",         system:"Módulo Hotel"                         },
+  { id:8,  title:"Upload nota fiscal",                  desc:"Hotel faz upload da nota fiscal.",                                                                 actor:"Hotel",                     system:"Módulo Hotel"                         },
+  { id:9,  title:"Upload demais documentos",            desc:"Hotel envia documentos complementares.",                                                           actor:"Hotel",                     system:"Módulo Hotel"                         },
+  { id:10, title:"Validar dados da NF com a reserva",   desc:"Módulo IA compara dados da NF e da reserva automaticamente.",                                      actor:"IA Generativa",             system:"Módulo IA"                            },
+  { id:11, title:"Solicitar ajustes necessários",       desc:"Sistema identifica divergências e solicita ajustes ao hotel.",                                     actor:"Sistema",                   system:"Módulo IA / Módulo Hotel"             },
+  { id:12, title:"Realizar ações necessárias",          desc:"Hotel realiza correções e reenvia documentação.",                                                  actor:"Hotel",                     system:"Módulo Hotel"                         },
+  { id:13, title:"Validar reserva",                     desc:"Aguardando atendimento N2 para validação manual.",                                                 actor:"Equipe N2",                 system:"Módulo Gestão"                        },
+  { id:14, title:"Dados Validados",                     desc:"Dados validados com sucesso.",                                                                     actor:"Sistema",                   system:"Módulo Gestão"                        },
+  { id:15, title:"Gerar pedido (ZSTV)",                 desc:"Sistema gera pedido no SAP após validação da NF.",                                                 actor:"Integração SAP",            system:"SAP"                                  },
+  { id:16, title:"Gerar FRS / NL",                      desc:"FRS e NL geradas automaticamente no SAP.",                                                         actor:"Sistema",                   system:"SAP"                                  },
+  { id:17, title:"Aprovar NL",                          desc:"Nota de Lançamento aprovada no SAP.",                                                              actor:"Aprovador",                 system:"SAP"                                  },
+  { id:18, title:"Criar pedido no ARIBA",               desc:"FRS enviada ao hotel, que pode subir a NF no ARIBA.",                                              actor:"Sistema / Hotel",           system:"ARIBA"                                },
+  { id:19, title:"Upload dos documentos",               desc:"Hotel envia XMLs e recibos via ARIBA.",                                                            actor:"Hotel",                     system:"ARIBA"                                },
+  { id:20, title:"Realizar validação",                  desc:"Sistema valida consistência dos documentos enviados.",                                             actor:"Sistema",                   system:"Módulo Faturamento / Financeiro"      },
+  { id:21, title:"Verificar pendências / Notificar fiscal", desc:"Sistema notifica o fiscal sobre pendências encontradas.",                                      actor:"Sistema",                   system:"Módulo Faturamento"                   },
+  { id:22, title:"Agendar / Realizar pagamento",        desc:"Pagamento é agendado e executado após resolução de pendências.",                                   actor:"Setor de Compras",          system:"SAP / Financeiro"                     },
+  { id:23, title:"Painel de Reservas / Indicadores",   desc:"Eventos atualizados em dashboards com relatórios e acompanhamento.",                               actor:"Sistema",                   system:"Módulo Gestão"                        },
+];
+
+const PROCESS_OBJECTIVES = {
+  operacional: [
+    "Redução de 70% no tempo de processamento",
+    "Validação automática com >90% de precisão",
+    "Redução de 90% no processamento manual",
+  ],
+  tecnico: [
+    "Integração completa SAP/OBTs",
+    "Rastreabilidade completa do processo",
+    "Notificações automáticas em tempo real",
+  ],
+};
+
+const ProcessoToBEView = ({ contract }) => {
+  const tag = (label, variant) => (
+    <span style={{
+      fontSize:11, padding:"3px 8px", borderRadius:4, fontWeight:500,
+      background: variant === "actor"  ? "rgba(32,21,71,0.10)"  : "rgba(250,70,22,0.10)",
+      color:      variant === "actor"  ? C.navy                  : C.orangeText,
+    }}>{label}</span>
+  );
+
+  return (
+    <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+
+      {/* Cabeçalho da view */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div>
+          <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:C.navy }}>Processo TO BE</h2>
+          <p style={{ margin:"4px 0 0", fontSize:13, color:C.gray500 }}>
+            Fluxo automatizado de gestão de pagamento de hotéis — {PROCESS_STEPS.length} etapas
+          </p>
+        </div>
+        <div style={{
+          background:C.avocado, borderRadius:24, padding:"6px 16px",
+          fontSize:13, fontWeight:700, color:C.avocadoDark,
+        }}>
+          {PROCESS_STEPS.length} Etapas Automatizadas
+        </div>
+      </div>
+
+      {/* Objetivos */}
+      <div style={{ background:C.white, borderRadius:12, boxShadow:"0 4px 6px -1px rgba(32,21,71,.08)", padding:24 }}>
+        <h3 style={{ margin:"0 0 16px", fontSize:14, fontWeight:700, color:C.navy }}>Objetivos do Processo TO BE</h3>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+          {[
+            { title:"Melhorias Operacionais", items:PROCESS_OBJECTIVES.operacional },
+            { title:"Benefícios Técnicos",    items:PROCESS_OBJECTIVES.tecnico     },
+          ].map(col => (
+            <div key={col.title}>
+              <p style={{ margin:"0 0 10px", fontSize:13, fontWeight:600, color:C.orangeText }}>{col.title}</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {col.items.map((item, i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color:C.navy }}>
+                    <div style={{ width:8, height:8, borderRadius:999, background:C.avocado, flexShrink:0 }} />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Fluxo de etapas */}
+      <div style={{ background:C.white, borderRadius:12, boxShadow:"0 4px 6px -1px rgba(32,21,71,.08)", padding:24 }}>
+        <h3 style={{ margin:"0 0 20px", fontSize:14, fontWeight:700, color:C.navy }}>Fluxo do Processo</h3>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+          {PROCESS_STEPS.map(step => (
+            <div key={step.id} style={{
+              border:"1px solid", borderColor:C.gray200, borderRadius:10,
+              padding:14, display:"flex", flexDirection:"column", gap:8,
+              transition:"box-shadow .15s",
+            }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow="0 4px 12px rgba(32,21,71,.10)"}
+              onMouseLeave={e => e.currentTarget.style.boxShadow="none"}
+            >
+              <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+                {/* Número */}
+                <div style={{
+                  flexShrink:0, width:28, height:28, borderRadius:999,
+                  background:C.navy, color:C.white,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:11, fontWeight:700,
+                }}>{step.id}</div>
+                {/* Título + descrição */}
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:600, color:C.navy, lineHeight:1.4 }}>{step.title}</p>
+                  <p style={{ margin:0, fontSize:11, color:C.gray500, lineHeight:1.5,
+                    display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden",
+                  }}>{step.desc}</p>
+                </div>
+              </div>
+              {/* Tags de ator e sistema */}
+              <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
+                {tag(step.actor,  "actor")}
+                {tag(step.system, "system")}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
 // ─── ContractDetailPage ───────────────────────────────────────────────────────
 const ContractDetailPage = ({ contract, detail, onBack }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);   // inicia colapsada
@@ -1255,8 +1389,9 @@ const ContractDetailPage = ({ contract, detail, onBack }) => {
           <SubHeader contract={contract} progress={progress} onBack={onBack} />
 
           <main style={{ flex:1, overflowY:"auto", background:C.gray50 }}>
-            {activeTab === "operational" ? <OperacionalView  contract={contract} detail={detail} /> :
-             activeTab === "financial"   ? <FinanceiroView   contract={contract} detail={detail} /> :
+            {activeTab === "operational" ? <OperacionalView    contract={contract} detail={detail} /> :
+             activeTab === "financial"   ? <FinanceiroView     contract={contract} detail={detail} /> :
+             activeTab === "process"     ? <ProcessoToBEView   contract={contract} detail={detail} /> :
              <PlaceholderView tabId={activeTab} />
             }
           </main>
