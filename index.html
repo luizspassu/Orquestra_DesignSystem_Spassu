@@ -968,101 +968,203 @@ const ProcessoToBEView = () => {
 };
 
 /* ── CasosDeUsoView ── */
-const USE_CASES = [
-  { id:"UC01", title:"Cadastrar Contrato",          actor:"Gestor",        priority:"Alta",  status:"done",        desc:"Registrar novo contrato com dados para gestão e rastreabilidade." },
-  { id:"UC02", title:"Registrar Marco de Entrega",  actor:"Gestor",        priority:"Alta",  status:"done",        desc:"Cadastrar marcos associados a um contrato ativo." },
-  { id:"UC03", title:"Aprovar Pagamento",           actor:"Financeiro",    priority:"Alta",  status:"done",        desc:"Fluxo de aprovação de pagamentos vinculados a contratos." },
-  { id:"UC04", title:"Acompanhar Progresso",        actor:"Gestor",        priority:"Alta",  status:"in_progress", desc:"Visualizar percentual de progresso e status dos marcos." },
-  { id:"UC05", title:"Registrar Entrada de Dados",  actor:"Operador",      priority:"Alta",  status:"in_progress", desc:"Interface para inserção de dados de desempenho." },
-  { id:"UC06", title:"Emitir Notificação",          actor:"Sistema",       priority:"Média", status:"in_progress", desc:"Alertas automáticos sobre vencimentos e pendências." },
-  { id:"UC07", title:"Consultar Histórico",         actor:"Auditor",       priority:"Média", status:"pending",     desc:"Auditoria completa de alterações e aprovações." },
-  { id:"UC08", title:"Integrar com ERP",            actor:"Sistema",       priority:"Média", status:"pending",     desc:"Integração bidirecional com ERP para dados financeiros." },
-  { id:"UC09", title:"Exportar Relatório",          actor:"Gestor",        priority:"Baixa", status:"pending",     desc:"Geração de relatórios em PDF e Excel." },
-  { id:"UC10", title:"Gerenciar Usuários e Perfis", actor:"Administrador", priority:"Média", status:"pending",     desc:"Controle de acesso com perfis diferenciados." },
+const UC_DATA = [
+  {
+    id:"UC_001", title:"Criar nova solicitação de viagem", actor:"Viajante",
+    desc:"Sistema recebe dados de reserva via API e cria registro no sistema.",
+    pre:"Reserva realizada no sistema OBT",
+    steps:["Sistema recebe dados via API","Valida dados obrigatórios","Cria registro da solicitação"],
+    post:"Solicitação criada e disponível para acompanhamento", mvp:"Sim",
+  },
+  {
+    id:"UC_002", title:"Validar nota fiscal com IA", actor:"IA Generativa",
+    desc:"Sistema utiliza IA para validar automaticamente dados da NF contra a reserva.",
+    pre:"Nota fiscal enviada pelo hotel",
+    steps:["Recebe arquivo da nota fiscal","Extrai dados relevantes usando IA","Compara com dados da reserva"],
+    post:"Validação concluída com relatório de conformidade", mvp:"Sim",
+  },
+  {
+    id:"UC_003", title:"Solicitar ajustes ao hotel", actor:"Sistema",
+    desc:"Quando inconsistências são detectadas, sistema solicita correções ao hotel.",
+    pre:"Inconsistências identificadas na validação",
+    steps:["Identifica inconsistências específicas","Gera e-mail detalhado com problemas","Envia notificação ao hotel"],
+    post:"Hotel notificado e aguardando correções", mvp:"Sim",
+  },
+  {
+    id:"UC_004", title:"Gerar pedido no SAP", actor:"Integração SAP",
+    desc:"Após validação bem-sucedida, sistema gera pedido automaticamente no SAP.",
+    pre:"Nota fiscal validada com sucesso",
+    steps:["Prepara dados para integração SAP","Chama API do SAP","Cria pedido ZSTV"],
+    post:"Pedido criado no SAP e pronto para processamento", mvp:"Sim",
+  },
+  {
+    id:"UC_005", title:"Verificar pendências e notificar fiscal", actor:"Sistema",
+    desc:"Sistema verifica pendências no faturamento e notifica o fiscal responsável.",
+    pre:"Documentação submetida no ARIBA",
+    steps:["Valida consistência dos documentos","Identifica pendências encontradas","Notifica fiscal via sistema"],
+    post:"Fiscal informado e pendências registradas para resolução", mvp:"Não",
+  },
 ];
-const UC_ACTORS = ["Todos","Gestor","Financeiro","Sistema","Auditor","Administrador","Operador"];
+
+const UC_ACTOR_COLORS = {
+  "Viajante":       { bg:"rgba(250,70,22,0.12)",  color:"#FA4616" },
+  "IA Generativa":  { bg:"rgba(219,228,66,0.25)", color:"#8a9300" },
+  "Sistema":        { bg:"rgba(32,21,71,0.10)",   color:"#201547" },
+  "Integração SAP": { bg:"rgba(32,21,71,0.80)",   color:"#ffffff" },
+};
+const UC_ACTORS_FILTER = ["Todos", "Viajante", "IA Generativa", "Sistema", "Integração SAP"];
 
 const CasosDeUsoView = () => {
-  const [filter, setFilter] = useState("Todos");
-  const ucStatus = {
-    done:        { label:"Implementado", bg:"rgba(16,185,129,0.12)", color:"#065f46" },
-    in_progress: { label:"Em Andamento", bg:"rgba(250,70,22,0.10)",  color:C.orange },
-    pending:     { label:"Pendente",     bg:"rgba(32,21,71,0.08)",   color:C.navy },
-  };
-  const priorityColor = { "Alta":C.orange, "Média":C.navy, "Baixa":C.gray500 };
-  const kpis = [
-    { Icon:IClipboard, label:"Total de UCs",  value:USE_CASES.length,                                    accentColor:C.navy    },
-    { Icon:ICheckC,    label:"Implementados", value:USE_CASES.filter(u=>u.status==="done").length,        accentColor:"#10B981" },
-    { Icon:IPause,     label:"Em Andamento",  value:USE_CASES.filter(u=>u.status==="in_progress").length, accentColor:C.orange  },
-    { Icon:ICalendar,  label:"Pendentes",     value:USE_CASES.filter(u=>u.status==="pending").length,     accentColor:"#D9D9D6" },
-  ];
-  const filtered = filter==="Todos" ? USE_CASES : USE_CASES.filter(u=>u.actor===filter);
+  const [actorFilter, setActorFilter] = React.useState("Todos");
+  const [innerTab,    setInnerTab]    = React.useState("cases"); // "cases" | "matrix"
+
+  const filtered = actorFilter === "Todos"
+    ? UC_DATA
+    : UC_DATA.filter(u => u.actor === actorFilter);
+
+  const innerTabStyle = (id) => ({
+    padding:"8px 20px", fontSize:13, fontWeight:600, cursor:"pointer",
+    border:"none", borderBottom: innerTab===id ? "2px solid "+C.orange : "2px solid transparent",
+    background:"transparent", color: innerTab===id ? C.navy : C.gray500,
+    transition:"all .15s",
+  });
+
   return (
-    <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:24 }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <div>
-          <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:C.navy }}>Casos de Uso</h2>
-          <p style={{ margin:"4px 0 0", fontSize:13, color:C.gray500 }}>{USE_CASES.length} casos mapeados</p>
-        </div>
-        <div style={{ background:C.avocado, borderRadius:24, padding:"6px 16px", fontSize:13, fontWeight:700, color:C.avocadoDark }}>
-          {USE_CASES.filter(u=>u.status==="done").length}/{USE_CASES.length} Implementados
-        </div>
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:20 }}>
-        {kpis.map(k => <KpiCard key={k.label} Icon={k.Icon} label={k.label} value={k.value} accentColor={k.accentColor} />)}
-      </div>
-      <div style={{ background:C.white, borderRadius:12, boxShadow:"0 4px 6px -1px rgba(32,21,71,.08)", overflow:"hidden" }}>
-        <div style={{ padding:"16px 24px", borderBottom:"1px solid "+C.gray100, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
-          <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:C.navy }}>Mapeamento de Casos de Uso</h3>
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-            {UC_ACTORS.map(a => (
-              <button key={a} onClick={()=>setFilter(a)}
-                style={{ padding:"4px 12px", borderRadius:24, fontSize:11, fontWeight:600, cursor:"pointer", border:"1px solid", transition:"all .15s", borderColor:filter===a?C.navy:C.gray200, background:filter===a?C.navy:C.white, color:filter===a?C.white:C.gray700 }}>
-                {a}
-              </button>
-            ))}
+    <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+
+      {/* ── Header banner ── */}
+      <div style={{ background:C.navy, padding:"20px 32px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:48, height:48, borderRadius:10, background:C.orange, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <IUsers size={24} color="#fff" />
+          </div>
+          <div>
+            <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:"#fff" }}>Casos de Uso – SPASSU</h1>
+            <p style={{ margin:"2px 0 0", fontSize:13, color:"rgba(255,255,255,0.6)" }}>Sistema de Gestão de Hotéis</p>
           </div>
         </div>
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead>
-              <tr style={{ background:"rgba(32,21,71,0.04)" }}>
-                <th style={{ padding:"10px 16px", textAlign:"left",   color:C.navy, fontWeight:600, borderBottom:"1px solid "+C.gray200 }}>ID</th>
-                <th style={{ padding:"10px 16px", textAlign:"left",   color:C.navy, fontWeight:600, borderBottom:"1px solid "+C.gray200 }}>Caso de Uso</th>
-                <th style={{ padding:"10px 16px", textAlign:"left",   color:C.navy, fontWeight:600, borderBottom:"1px solid "+C.gray200 }}>Ator</th>
-                <th style={{ padding:"10px 16px", textAlign:"center", color:C.navy, fontWeight:600, borderBottom:"1px solid "+C.gray200 }}>Prioridade</th>
-                <th style={{ padding:"10px 16px", textAlign:"center", color:C.navy, fontWeight:600, borderBottom:"1px solid "+C.gray200 }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((uc, idx) => {
-                const s = ucStatus[uc.status];
+        <div style={{ textAlign:"right" }}>
+          <div style={{ fontSize:28, fontWeight:700, color:C.avocado, lineHeight:1 }}>{UC_DATA.length}</div>
+          <div style={{ fontSize:12, color:"rgba(255,255,255,0.6)", marginTop:2 }}>Casos de Uso</div>
+        </div>
+      </div>
+
+      {/* ── Tabs internas ── */}
+      <div style={{ background:C.white, borderBottom:"1px solid "+C.gray200, padding:"0 32px", display:"flex", gap:4 }}>
+        <button style={innerTabStyle("cases")}   onClick={() => setInnerTab("cases")}>Casos de Uso</button>
+        <button style={innerTabStyle("matrix")}  onClick={() => setInnerTab("matrix")}>Rastreabilidade</button>
+      </div>
+
+      {/* ── Conteúdo ── */}
+      <div style={{ padding:"24px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+
+        {innerTab === "cases" && (
+          <>
+            {/* Filtro por ator */}
+            <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+              <span style={{ fontSize:12, fontWeight:600, color:C.gray500, marginRight:4 }}>Filtrar por ator:</span>
+              {UC_ACTORS_FILTER.map(a => (
+                <button key={a} onClick={() => setActorFilter(a)}
+                  style={{ padding:"4px 14px", borderRadius:24, fontSize:11, fontWeight:600, cursor:"pointer", border:"1px solid",
+                    borderColor: actorFilter===a ? C.navy : C.gray200,
+                    background:  actorFilter===a ? C.navy : C.white,
+                    color:        actorFilter===a ? C.white : C.gray700,
+                    transition:"all .15s" }}>
+                  {a}
+                </button>
+              ))}
+            </div>
+
+            {/* Cards grid */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:20 }}>
+              {filtered.map(uc => {
+                const ac = UC_ACTOR_COLORS[uc.actor] || { bg:"rgba(32,21,71,0.08)", color:C.navy };
                 return (
-                  <tr key={uc.id}
-                    style={{ borderBottom:"1px solid "+C.gray100, background:idx%2===1?"rgba(249,250,251,0.6)":C.white }}
-                    onMouseEnter={e=>e.currentTarget.style.background="rgba(32,21,71,0.03)"}
-                    onMouseLeave={e=>e.currentTarget.style.background=idx%2===1?"rgba(249,250,251,0.6)":C.white}
-                  >
-                    <td style={{ padding:"12px 16px", fontWeight:700, color:C.navy, whiteSpace:"nowrap" }}>{uc.id}</td>
-                    <td style={{ padding:"12px 16px" }}>
-                      <p style={{ margin:"0 0 2px", fontWeight:500, color:C.navy }}>{uc.title}</p>
-                      <p style={{ margin:0, fontSize:11, color:C.gray500, maxWidth:380 }}>{uc.desc}</p>
-                    </td>
-                    <td style={{ padding:"12px 16px", color:C.gray700, whiteSpace:"nowrap" }}>{uc.actor}</td>
-                    <td style={{ padding:"12px 16px", textAlign:"center" }}>
-                      <span style={{ fontSize:11, fontWeight:600, color:priorityColor[uc.priority] }}>{uc.priority}</span>
-                    </td>
-                    <td style={{ padding:"12px 16px", textAlign:"center" }}>
-                      <span style={{ background:s.bg, color:s.color, fontSize:11, fontWeight:600, borderRadius:4, padding:"3px 10px", whiteSpace:"nowrap" }}>
-                        {s.label}
+                  <div key={uc.id}
+                    style={{ background:C.white, borderRadius:10, border:"1px solid "+C.gray200,
+                      boxShadow:"0 2px 6px rgba(32,21,71,0.06)", padding:20, display:"flex", flexDirection:"column", gap:12 }}>
+
+                    <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12 }}>
+                      <div>
+                        <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:C.navy }}>{uc.title}</h3>
+                        <p style={{ margin:"3px 0 0", fontSize:11, color:C.gray500 }}>{uc.id}</p>
+                      </div>
+                      <span style={{ flexShrink:0, fontSize:11, fontWeight:700, borderRadius:4, padding:"3px 10px",
+                        background:ac.bg, color:ac.color, whiteSpace:"nowrap" }}>
+                        {uc.actor}
                       </span>
-                    </td>
-                  </tr>
+                    </div>
+
+                    <p style={{ margin:0, fontSize:13, color:C.gray700 }}>{uc.desc}</p>
+
+                    <div>
+                      <p style={{ margin:"0 0 2px", fontSize:12, fontWeight:700, color:C.orange }}>Pré-condições:</p>
+                      <p style={{ margin:0, fontSize:12, color:C.gray700 }}>{uc.pre}</p>
+                    </div>
+
+                    <div>
+                      <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.orange }}>Fluxo Principal:</p>
+                      <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                        {uc.steps.map((step, idx) => (
+                          <div key={idx} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                            <div style={{ flexShrink:0, width:20, height:20, borderRadius:"50%", background:C.navy,
+                              display:"flex", alignItems:"center", justifyContent:"center",
+                              fontSize:11, fontWeight:700, color:"#fff" }}>{idx+1}</div>
+                            <span style={{ fontSize:12, color:C.gray700, paddingTop:2 }}>{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p style={{ margin:"0 0 2px", fontSize:12, fontWeight:700, color:C.orange }}>Pós-condições:</p>
+                      <p style={{ margin:0, fontSize:12, color:C.gray700 }}>{uc.post}</p>
+                    </div>
+
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </>
+        )}
+
+        {innerTab === "matrix" && (
+          <div style={{ background:C.white, borderRadius:10, border:"1px solid "+C.gray200, boxShadow:"0 2px 6px rgba(32,21,71,0.06)", overflow:"hidden" }}>
+            <div style={{ padding:"14px 20px", borderBottom:"1px solid "+C.gray200 }}>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:C.navy }}>Matriz de Rastreabilidade</h3>
+            </div>
+            <div style={{ overflowX:"auto" }}>
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+                <thead>
+                  <tr style={{ background:"rgba(32,21,71,0.04)" }}>
+                    {["Caso de Uso","Ator","Pré-condições","Pós-condições","MVP"].map(h => (
+                      <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:C.navy, fontWeight:600, borderBottom:"1px solid "+C.gray200, whiteSpace:"nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {UC_DATA.map((uc, idx) => (
+                    <tr key={uc.id} style={{ borderBottom:"1px solid "+C.gray100, background:idx%2===1?"rgba(249,250,251,0.6)":C.white }}>
+                      <td style={{ padding:"10px 16px", fontWeight:700, color:C.navy, whiteSpace:"nowrap" }}>{uc.id}</td>
+                      <td style={{ padding:"10px 16px", color:C.gray700, whiteSpace:"nowrap" }}>{uc.actor}</td>
+                      <td style={{ padding:"10px 16px", color:C.gray700, maxWidth:260 }}>{uc.pre}</td>
+                      <td style={{ padding:"10px 16px", color:C.gray700, maxWidth:260 }}>
+                        {uc.post.length > 45 ? uc.post.substring(0,45)+"..." : uc.post}
+                      </td>
+                      <td style={{ padding:"10px 16px", textAlign:"center" }}>
+                        <span style={{ fontSize:11, fontWeight:600,
+                          color: uc.mvp==="Sim" ? "#065f46" : C.gray500,
+                          background: uc.mvp==="Sim" ? "rgba(16,185,129,0.12)" : C.gray100,
+                          borderRadius:4, padding:"2px 8px" }}>{uc.mvp}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
