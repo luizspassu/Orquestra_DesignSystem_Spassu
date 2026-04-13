@@ -3,24 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orquestra — Gestão de Projeto de Produto</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Poppins', sans-serif; background: #f9fafb; }
-    button { font-family: inherit; cursor: pointer; }
-    input, select, textarea { font-family: inherit; }
-  </style>
-  <!-- load react -->
+  <title>Orquestra – Contract Detail</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f5f7; }
+    #root { min-height: 100vh; }
+  </style>
 </head>
 <body>
   <div id="root"></div>
-  <!-- NAV SWITCH (Preview ativo) -->
   <script type="text/babel">
 const { useState, useMemo, useRef, useEffect } = React;
 
@@ -1485,7 +1479,10 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App /
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
   </script>
 </body>
 </html>
