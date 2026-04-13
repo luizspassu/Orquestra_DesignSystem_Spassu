@@ -86,22 +86,27 @@ const C = {
 const MOCK_DETAIL = {
   milestones:[],
   phases:[
-    { id:"1", name:"Discovery", percentage:10, duration:"2 semanas", value:78000,
-      sprints:[{ id:"s1", name:"Sprint 0: Validação do Entendimento e Planejamento Inicial", status:"pending", deliverables:["Documento de escopo validado","Plano de projeto inicial"] }] },
-    { id:"2", name:"MVP1: Core Backend", percentage:35, duration:"10 semanas", value:273000,
+    { id:"1", name:"Discovery", percentage:10, duration:"3 semanas", value:78000,
+      startDate:"2025-01-10", endDate:"2025-01-31", phaseStatus:"completed",
+      sprints:[{ id:"s1", name:"Sprint 0: Validação do Entendimento e Planejamento Inicial", status:"completed", deliverables:["Documento de escopo validado","Plano de projeto inicial"] }] },
+    { id:"2", name:"MVP1: Core Backend", percentage:35, duration:"14 semanas", value:273000,
+      startDate:"2025-02-03", endDate:"2025-05-09", phaseStatus:"in_progress",
       sprints:[
-        { id:"s2", name:"Sprint 1: Fundação do Backend e Setup de Interfaces", status:"pending", deliverables:["Ambiente configurado","APIs base implementadas"] },
-        { id:"s3", name:"Sprint 2: Integração com OBTs e Visualização de Reservas", status:"pending", deliverables:["Integração OBT concluída","Tela de reservas funcional"] },
-        { id:"s4", name:"Sprint 3: Módulo de Notas Fiscais e IA para Validação", status:"pending", deliverables:["Módulo NF implementado","IA de validação integrada"] },
+        { id:"s2", name:"Sprint 1: Fundação do Backend e Setup de Interfaces",       status:"completed",   deliverables:["Ambiente configurado","APIs base implementadas"] },
+        { id:"s3", name:"Sprint 2: Integração com OBTs e Visualização de Reservas",  status:"in_progress", deliverables:["Integração OBT concluída","Tela de reservas funcional"] },
+        { id:"s4", name:"Sprint 3: Módulo de Notas Fiscais e IA para Validação",     status:"pending",     deliverables:["Módulo NF implementado","IA de validação integrada"] },
       ] },
-    { id:"3", name:"MVP2: Frontend & Integrações", percentage:25, duration:"8 semanas", value:195000,
+    { id:"3", name:"MVP2: Frontend & Integrações", percentage:25, duration:"11 semanas", value:195000,
+      startDate:"2025-05-12", endDate:"2025-07-25", phaseStatus:"pending",
       sprints:[
-        { id:"s5", name:"Sprint 4: Interface Web e Mobile", status:"pending", deliverables:["App web responsivo","App mobile iOS/Android"] },
+        { id:"s5", name:"Sprint 4: Interface Web e Mobile",         status:"pending", deliverables:["App web responsivo","App mobile iOS/Android"] },
         { id:"s6", name:"Sprint 5: Integrações de Pagamento e GDS", status:"pending", deliverables:["Gateway integrado","GDS conectado"] },
       ] },
-    { id:"4", name:"MVP3: Validação & Testes", percentage:20, duration:"6 semanas", value:156000,
+    { id:"4", name:"MVP3: Validação & Testes", percentage:20, duration:"10 semanas", value:156000,
+      startDate:"2025-07-28", endDate:"2025-10-03", phaseStatus:"pending",
       sprints:[{ id:"s7", name:"Sprint 6: QA, Segurança e Performance", status:"pending", deliverables:["Cobertura >80%","Pentest concluído"] }] },
-    { id:"5", name:"Go-Live", percentage:10, duration:"2 semanas", value:78000,
+    { id:"5", name:"Go-Live", percentage:10, duration:"7 semanas", value:78000,
+      startDate:"2025-10-06", endDate:"2025-11-21", phaseStatus:"pending",
       sprints:[{ id:"s8", name:"Sprint 7: Deploy, Cutover e Estabilização", status:"pending", deliverables:["Sistema em produção","Treinamento concluído"] }] },
   ],
   progress:[],
@@ -1171,6 +1176,208 @@ const CasosDeUsoView = () => {
 };
 
 /* ── ContractDetailPage ── */
+/* ── CronogramaView ── */
+const PHASE_STATUS_MAP = {
+  completed:   { bar:"#10B981", label:"Conclu\u00edda",    text:"#065f46", bg:"rgba(16,185,129,0.12)" },
+  in_progress: { bar:"#FA4616", label:"Em Andamento", text:"#FA4616", bg:"rgba(250,70,22,0.10)"  },
+  pending:     { bar:"#201547", label:"Pendente",     text:"#201547", bg:"rgba(32,21,71,0.08)"   },
+};
+
+const GANTT_MONTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov"];
+const G_START = new Date("2025-01-10").getTime();
+const G_END   = new Date("2025-11-21").getTime();
+const G_TOTAL = G_END - G_START;
+
+const ganttBar = (s, e) => {
+  const ms = new Date(s).getTime(), me = new Date(e).getTime();
+  const left  = Math.max(0, (ms - G_START) / G_TOTAL * 100);
+  const width = Math.max(1, (me - ms)      / G_TOTAL * 100);
+  return { left, width };
+};
+
+const CronogramaView = ({ detail }) => {
+  const [innerTab, setInnerTab] = React.useState("gantt");
+  const phases = (detail && detail.phases) ? detail.phases : [];
+
+  const doneCount   = phases.filter(p => p.phaseStatus === "completed").length;
+  const activeCount = phases.filter(p => p.phaseStatus === "in_progress").length;
+  const totalValue  = phases.reduce((a, p) => a + p.value, 0);
+
+  const kpis = [
+    { label:"Total de Fases",   value: phases.length,   color:"#201547"  },
+    { label:"Conclu\u00eddas", value: doneCount,        color:"#10B981"  },
+    { label:"Em Andamento",     value: activeCount,      color:"#FA4616"  },
+    { label:"Valor do Projeto", value: fmtCur(totalValue), color:"#201547", small:true },
+  ];
+
+  const tabStyle = (id) => ({
+    padding:"8px 20px", fontSize:13, fontWeight:600, cursor:"pointer",
+    border:"none", borderBottom: innerTab===id ? "2px solid #FA4616" : "2px solid transparent",
+    background:"transparent", color: innerTab===id ? "#201547" : "#6b7280",
+    transition:"all .15s",
+  });
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column" }}>
+
+      {/* Banner */}
+      <div style={{ background:"#201547", padding:"20px 32px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:48, height:48, borderRadius:10, background:"#FA4616", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <ICalendar size={24} color="#fff" />
+          </div>
+          <div>
+            <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:"#fff" }}>Cronograma \u2013 SPASSU</h1>
+            <p style={{ margin:"2px 0 0", fontSize:13, color:"rgba(255,255,255,0.6)" }}>Gest\u00e3o de Pagamento de Hot\u00e9is \u00b7 Jan\u2013Nov 2025</p>
+          </div>
+        </div>
+        <div style={{ textAlign:"right" }}>
+          <div style={{ fontSize:28, fontWeight:700, color:"#DBE442", lineHeight:1 }}>{phases.length}</div>
+          <div style={{ fontSize:12, color:"rgba(255,255,255,0.6)", marginTop:2 }}>Fases do Projeto</div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", padding:"0 32px", display:"flex", gap:4 }}>
+        <button style={tabStyle("gantt")}  onClick={() => setInnerTab("gantt")}>Gantt</button>
+        <button style={tabStyle("phases")} onClick={() => setInnerTab("phases")}>Fases & Entregas</button>
+      </div>
+
+      <div style={{ padding:"24px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+
+        {/* KPIs */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
+          {kpis.map(k => (
+            <div key={k.label} style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb",
+              padding:"14px 18px", boxShadow:"0 2px 6px rgba(32,21,71,0.06)" }}>
+              <p style={{ margin:"0 0 4px", fontSize:12, color:"#6b7280", fontWeight:500 }}>{k.label}</p>
+              <p style={{ margin:0, fontSize: k.small ? 16 : 24, fontWeight:700, color:k.color }}>{k.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Gantt */}
+        {innerTab === "gantt" && (
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", boxShadow:"0 2px 6px rgba(32,21,71,0.06)", overflow:"hidden" }}>
+            <div style={{ padding:"14px 20px", borderBottom:"1px solid #e5e7eb" }}>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Linha do Tempo</h3>
+              <p style={{ margin:"3px 0 0", fontSize:12, color:"#6b7280" }}>Jan 2025 \u2013 Nov 2025</p>
+            </div>
+            <div style={{ padding:"20px 24px 24px" }}>
+              {/* Meses */}
+              <div style={{ display:"flex", marginBottom:10 }}>
+                <div style={{ width:150, flexShrink:0 }} />
+                <div style={{ flex:1, display:"grid", gridTemplateColumns:"repeat(11,1fr)" }}>
+                  {GANTT_MONTHS.map(m => (
+                    <div key={m} style={{ textAlign:"center", fontSize:11, fontWeight:600, color:"#6b7280" }}>{m}</div>
+                  ))}
+                </div>
+                <div style={{ width:120, flexShrink:0 }} />
+              </div>
+              {/* Linhas */}
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {phases.map(phase => {
+                  const col = PHASE_STATUS_MAP[phase.phaseStatus] || PHASE_STATUS_MAP.pending;
+                  const pos = (phase.startDate && phase.endDate) ? ganttBar(phase.startDate, phase.endDate) : { left:0, width:0 };
+                  const shortName = phase.name.includes(":") ? phase.name.split(":")[0] : phase.name;
+                  return (
+                    <div key={phase.id} style={{ display:"flex", alignItems:"center" }}>
+                      <div style={{ width:150, flexShrink:0, fontSize:12, fontWeight:600, color:"#201547",
+                        textAlign:"right", paddingRight:12, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                        {shortName}
+                      </div>
+                      <div style={{ flex:1, position:"relative", height:30, background:"rgba(32,21,71,0.03)", borderRadius:4 }}>
+                        {[1,2,3,4,5,6,7,8,9,10].map(i => (
+                          <div key={i} style={{ position:"absolute", left:(i/11*100)+"%", top:0, bottom:0,
+                            width:1, background:"rgba(32,21,71,0.07)", pointerEvents:"none" }} />
+                        ))}
+                        <div style={{ position:"absolute", left:pos.left+"%", width:pos.width+"%",
+                          height:"100%", borderRadius:4, background:col.bar,
+                          display:"flex", alignItems:"center", paddingLeft:8, overflow:"hidden" }}>
+                          <span style={{ fontSize:11, fontWeight:700, color:"#fff", whiteSpace:"nowrap" }}>{phase.duration}</span>
+                        </div>
+                      </div>
+                      <div style={{ width:120, flexShrink:0, paddingLeft:12 }}>
+                        <span style={{ fontSize:11, fontWeight:600, padding:"2px 8px", borderRadius:4,
+                          background:col.bg, color:col.text }}>{col.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Legenda */}
+              <div style={{ marginTop:18, paddingTop:14, borderTop:"1px solid #e5e7eb", display:"flex", gap:20, flexWrap:"wrap" }}>
+                {Object.values(PHASE_STATUS_MAP).map(v => (
+                  <div key={v.label} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <div style={{ width:14, height:14, borderRadius:3, background:v.bar }} />
+                    <span style={{ fontSize:11, color:"#6b7280" }}>{v.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fases & Entregas */}
+        {innerTab === "phases" && (
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {phases.map(phase => {
+              const col = PHASE_STATUS_MAP[phase.phaseStatus] || PHASE_STATUS_MAP.pending;
+              return (
+                <div key={phase.id} style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb",
+                  boxShadow:"0 2px 6px rgba(32,21,71,0.06)", overflow:"hidden" }}>
+                  <div style={{ padding:"14px 20px", borderBottom:"1px solid #f3f4f6",
+                    display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                      <div style={{ width:36, height:36, borderRadius:8, background:col.bg,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:13, fontWeight:700, color:col.text }}>{phase.id}</div>
+                      <div>
+                        <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>{phase.name}</h3>
+                        <p style={{ margin:"2px 0 0", fontSize:12, color:"#6b7280" }}>
+                          {phase.duration} \u00b7 {fmtCur(phase.value)} \u00b7 {phase.percentage}% do total
+                        </p>
+                      </div>
+                    </div>
+                    <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:4,
+                      background:col.bg, color:col.text }}>{col.label}</span>
+                  </div>
+                  <div style={{ padding:"0 20px" }}>
+                    {phase.sprints.map((sprint, idx) => {
+                      const sc = statusBadgeClass(sprint.status);
+                      const isLast = idx === phase.sprints.length - 1;
+                      return (
+                        <div key={sprint.id} style={{ padding:"12px 0",
+                          borderBottom: isLast ? "none" : "1px solid #f3f4f6",
+                          display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
+                          <div style={{ flex:1 }}>
+                            <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#201547" }}>{sprint.name}</p>
+                            <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                              {sprint.deliverables.map((d, i) => (
+                                <span key={i} style={{ fontSize:11, padding:"2px 8px", borderRadius:4,
+                                  background:"rgba(32,21,71,0.06)", color:"#201547" }}>{d}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <span style={{ flexShrink:0, fontSize:11, fontWeight:600, padding:"3px 10px",
+                            borderRadius:4, background:sc.bg, color:sc.color, whiteSpace:"nowrap" }}>
+                            {statusLabel(sprint.status)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
+
 const ContractDetailPage = ({ contract, detail, onBack }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [activeTab,        setActiveTab]        = useState("operational");
@@ -1187,7 +1394,8 @@ const ContractDetailPage = ({ contract, detail, onBack }) => {
             {activeTab==="financial"   && <FinanceiroView   contract={contract} detail={detail} />}
             {activeTab==="process"     && <ProcessoToBEView />}
             {activeTab==="usecases"    && <CasosDeUsoView />}
-            {activeTab!=="operational" && activeTab!=="financial" && activeTab!=="process" && activeTab!=="usecases" && (
+            {activeTab==="timeline"   && <CronogramaView detail={detail} />}
+            {activeTab!=="operational" && activeTab!=="financial" && activeTab!=="process" && activeTab!=="usecases" && activeTab!=="timeline" && (
               <PlaceholderView tabId={activeTab} />
             )}
           </main>
