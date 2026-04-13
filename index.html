@@ -251,7 +251,7 @@ const FilterDropdown = ({ label, value, options, onChange, isActive, width=148 }
                 onMouseLeave={e => { if(!isSel) e.currentTarget.style.background="transparent"; }}
               >
                 {isSel
-                  ? <span style={{ color:C.orangeText, flexShrink:0 }}><ICheckMark /></span>
+                  ? <span style={{ color:C.orange, flexShrink:0 }}><ICheckMark /></span>
                   : <span style={{ width:13, flexShrink:0 }}></span>
                 }
                 {opt.label}
@@ -269,7 +269,7 @@ const Field = ({ label, required, error, icon:Icon, children }) => (
   <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
     <label style={{ fontSize:13, fontWeight:500, color:"#374151", marginBottom:4, display:"block" }}>
       {label}
-      {required && <span style={{ color:C.orangeText, marginLeft:2 }}>*</span>}
+      {required && <span style={{ color:C.orange, marginLeft:2 }}>*</span>}
     </label>
     <div style={{ position:"relative" }}>
       {Icon && (
@@ -378,7 +378,7 @@ const NewProjectPage = ({ onSave, onOpen, onCancel, editProject=null }) => {
               {editProject ? "Editar Projeto" : "Cadastrar Novo Projeto"}
             </h1>
             <p style={{ fontSize:13, color:"#6b7280", margin:0 }}>
-              Campos marcados com <span style={{ color:C.orangeText }}>*</span> são obrigatórios.
+              Campos marcados com <span style={{ color:C.orange }}>*</span> são obrigatórios.
             </p>
           </div>
 
@@ -605,7 +605,7 @@ const SubHeader = ({ contract, progress, onBack }) => (
     </span>
     <div style={{ display:"flex", alignItems:"center", gap:16, flexShrink:0 }}>
       <span style={{ fontSize:12, color:C.gray500 }}>Última atualização: {fmtDate(contract.lastUpdate)}</span>
-      <span style={{ fontSize:13, fontWeight:700, color:progress>0?C.orangeText:C.gray500, background:progress>0?"rgba(250,70,22,0.08)":C.gray100, border:"1px solid "+(progress>0?"rgba(250,70,22,0.2)":C.gray200), borderRadius:24, padding:"3px 12px" }}>
+      <span style={{ fontSize:13, fontWeight:700, color:progress>0?C.orange:C.gray500, background:progress>0?"rgba(250,70,22,0.08)":C.gray100, border:"1px solid "+(progress>0?"rgba(250,70,22,0.2)":C.gray200), borderRadius:24, padding:"3px 12px" }}>
         {progress}%
       </span>
     </div>
@@ -710,7 +710,7 @@ const OperacionalView = ({ contract, detail }) => {
       <div style={{ background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", padding:"20px 24px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
           <h2 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:0 }}>Progresso Geral do Projeto</h2>
-          <span style={{ fontSize:16, fontWeight:700, color:C.orangeText }}>{prog}%</span>
+          <span style={{ fontSize:16, fontWeight:700, color:C.orange }}>{prog}%</span>
         </div>
         <div style={{ height:8, borderRadius:9999, background:"#D9D9D6", overflow:"hidden" }}>
           <div style={{ height:"100%", borderRadius:9999, transition:"width 0.5s ease", width:prog+"%", background:prog>0?"linear-gradient(90deg, "+C.orange+" 0%, "+C.avocado+" 100%)":"transparent" }}>
@@ -775,9 +775,9 @@ const FinanceiroView = ({ contract, detail }) => {
 
   const kpis = [
     { label:"Executado",  sub:"Total Realizado", value:fmtCur(executed),  borderColor:C.avocado, textColor:C.avocadoDark },
-    { label:"Planejado",  sub:"Total Orçado",    value:fmtCur(planned),   borderColor:C.orange,  textColor:C.orangeText  },
-    { label:"A Executar", sub:"Saldo Restante",  value:fmtCur(remaining), borderColor:"#D9D9D6", textColor:C.navy        },
-    { label:"Progresso",  sub:"Financeiro",      value:progress+"%",      borderColor:C.orange,  textColor:C.orangeText  },
+    { label:"Planejado",  sub:"Total Orçado",    value:fmtCur(planned),   borderColor:C.orange,  textColor:C.orange  },
+    { label:"A Executar", sub:"Saldo Restante",  value:fmtCur(remaining), borderColor:"#D9D9D6", textColor:C.navy     },
+    { label:"Progresso",  sub:"Financeiro",      value:progress+"%",      borderColor:C.orange,  textColor:C.orange  },
   ];
 
   return (
@@ -835,7 +835,7 @@ const FinanceiroView = ({ contract, detail }) => {
                 <div style={{ flex:1 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:4 }}>
                     <span style={{ color:C.navy }}>{fmtCur(ph.value||0)}</span>
-                    <span style={{ color:C.orangeText, fontWeight:600 }}>{ph.percentage}%</span>
+                    <span style={{ color:C.orange, fontWeight:600 }}>{ph.percentage}%</span>
                   </div>
                   <div style={{ height:10, background:"#D9D9D6", borderRadius:99, overflow:"hidden" }}>
                     <div style={{ height:"100%", borderRadius:99, width:((ph.percentage||0)*2.5)+"%", background:i%2===0?C.orange:C.avocado }}></div>
@@ -926,7 +926,7 @@ const PROCESS_STEPS = [
 
 const ProcessoToBEView = () => {
   const tag = (label, variant) => (
-    <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, fontWeight:500, background:variant==="actor"?"rgba(32,21,71,0.10)":"rgba(250,70,22,0.10)", color:variant==="actor"?C.navy:C.orangeText }}>
+    <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, fontWeight:500, background:variant==="actor"?"rgba(32,21,71,0.10)":"rgba(250,70,22,0.10)", color:variant==="actor"?C.navy:C.orange }}>
       {label}
     </span>
   );
@@ -992,10 +992,10 @@ const CasosDeUsoView = () => {
   const [filter, setFilter] = useState("Todos");
   const ucStatus = {
     done:        { label:"Implementado", bg:"rgba(16,185,129,0.12)", color:"#065f46" },
-    in_progress: { label:"Em Andamento", bg:"rgba(250,70,22,0.10)",  color:C.orangeText },
+    in_progress: { label:"Em Andamento", bg:"rgba(250,70,22,0.10)",  color:C.orange },
     pending:     { label:"Pendente",     bg:"rgba(32,21,71,0.08)",   color:C.navy },
   };
-  const priorityColor = { "Alta":C.orangeText, "Média":C.navy, "Baixa":C.gray500 };
+  const priorityColor = { "Alta":C.orange, "Média":C.navy, "Baixa":C.gray500 };
   const kpis = [
     { Icon:IClipboard, label:"Total de UCs",  value:USE_CASES.length,                                    accentColor:C.navy    },
     { Icon:ICheckC,    label:"Implementados", value:USE_CASES.filter(u=>u.status==="done").length,        accentColor:"#10B981" },
@@ -1326,7 +1326,7 @@ function App() {
                 <span style={{ fontSize:13, fontWeight:500, color:"#201547" }}>{label}</span>
                 <span style={{ fontSize:24, fontWeight:600, color:"#201547" }}>{value}</span>
               </div>
-              <div style={{ width:48, height:48, borderRadius:9999, background:"rgba(250,70,22,0.08)", display:"flex", alignItems:"center", justifyContent:"center", color:C.orangeText, flexShrink:0 }}>
+              <div style={{ width:48, height:48, borderRadius:9999, background:"rgba(250,70,22,0.08)", display:"flex", alignItems:"center", justifyContent:"center", color:C.orange, flexShrink:0 }}>
                 <Icon />
               </div>
             </div>
