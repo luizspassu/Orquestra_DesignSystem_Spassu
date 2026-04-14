@@ -9,7 +9,7 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --navy: #201547; --navy-dk: #160f30; --orange: #FA4616; --orange-tx: #C2410C;
+      --navy: #201547; --navy-dk: #160f30; --orange: #FA4616;
       --avocado: #DBE442; --avocado-dk: #b8c018;
       --black: #000000; --spatial-grey: #D9D9D6;
       --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
@@ -58,7 +58,7 @@
     .type-row { display: flex; align-items: baseline; gap: 24px; padding: 16px 20px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; }
     .type-row__meta { flex-shrink: 0; width: 200px; }
     .type-row__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-500); }
-    .type-row__spec { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--orange-tx); margin-top: 3px; }
+    .type-row__spec { font-family: "JetBrains Mono", monospace; font-size: 11px; color: #6b7280; margin-top: 3px; }
     .type-row__sample { color: var(--navy); }
     .spacing-grid { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
     .spacing-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -83,7 +83,7 @@
     .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .badge--blue { background:#dbeafe; color:#1d4ed8; } .badge--gray { background:#f3f4f6; color:#374151; }
     .badge--red { background:#fee2e2; color:#b91c1c; } .badge--yellow { background:#fef9c3; color:#a16207; }
-    .badge--green { background:#dcfce7; color:#15803d; } .badge--orange { background:rgba(250,70,22,0.1); color:var(--orange-tx); }
+    .badge--green { background:#dcfce7; color:#15803d; } .badge--orange { background:rgba(250,70,22,0.1); color:#FA4616; }
     .kpi-card { background: var(--white); border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(32,21,71,0.06); text-align: center; min-width: 150px; }
     .kpi-card--avocado { border-left: 4px solid var(--avocado); }
     .kpi-card--orange  { border-left: 4px solid var(--orange); }
@@ -225,7 +225,7 @@
         <div class="swatch"><div class="swatch__color" style="background:#201547;"></div><div class="swatch__info"><div class="swatch__name">Navy</div><div class="swatch__hex">#201547</div><div class="swatch__usage">Header, sidebar ativa, textos primários, headings</div></div></div>
         <div class="swatch"><div class="swatch__color" style="background:#160f30;"></div><div class="swatch__info"><div class="swatch__name">Navy Dark</div><div class="swatch__hex">#160f30</div><div class="swatch__usage">Hover do header, gradientes</div></div></div>
         <div class="swatch"><div class="swatch__color" style="background:#FA4616;"></div><div class="swatch__info"><div class="swatch__name">Orange</div><div class="swatch__hex">#FA4616</div><div class="swatch__usage">⚠️ Apenas fundos, bordas, elementos ≥18px. NUNCA como texto pequeno.</div></div></div>
-        <div class="swatch"><div class="swatch__color" style="background:#C2410C;"></div><div class="swatch__info"><div class="swatch__name">Orange Text</div><div class="swatch__hex">#C2410C</div><div class="swatch__usage">✅ Substituto do orange em textos — ratio ≥ 4.5:1.</div></div></div>
+        
         <div class="swatch"><div class="swatch__color" style="background:#DBE442;border:1px solid #c4cc35;"></div><div class="swatch__info"><div class="swatch__name">Avocado</div><div class="swatch__hex">#DBE442</div><div class="swatch__usage">Destaques, dot ativo da sidebar, borda KPI executado</div></div></div>
         <div class="swatch"><div class="swatch__color" style="background:#b8c018;border:1px solid #a6ad14;"></div><div class="swatch__info"><div class="swatch__name">Avocado Dark</div><div class="swatch__hex">#b8c018</div><div class="swatch__usage">Texto sobre fundo Avocado — garante legibilidade</div></div></div>
       </div>
@@ -268,7 +268,6 @@
   navy:        <span class="str">"#201547"</span>,  <span class="cmt">// Primário — Pantone 275 C</span>
   navyDark:    <span class="str">"#160f30"</span>,  <span class="cmt">// Gradiente do header</span>
   orange:      <span class="str">"#FA4616"</span>,  <span class="cmt">// ⚠️ Fundos/bordas — NÃO use como texto &lt;18px (Pantone 172 C)</span>
-  orangeText:  <span class="str">"#C2410C"</span>,  <span class="cmt">// ✅ Substituto seguro p/ texto laranja (WCAG AA ≥4.5:1)</span>
   avocado:     <span class="str">"#DBE442"</span>,  <span class="cmt">// Destaque, dot ativo, borda KPI executado (Pantone 380 C)</span>
   avocadoDark: <span class="str">"#b8c018"</span>,  <span class="cmt">// Texto sobre fundo Avocado</span>
   black:       <span class="str">"#000000"</span>,  <span class="cmt">// Full Black — Pantone Black</span>
@@ -294,11 +293,11 @@
       <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Small / Label</div><div class="type-row__spec">13px · weight 400–600</div></div><div class="type-row__sample" style="font-size:13px;color:#374151;">ICJ 5900.0131123.25.2 · Petrobras</div></div>
       <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Caption / Meta</div><div class="type-row__spec">12px · weight 400</div></div><div class="type-row__sample" style="font-size:12px;color:#6b7280;">Última atualização em 26/03/2026</div></div>
       <div class="type-row"><div class="type-row__meta"><div class="type-row__label">Nav Section Label</div><div class="type-row__spec">10px · weight 600 · uppercase · ls 1.2px</div></div><div class="type-row__sample" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:#9ca3af;">Dashboard</div></div>
-      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">KPI Value</div><div class="type-row__spec">24px · weight 700</div></div><div class="type-row__sample" style="font-size:24px;font-weight:700;color:#C2410C;">R$ 171.500,00</div></div>
+      <div class="type-row"><div class="type-row__meta"><div class="type-row__label">KPI Value</div><div class="type-row__spec">24px · weight 700</div></div><div class="type-row__sample" style="font-size:24px;font-weight:700;color:#FA4616;">R$ 171.500,00</div></div>
     </div>
     <div class="card mt-24">
-      <strong style="font-size:13px;color:#201547;">⚠️ Regra Crítica de Acessibilidade</strong>
-      <p class="text-sm text-muted" style="margin-top:6px;line-height:1.6;"><span class="inline-code">#FA4616</span> como cor de texto em tamanhos menores que 18px tem contraste ~3.0:1 — reprovado por WCAG AA. Sempre usar <span class="inline-code">#C2410C</span> (orangeText), com ratio ≥ 4.5:1.</p>
+      <strong style="font-size:13px;color:#201547;">⚠️ Regra de Acessibilidade: Tamanho Mínimo</strong>
+      <p class="text-sm text-muted" style="margin-top:6px;line-height:1.6;">A cor <span class="inline-code">#FA4616</span> é a única cor laranja oficial da marca. Para garantir visibilidade, nenhum texto pode ter tamanho inferior a <span class="inline-code">11px</span>. Não substituir a cor por alternativas fora da paleta.</p>
     </div>
   </section>
 
@@ -430,16 +429,16 @@
     <p class="section-desc">Grid de 4 colunas. Borda lateral colorida como indicador semântico.</p>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
       <div class="kpi-card kpi-card--avocado"><div class="kpi-card__value" style="color:#b8c018;">R$ 171.500</div><div class="kpi-card__label">Executado</div><div class="kpi-card__sub">Total Realizado</div></div>
-      <div class="kpi-card kpi-card--orange"><div class="kpi-card__value" style="color:#C2410C;">R$ 780.000</div><div class="kpi-card__label">Planejado</div><div class="kpi-card__sub">Total Orçado</div></div>
+      <div class="kpi-card kpi-card--orange"><div class="kpi-card__value" style="color:#FA4616;">R$ 780.000</div><div class="kpi-card__label">Planejado</div><div class="kpi-card__sub">Total Orçado</div></div>
       <div class="kpi-card kpi-card--gray"><div class="kpi-card__value" style="color:#201547;">R$ 608.500</div><div class="kpi-card__label">A Executar</div><div class="kpi-card__sub">Saldo Restante</div></div>
-      <div class="kpi-card kpi-card--orange"><div class="kpi-card__value" style="color:#C2410C;">22%</div><div class="kpi-card__label">Progresso</div><div class="kpi-card__sub">Financeiro</div></div>
+      <div class="kpi-card kpi-card--orange"><div class="kpi-card__value" style="color:#FA4616;">22%</div><div class="kpi-card__label">Progresso</div><div class="kpi-card__sub">Financeiro</div></div>
     </div>
     <div class="code-block mt-16"><span class="cmt">// KPIs financeiros — FinanceiroView</span>
 <span class="kw">const</span> kpis = [
   { label:<span class="str">"Executado"</span>,  borderColor:C.avocado,   textColor:C.avocadoDark },
-  { label:<span class="str">"Planejado"</span>,  borderColor:C.orange,    textColor:C.orangeText  },
+  { label:<span class="str">"Planejado"</span>,  borderColor:C.orange,    textColor:C.orange  },
   { label:<span class="str">"A Executar"</span>, borderColor:<span class="str">"#D9D9D6"</span>,  textColor:C.navy        },
-  { label:<span class="str">"Progresso"</span>,  borderColor:C.orange,    textColor:C.orangeText  },
+  { label:<span class="str">"Progresso"</span>,  borderColor:C.orange,    textColor:C.orange  },
 ];</div>
   </section>
 
@@ -451,7 +450,7 @@
     </div>
     <p class="section-desc">Usada em cards de projeto, Operacional e Financeiro.</p>
     <div class="card" style="max-width:480px;display:flex;flex-direction:column;gap:20px;">
-      <div class="progress-wrap"><div class="progress-label"><span>Progresso Financeiro</span><span style="color:#C2410C;font-weight:600;">22%</span></div><div class="progress-bar"><div class="progress-bar__fill" style="width:22%;"></div></div></div>
+      <div class="progress-wrap"><div class="progress-label"><span>Progresso Financeiro</span><span style="color:#FA4616;font-weight:600;">22%</span></div><div class="progress-bar"><div class="progress-bar__fill" style="width:22%;"></div></div></div>
       <div class="progress-wrap"><div class="progress-label"><span>Desenvolvimento (dentro do orçamento)</span><span style="color:#10b981;font-weight:600;">27%</span></div><div class="progress-bar"><div class="progress-bar__fill" style="width:27%;background:#10b981;"></div></div></div>
       <div class="progress-wrap"><div class="progress-label"><span>MVP1: Core Backend (35%)</span><span style="font-weight:600;color:#201547;">R$ 273.000</span></div><div class="progress-bar" style="height:10px;"><div class="progress-bar__fill" style="width:87.5%;background:#FA4616;"></div></div></div>
       <div class="progress-wrap"><div class="progress-label"><span>Go-Live (10%)</span><span style="font-weight:600;color:#201547;">R$ 78.000</span></div><div class="progress-bar" style="height:10px;"><div class="progress-bar__fill" style="width:25%;background:#DBE442;"></div></div></div>
@@ -618,12 +617,12 @@
     </div>
     <p class="section-desc">Problemas identificados no protótipo. Ordenados por severidade.</p>
 
-    <div class="violation-box">
-      <div class="violation-box__title">🔴 CRÍTICO — Cor de texto: #FA4616 sobre fundo branco</div>
-      <div class="violation-box__body">Contraste ~3.0:1 — reprovado por WCAG AA (mínimo 4.5:1). <strong>Ação:</strong> substituir por <code>C.orangeText</code> (<code>#C2410C</code>) em todos os textos de KPI e destaque.</div>
+    <div class="violation-box" style="background:#f0fdf4;border-color:#bbf7d0;">
+      <div class="violation-box__title" style="color:#166534;">✅ RESOLVIDO — Cor de texto: #FA4616 mantida por decisão de marca</div>
+      <div class="violation-box__body" style="color:#14532d;">A cor <code>#FA4616</code> é a única cor laranja oficial. A visibilidade é garantida pelo tamanho mínimo de <code>11px</code> em todos os textos. Não usar substitutos fora da paleta.</div>
       <div class="violation-box__code">
-        <span class="bad">// ❌ textColor: C.orange  → #FA4616 — contraste 3.0:1</span>
-        <span class="good">// ✅ textColor: C.orangeText → #C2410C — contraste 4.5:1</span>
+        <span class="bad">// ❌ font-size abaixo de 11px</span>
+        <span class="good">// ✅ font-size: 11px ou maior — decisão de marca mantida</span>
       </div>
     </div>
 
@@ -638,10 +637,10 @@
 
     <div class="violation-box" style="background:#f0fdf4;border-color:#bbf7d0;">
       <div class="violation-box__title" style="color:#166534;">🟡 MÉDIO — Token C.lime não renomeado no JSX</div>
-      <div class="violation-box__body" style="color:#14532d;">O objeto <code>C</code> ainda usa <code>lime</code>. Renomear para <code>avocado</code> para consistência com este documento e adicionar <code>avocadoDark</code> e <code>orangeText</code>.</div>
+      <div class="violation-box__body" style="color:#14532d;">O objeto <code>C</code> ainda usa <code>lime</code>. Renomear para <code>avocado</code> para consistência com este documento e adicionar <code>avocadoDark</code>.</div>
       <div class="violation-box__code">
         <span class="bad">// ❌ lime: "#DBE442"</span>
-        <span class="good">// ✅ avocado: "#DBE442", avocadoDark: "#b8c018", orangeText: "#C2410C"</span>
+        <span class="good">// ✅ avocado: "#DBE442", avocadoDark: "#b8c018"</span>
       </div>
     </div>
 
@@ -663,9 +662,8 @@
       <div>
         <h3 style="font-size:14px;font-weight:600;color:#b91c1c;padding:12px 16px;background:#fee2e2;border-radius:8px 8px 0 0;margin:0;">🔴 Crítico</h3>
         <div class="checklist" style="border:1px solid #fee2e2;border-top:none;border-radius:0 0 8px 8px;background:#fff;">
-          <div class="check-item"><div class="check-icon check-icon--critical">!</div><div class="check-body"><strong>C.orange → C.orangeText em textos</strong><p>KPI cards, labels de percentual em FinanceiroView e OperacionalView.</p></div><span class="check-tag check-tag--critical">a11y</span></div>
           <div class="check-item"><div class="check-icon check-icon--critical">!</div><div class="check-body"><strong>Touch targets 26px → 36px</strong><p>Botões de ícone: fechar sidebar, editar, excluir, link.</p></div><span class="check-tag check-tag--critical">a11y</span></div>
-          <div class="check-item"><div class="check-icon check-icon--critical">!</div><div class="check-body"><strong>C.lime → C.avocado no JSX</strong><p>Adicionar <code>avocado</code>, <code>avocadoDark</code>, <code>orangeText</code> ao objeto <code>C</code>.</p></div><span class="check-tag check-tag--critical">tokens</span></div>
+          <div class="check-item"><div class="check-icon check-icon--critical">!</div><div class="check-body"><strong>C.lime → C.avocado no JSX</strong><p>Adicionar <code>avocado</code> e <code>avocadoDark</code> ao objeto <code>C</code>.</p></div><span class="check-tag check-tag--critical">tokens</span></div>
         </div>
       </div>
       <div>
