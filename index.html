@@ -278,7 +278,7 @@ const Field = ({ label, required, error, helperText, icon:Icon, children }) => (
       )}
       {children}
     </div>
-    {helperText && \!error && (
+    {helperText && !error && (
       <span style={{ fontSize:11, color:"#9ca3af", marginTop:1 }}>{helperText}</span>
     )}
     {error && (
