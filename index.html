@@ -1,19 +1,13 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orquestra – Contract Detail</title>
+<html lang="pt-BR"><head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Orquestra</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f5f7; }
-    #root { min-height: 100vh; }
-  </style>
-</head>
-<body>
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,sans-serif;background:#f4f5f7}#root{min-height:100vh}</style>
+</head><body>
   <div id="root"></div>
   <script type="text/babel">
 const { useState, useMemo, useRef, useEffect } = React;
@@ -1447,6 +1441,497 @@ const CronogramaView = ({ detail }) => {
   );
 };
 
+
+/* ── EntradaDadosView ── */
+
+const TabStatusBadge = ({ status, count }) => {
+  const s = ({
+    complete: { bg:"#dcfce7", color:"#065f46" },
+    draft:    { bg:"#fef3c7", color:"#92400e" },
+    empty:    { bg:"#f3f4f6", color:"#9ca3af" },
+  })[status] || { bg:"#f3f4f6", color:"#9ca3af" };
+  const lbl = status === "complete" ? (count > 0 ? String(count) : "✓") : String(count || 0);
+  return (
+    <span style={{ fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99,
+      background:s.bg, color:s.color, marginLeft:4 }}>
+      {lbl}
+    </span>
+  );
+};
+
+const BtnCancel  = ({ onClick, children }) => (
+  <button onClick={onClick} style={{ padding:"9px 20px", borderRadius:8,
+    border:"1px solid #d1d5db", background:"transparent", color:"#6b7280",
+    fontSize:13, fontWeight:500, cursor:"pointer" }}>{children || "Cancelar"}</button>
+);
+const BtnDraft   = ({ onClick, children }) => (
+  <button onClick={onClick} style={{ padding:"9px 20px", borderRadius:8,
+    border:"1px solid #FA4616", background:"transparent", color:"#FA4616",
+    fontSize:13, fontWeight:500, cursor:"pointer" }}>{children || "Salvar Rascunho"}</button>
+);
+const BtnPrimary = ({ onClick, children }) => (
+  <button onClick={onClick} style={{ padding:"9px 24px", borderRadius:8,
+    border:"none", background:"#FA4616", color:"#fff",
+    fontSize:13, fontWeight:600, cursor:"pointer" }}>{children || "Enviar Final"}</button>
+);
+
+const EntradaDadosView = ({ contract, detail }) => {
+  const [tab,      setTab]      = React.useState("contrato");
+  const [showForm, setShowForm] = React.useState(false);
+  const [fv,       setFv]       = React.useState({});
+
+  const phases    = (detail && detail.phases)    || [];
+  const financial = (detail && detail.financial) || [];
+  const sprints   = phases.flatMap(p =>
+    (p.sprints || []).map(s => ({ ...s, phaseName: p.name.split(":")[0] }))
+  );
+
+  const openForm  = () => { setFv({}); setShowForm(true); };
+  const closeForm = () => setShowForm(false);
+  const sv        = (k, v) => setFv(prev => ({ ...prev, [k]: v }));
+
+  const TAB_GROUPS = [
+    { label:"Estrutura do Contrato", ids:["contrato","fases","sprints"] },
+    { label:"Conteúdo Operacional",  ids:["processo","usecases","objetivos","marcos"] },
+    { label:"Acompanhamento",        ids:["progresso","financeiro","problemas"] },
+    { label:"Importação",            ids:["excel"] },
+  ];
+
+  const TAB_DEFS = [
+    { id:"contrato",  label:"Contrato",        Icon:IFile,      group:"Estrutura do Contrato",  status:MOCK_PROJECTS.length > 0 ? "complete" : "empty", count:MOCK_PROJECTS.length },
+    { id:"fases",     label:"Fases",           Icon:IBarChart,  group:"Estrutura do Contrato",  status:phases.length > 0 ? "complete" : "empty",        count:phases.length },
+    { id:"sprints",   label:"Sprints",         Icon:ICheckC,    group:"Estrutura do Contrato",  status:sprints.length > 0 ? "draft" : "empty",           count:sprints.length },
+    { id:"processo",  label:"Processo",        Icon:IGitBranch, group:"Conteúdo Operacional",   status:"empty", count:0 },
+    { id:"usecases",  label:"Casos de Uso",    Icon:IUsers,     group:"Conteúdo Operacional",   status:UC_DATA.length > 0 ? "complete" : "empty",        count:UC_DATA.length },
+    { id:"objetivos", label:"Objetivos TO-BE", Icon:ITarget,    group:"Conteúdo Operacional",   status:"empty", count:0 },
+    { id:"marcos",    label:"Marcos",          Icon:ICalendar,  group:"Conteúdo Operacional",   status:"empty", count:0 },
+    { id:"progresso", label:"Progresso",       Icon:ITrend,     group:"Acompanhamento",         status:"empty", count:0 },
+    { id:"financeiro",label:"Financeiro",      Icon:IDollar,    group:"Acompanhamento",         status:financial.length > 0 ? "complete" : "empty",      count:financial.length },
+    { id:"problemas", label:"Problemas",       Icon:IAlertC,    group:"Acompanhamento",         status:"empty", count:0 },
+    { id:"excel",     label:"Importar Excel",  Icon:IDatabase,  group:"Importação",             status:null, count:null },
+  ];
+
+  const thSt = { padding:"10px 14px", textAlign:"left", fontSize:12, fontWeight:600,
+    color:"#201547", borderBottom:"1px solid #e5e7eb" };
+  const tdSt = { padding:"10px 14px", fontSize:13, color:"#374151",
+    borderBottom:"1px solid #f3f4f6" };
+  const finp = { width:"100%", padding:"9px 12px", borderRadius:6,
+    border:"1px solid #d1d5db", fontSize:13, color:"#111827", outline:"none" };
+  const fLbl = { fontSize:12, fontWeight:500, color:"#374151", marginBottom:4, display:"block" };
+  const r2   = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 };
+  const r3   = { display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 };
+
+  const FormFooter = () => (
+    <div style={{ display:"flex", gap:8, justifyContent:"flex-end",
+      paddingTop:16, borderTop:"1px solid #f3f4f6", marginTop:16 }}>
+      <BtnCancel  onClick={closeForm} />
+      <BtnDraft   onClick={closeForm} />
+      <BtnPrimary onClick={closeForm} />
+    </div>
+  );
+
+  const FormWrap = ({ title, children }) => (
+    <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20, marginTop:16 }}>
+      <p style={{ margin:"0 0 16px", fontSize:13, fontWeight:700, color:"#201547" }}>{title || "Novo Registro"}</p>
+      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>{children}</div>
+      <FormFooter />
+    </div>
+  );
+
+  const AddBtn = ({ label }) => (
+    <button onClick={openForm}
+      style={{ marginTop:16, display:"flex", alignItems:"center", gap:6, padding:"9px 18px",
+        borderRadius:8, border:"none", background:"#FA4616", color:"#fff",
+        fontSize:13, fontWeight:600, cursor:"pointer" }}>
+      <IPlus /> {label}
+    </button>
+  );
+
+  const Table = ({ cols, children }) => (
+    <div style={{ overflowX:"auto" }}>
+      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+        <thead><tr style={{ background:"rgba(32,21,71,0.04)" }}>
+          {cols.map(c => <th key={c} style={thSt}>{c}</th>)}
+        </tr></thead>
+        <tbody>{children}</tbody>
+      </table>
+    </div>
+  );
+
+  const renderContent = () => {
+
+    if (tab === "contrato") return (
+      <div>
+        <Table cols={["Número","Título","Contratada","Valor","Status","Ações"]}>
+          {MOCK_PROJECTS.map(p => (
+            <tr key={p.id}>
+              <td style={{...tdSt, fontWeight:600, color:"#201547"}}>{p.number}</td>
+              <td style={{...tdSt, color:"#FA4616", maxWidth:240}}>{p.title}</td>
+              <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.company}</td>
+              <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.totalValue ? fmtCur(p.totalValue) : "—"}</td>
+              <td style={tdSt}>
+                <span style={{ fontSize:11, fontWeight:600, padding:"2px 8px", borderRadius:4,
+                  background:(STATUS_MAP[p.status]||{bg:"#f3f4f6"}).bg,
+                  color:(STATUS_MAP[p.status]||{color:"#374151"}).color }}>{p.status}</span>
+              </td>
+              <td style={tdSt}>
+                <div style={{ display:"flex", gap:6 }}>
+                  <button style={{ padding:"4px 8px", border:"1px solid #e5e7eb", borderRadius:4,
+                    background:"#fff", cursor:"pointer" }}><IPencil /></button>
+                  <button style={{ padding:"4px 8px", border:"1px solid #fee2e2", borderRadius:4,
+                    background:"#fff", cursor:"pointer", color:"#ef4444" }}><ITrash /></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Contrato">
+            <div><label style={fLbl}>Título *</label>
+              <input style={finp} value={fv.title||""} onChange={e=>sv("title",e.target.value)} placeholder="Nome do contrato" /></div>
+            <div style={r2}>
+              <div><label style={fLbl}>Número do Contrato</label>
+                <input style={finp} value={fv.num||""} onChange={e=>sv("num",e.target.value)} placeholder="ICJ 5900.xxxx.xx.x" /></div>
+              <div><label style={fLbl}>Contratada *</label>
+                <input style={finp} value={fv.company||""} onChange={e=>sv("company",e.target.value)} /></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Valor Total (R$)</label>
+                <input type="number" style={finp} value={fv.value||""} onChange={e=>sv("value",e.target.value)} /></div>
+              <div><label style={fLbl}>Status</label>
+                <select style={{...finp, appearance:"none"}} value={fv.status||""} onChange={e=>sv("status",e.target.value)}>
+                  <option value="">Selecione…</option>
+                  {["Em Andamento","Planejado","Finalizado","Suspenso","Cancelado"].map(s=><option key={s}>{s}</option>)}
+                </select></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Data de Início *</label>
+                <input type="date" style={finp} value={fv.start||""} onChange={e=>sv("start",e.target.value)} /></div>
+              <div>
+                <label style={fLbl}>Data de Término *</label>
+                <input type="date" style={{...finp, opacity:fv.start?1:0.5, cursor:fv.start?"auto":"not-allowed"}}
+                  value={fv.end||""} disabled={fv.start ? false : true}
+                  onChange={e=>sv("end",e.target.value)} />
+                {fv.start ? null : <span style={{fontSize:11,color:"#9ca3af",marginTop:2,display:"block"}}>Preencha primeiro a Data de Início.</span>}
+              </div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Contrato" />}
+      </div>
+    );
+
+    if (tab === "fases") return (
+      <div>
+        <Table cols={["ID","Nome","Duração","Valor","% do Total","Status"]}>
+          {phases.map(p => {
+            const col = PHASE_STATUS_MAP[p.phaseStatus] || PHASE_STATUS_MAP.pending;
+            return (
+              <tr key={p.id}>
+                <td style={{...tdSt, fontWeight:700, color:"#201547"}}>{p.id}</td>
+                <td style={tdSt}>{p.name}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.duration}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{fmtCur(p.value)}</td>
+                <td style={{...tdSt, textAlign:"center", fontWeight:600}}>{p.percentage}%</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                    background:col.bg,color:col.text}}>{col.label}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Nova Fase">
+            <div><label style={fLbl}>Nome da Fase *</label>
+              <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} placeholder="Ex: MVP1: Core Backend" /></div>
+            <div style={r3}>
+              <div><label style={fLbl}>Duração</label>
+                <input style={finp} value={fv.dur||""} onChange={e=>sv("dur",e.target.value)} placeholder="Ex: 10 semanas" /></div>
+              <div><label style={fLbl}>Valor (R$)</label>
+                <input type="number" style={finp} value={fv.val||""} onChange={e=>sv("val",e.target.value)} /></div>
+              <div><label style={fLbl}>% do Total</label>
+                <input type="number" style={finp} value={fv.pct||""} onChange={e=>sv("pct",e.target.value)} min="0" max="100" /></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Nova Fase" />}
+      </div>
+    );
+
+    if (tab === "sprints") return (
+      <div>
+        <Table cols={["ID","Nome","Fase","Status"]}>
+          {sprints.map(s => {
+            const sc = statusBadgeClass(s.status);
+            return (
+              <tr key={s.id}>
+                <td style={{...tdSt, fontWeight:700, color:"#201547"}}>{s.id}</td>
+                <td style={tdSt}>{s.name}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{s.phaseName}</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                    background:sc.bg,color:sc.color}}>{statusLabel(s.status)}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Sprint">
+            <div><label style={fLbl}>Nome do Sprint *</label>
+              <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} placeholder="Ex: Sprint 8: ..." /></div>
+            <div style={r2}>
+              <div><label style={fLbl}>Fase * <span style={{fontSize:11,color:"#9ca3af",fontWeight:400}}>— selecione primeiro</span></label>
+                <select style={{...finp,appearance:"none"}} value={fv.phase||""} onChange={e=>sv("phase",e.target.value)}>
+                  <option value="">Selecione a fase…</option>
+                  {phases.map(p=><option key={p.id} value={p.id}>{p.name.split(":")[0]}</option>)}
+                </select></div>
+              <div><label style={fLbl}>Status</label>
+                <select style={{...finp,appearance:"none"}} value={fv.status||"pending"} onChange={e=>sv("status",e.target.value)}>
+                  <option value="pending">Pendente</option>
+                  <option value="in_progress">Em Andamento</option>
+                  <option value="completed">Concluída</option>
+                  <option value="delayed">Atrasada</option>
+                </select></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Sprint" />}
+      </div>
+    );
+
+    if (tab === "usecases") return (
+      <div>
+        <Table cols={["ID","Título","Ator","Pré-condições","MVP"]}>
+          {UC_DATA.map(u => (
+            <tr key={u.id}>
+              <td style={{...tdSt,fontWeight:700,color:"#201547"}}>{u.id}</td>
+              <td style={tdSt}>{u.title}</td>
+              <td style={{...tdSt,whiteSpace:"nowrap"}}>{u.actor}</td>
+              <td style={{...tdSt,maxWidth:240,color:"#6b7280"}}>{u.pre}</td>
+              <td style={{...tdSt,textAlign:"center"}}>
+                <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                  background:u.mvp==="Sim"?"#dcfce7":"#f3f4f6",
+                  color:u.mvp==="Sim"?"#065f46":"#6b7280"}}>{u.mvp}</span>
+              </td>
+            </tr>
+          ))}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Caso de Uso">
+            <div style={r2}>
+              <div><label style={fLbl}>ID *</label>
+                <input style={finp} value={fv.id||""} onChange={e=>sv("id",e.target.value)} placeholder="UC_006" /></div>
+              <div><label style={fLbl}>Ator *</label>
+                <input style={finp} value={fv.actor||""} onChange={e=>sv("actor",e.target.value)} placeholder="Ex: Viajante" /></div>
+            </div>
+            <div><label style={fLbl}>Título *</label>
+              <input style={finp} value={fv.title||""} onChange={e=>sv("title",e.target.value)} /></div>
+            <div><label style={fLbl}>Pré-condições</label>
+              <input style={finp} value={fv.pre||""} onChange={e=>sv("pre",e.target.value)} /></div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Caso de Uso" />}
+      </div>
+    );
+
+    if (tab === "financeiro") return (
+      <div>
+        <Table cols={["Categoria","Período","Planejado","Realizado","Variação"]}>
+          {financial.map(f => {
+            const variance = f.actual - f.planned;
+            const acima = variance > 0;
+            return (
+              <tr key={f.id}>
+                <td style={{...tdSt,fontWeight:600,color:"#201547"}}>{f.category}</td>
+                <td style={tdSt}>{f.period}</td>
+                <td style={tdSt}>{fmtCur(f.planned)}</td>
+                <td style={tdSt}>{fmtCur(f.actual)}</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:12,fontWeight:600,color:acima?"#b91c1c":"#15803d"}}>
+                    {acima?"▲":"▼"} {fmtCur(Math.abs(variance))}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Nova Entrada Financeira">
+            <div style={r2}>
+              <div><label style={fLbl}>Categoria *</label>
+                <input style={finp} value={fv.cat||""} onChange={e=>sv("cat",e.target.value)} placeholder="Ex: Desenvolvimento" /></div>
+              <div><label style={fLbl}>Período</label>
+                <input style={finp} value={fv.period||""} onChange={e=>sv("period",e.target.value)} placeholder="Ex: Jan-Mar/2025" /></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Valor Planejado (R$)</label>
+                <input type="number" style={finp} value={fv.planned||""} onChange={e=>sv("planned",e.target.value)} /></div>
+              <div><label style={fLbl}>Valor Realizado (R$)</label>
+                <input type="number" style={finp} value={fv.actual||""} onChange={e=>sv("actual",e.target.value)} /></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Nova Entrada" />}
+      </div>
+    );
+
+    if (tab === "excel") {
+      const SHEETS = [
+        {id:"fases",label:"Fases"},{id:"sprints",label:"Sprints"},{id:"marcos",label:"Marcos"},
+        {id:"progresso",label:"Progresso"},{id:"financeiro",label:"Financeiro"},
+        {id:"problemas",label:"Problemas"},{id:"processo",label:"Passos do Processo"},
+        {id:"objetivos",label:"Objetivos TO-BE"},{id:"usecases",label:"Casos de Uso"},
+      ];
+      const stepCircle = (n, active) => ({
+        width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center",
+        justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff",
+        background: active ? "#FA4616" : "#201547",
+      });
+      return (
+        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(1,true)}>1</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Selecione as planilhas para incluir no template</h3>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+              {SHEETS.map(s => (
+                <label key={s.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px",
+                  border:"1px solid #e5e7eb", borderRadius:6, cursor:"pointer", fontSize:13, color:"#374151",
+                  background:"#fafafa" }}>
+                  <input type="checkbox" style={{ accentColor:"#FA4616" }} />
+                  {s.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(2,false)}>2</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Baixar template</h3>
+            </div>
+            <p style={{ margin:"0 0 12px", fontSize:12, color:"#6b7280" }}>Preencha o template e retorne para importar os dados.</p>
+            <div style={{ display:"flex", gap:12 }}>
+              <BtnCancel onClick={()=>{}}>Template Vazio</BtnCancel>
+              <BtnDraft  onClick={()=>{}}>Pré-preenchido com dados atuais</BtnDraft>
+            </div>
+          </div>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(3,false)}>3</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Upload do arquivo preenchido</h3>
+            </div>
+            <div style={{ border:"2px dashed #d1d5db", borderRadius:8, padding:"32px 24px",
+              textAlign:"center", background:"#f9fafb", cursor:"pointer" }}>
+              <div style={{ opacity:0.4, marginBottom:8 }}><IDatabase /></div>
+              <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:600, color:"#201547" }}>Arraste o arquivo aqui</p>
+              <p style={{ margin:"0 0 12px", fontSize:12, color:"#6b7280" }}>.xlsx ou .xlsm — máx 10MB</p>
+              <BtnCancel onClick={()=>{}}>Selecionar arquivo</BtnCancel>
+            </div>
+          </div>
+          <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20, opacity:0.5 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{...stepCircle(4,false), background:"#9ca3af"}}>4</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#9ca3af" }}>Prévia e confirmação</h3>
+            </div>
+            <p style={{ margin:"8px 0 0 34px", fontSize:12, color:"#9ca3af" }}>Disponível após o upload do arquivo.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Empty tabs: processo, objetivos, marcos, progresso, problemas
+    const emptyCfg = {
+      processo:  { Icon:IGitBranch, title:"Nenhum passo de processo cadastrado",  desc:"Documente os passos do processo TO BE.", cta:"Novo Passo" },
+      objetivos: { Icon:ITarget,    title:"Nenhum objetivo cadastrado",           desc:"Registre os objetivos TO BE para acompanhamento.", cta:"Novo Objetivo" },
+      marcos:    { Icon:ICalendar,  title:"Nenhum marco cadastrado",             desc:"Marcos são entregas-chave associadas a fases.", cta:"Novo Marco" },
+      progresso: { Icon:ITrend,     title:"Sem registros de progresso",          desc:"Atualize o progresso das fases e sprints.", cta:"Novo Registro" },
+      problemas: { Icon:IAlertC,    title:"Nenhum problema registrado",          desc:"Registre ocorrências, riscos e pendências.", cta:"Registrar Problema" },
+    };
+    const ec = emptyCfg[tab] || { Icon:IFolder, title:"Em desenvolvimento", desc:"", cta:"Novo Registro" };
+    return (
+      <div>
+        {showForm ? (
+          <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <p style={{ margin:"0 0 16px", fontSize:13, fontWeight:700, color:"#201547" }}>{ec.cta}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div><label style={fLbl}>Nome / Título *</label>
+                <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} /></div>
+              <div><label style={fLbl}>Descrição</label>
+                <textarea style={{...finp, minHeight:80, resize:"vertical"}}
+                  value={fv.desc||""} onChange={e=>sv("desc",e.target.value)} /></div>
+            </div>
+            <FormFooter />
+          </div>
+        ) : (
+          <EmptyState icon={ec.Icon} title={ec.title} desc={ec.desc} ctaLabel={ec.cta} onCta={openForm} />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column" }}>
+
+      {/* Banner */}
+      <div style={{ background:"#201547", padding:"20px 32px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:48, height:48, borderRadius:10, background:"#FA4616",
+            display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <IDatabase />
+          </div>
+          <div>
+            <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:"#fff" }}>Entrada de Dados</h1>
+            <p style={{ margin:"2px 0 0", fontSize:13, color:"rgba(255,255,255,0.6)" }}>Cadastro e gestão de informações do contrato</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Grupos + Tab bar */}
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb" }}>
+        {/* Group labels */}
+        <div style={{ display:"flex", padding:"6px 16px 0", borderBottom:"1px solid #f3f4f6" }}>
+          {TAB_GROUPS.map((g, gi) => {
+            const grpActive = TAB_DEFS.filter(t => t.group === g.label).some(t => t.id === tab);
+            return (
+              <div key={g.label} style={{ paddingRight: gi < TAB_GROUPS.length-1 ? 24 : 0 }}>
+                <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase",
+                  letterSpacing:"0.8px", paddingBottom:5, display:"block",
+                  color: grpActive ? "#FA4616" : "#9ca3af",
+                  borderBottom: grpActive ? "2px solid #FA4616" : "2px solid transparent" }}>
+                  {g.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        {/* Tabs */}
+        <div style={{ display:"flex", padding:"0 8px", overflowX:"auto" }}>
+          {TAB_DEFS.map(t => {
+            const isAct = t.id === tab;
+            const TIcon = t.Icon;
+            return (
+              <button key={t.id}
+                onClick={() => { setTab(t.id); setShowForm(false); }}
+                style={{ display:"flex", alignItems:"center", gap:5, padding:"10px 10px",
+                  border:"none", borderBottom: isAct ? "2px solid #FA4616" : "2px solid transparent",
+                  background:"transparent", fontSize:12, fontWeight: isAct ? 600 : 400,
+                  color: isAct ? "#201547" : "#6b7280", cursor:"pointer",
+                  whiteSpace:"nowrap", transition:"all .15s" }}>
+                <TIcon />
+                {t.label}
+                {t.status === null ? null : <TabStatusBadge status={t.status} count={t.count} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding:"24px 32px" }}>
+        {renderContent()}
+      </div>
+    </div>
+  );
+};
+
 const ContractDetailPage = ({ contract, detail, onBack }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [activeTab,        setActiveTab]        = useState("operational");
@@ -1464,7 +1949,8 @@ const ContractDetailPage = ({ contract, detail, onBack }) => {
             {activeTab==="process"     && <ProcessoToBEView />}
             {activeTab==="usecases"    && <CasosDeUsoView />}
             {activeTab==="timeline"   && <CronogramaView detail={detail} />}
-            {activeTab!=="operational" && activeTab!=="financial" && activeTab!=="process" && activeTab!=="usecases" && activeTab!=="timeline" && (
+            {activeTab==="data-entry" && <EntradaDadosView contract={contract} detail={detail} />}
+            {activeTab!=="operational" && activeTab!=="financial" && activeTab!=="process" && activeTab!=="usecases" && activeTab!=="timeline" && activeTab!=="data-entry" && (
               <PlaceholderView tabId={activeTab} />
             )}
           </main>
@@ -1863,5 +2349,4 @@ function App() {
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 
   </script>
-</body>
-</html>
+</body></html>
