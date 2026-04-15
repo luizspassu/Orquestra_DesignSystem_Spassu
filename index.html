@@ -264,7 +264,7 @@ const FilterDropdown = ({ label, value, options, onChange, isActive, width=148 }
 };
 
 /* ── Field ── */
-const Field = ({ label, required, error, icon:Icon, children }) => (
+const Field = ({ label, required, error, helperText, icon:Icon, children }) => (
   <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
     <label style={{ fontSize:13, fontWeight:500, color:"#374151", marginBottom:4, display:"block" }}>
       {label}
@@ -278,6 +278,9 @@ const Field = ({ label, required, error, icon:Icon, children }) => (
       )}
       {children}
     </div>
+    {helperText && \!error && (
+      <span style={{ fontSize:11, color:"#9ca3af", marginTop:1 }}>{helperText}</span>
+    )}
     {error && (
       <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:12, color:"#dc2626" }}>
         <IAlertSm /> {error}
@@ -416,9 +419,10 @@ const NewProjectPage = ({ onSave, onOpen, onCancel, editProject=null }) => {
               <Field label="Data de Início" required error={errors.startDate} icon={ICalendar}>
                 <input type="date" value={form.startDate} onChange={e=>change("startDate",e.target.value)} style={inp(!!errors.startDate)} />
               </Field>
-              <Field label="Data de Término" required error={errors.endDate} icon={ICalendar}>
+              <Field label="Data de Término" required error={errors.endDate} helperText={!form.startDate ? "Preencha primeiro a Data de Início." : undefined} icon={ICalendar}>
                 <input type="date" value={form.endDate} min={form.startDate||undefined}
-                  onChange={e=>change("endDate",e.target.value)} style={inp(!!errors.endDate)} />
+                  disabled={!form.startDate}
+                  onChange={e=>change("endDate",e.target.value)} style={{ ...inp(!!errors.endDate), opacity: !form.startDate ? 0.5 : 1, cursor: !form.startDate ? "not-allowed" : "auto" }} />
               </Field>
               <Field label="Período (meses)" icon={IClock}>
                 <input readOnly value={months!==""?(months+" "+(months===1?"mês":"meses")):""}
@@ -659,17 +663,75 @@ const PhaseCard = ({ phase }) => {
   );
 };
 
+
+/* ── EmptyState ── */
+const EmptyState = ({ icon:Icon, title, desc, ctaLabel, onCta, ctaSecondary }) => (
+  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+    padding:"40px 24px", textAlign:"center", gap:12 }}>
+    <div style={{ width:56, height:56, borderRadius:12, background:"rgba(32,21,71,0.06)",
+      display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4 }}>
+      {Icon && <Icon />}
+    </div>
+    <p style={{ fontSize:15, fontWeight:700, color:"#201547", margin:0 }}>{title}</p>
+    {desc && <p style={{ fontSize:13, color:"#6b7280", margin:0, maxWidth:340, lineHeight:1.5 }}>{desc}</p>}
+    {ctaLabel && onCta && (
+      <button onClick={onCta}
+        style={{ marginTop:4, padding:"9px 22px", borderRadius:8, border:"none",
+          background:"#FA4616", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer" }}
+        onMouseEnter={e => e.currentTarget.style.background="#e03d12"}
+        onMouseLeave={e => e.currentTarget.style.background="#FA4616"}>
+        {ctaLabel}
+      </button>
+    )}
+    {ctaSecondary && (
+      <p style={{ fontSize:12, color:"#9ca3af", margin:0 }}>{ctaSecondary}</p>
+    )}
+  </div>
+);
+
 /* ── PlaceholderView ── */
-const PlaceholderView = ({ tabId }) => {
-  const labels = { financial:"Gestão Financeira", process:"Processo TO BE", usecases:"Casos de Uso", timeline:"Cronograma", issues:"Problemas", "data-entry":"Entrada de Dados", notifications:"Notificações" };
+const PlaceholderView = ({ tabId, onTabChange }) => {
+  const config = {
+    issues: {
+      Icon: IAlertC,
+      title: "Nenhum problema registrado",
+      desc: "Registre ocorrências, riscos e pendências do contrato para acompanhamento da equipe.",
+      ctaLabel: "Registrar Problema",
+      onCta: () => onTabChange && onTabChange("data-entry"),
+      ctaSecondary: "Os problemas registrados aparecem aqui automaticamente.",
+    },
+    notifications: {
+      Icon: IBell,
+      title: "Sem notificações no momento",
+      desc: "Você será alertado sobre vencimentos, marcos críticos e pendências do contrato.",
+      ctaLabel: null,
+      ctaSecondary: "As notificações são geradas automaticamente pelo sistema.",
+    },
+    "data-entry": {
+      Icon: IDatabase,
+      title: "Cadastro de Dados",
+      desc: "Gerencie contratos, fases, marcos, progresso e informações financeiras do projeto.",
+      ctaLabel: "Acessar Cadastro",
+      onCta: null,
+      ctaSecondary: "Esta seção está em desenvolvimento.",
+    },
+  };
+  const ctx = config[tabId] || {
+    Icon: IFolder,
+    title: "Seção em desenvolvimento",
+    desc: "Esta área estará disponível em breve.",
+    ctaLabel: null,
+  };
   return (
-    <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, color:C.gray500, padding:48 }}>
-      <IFolder />
-      <div style={{ textAlign:"center" }}>
-        <p style={{ fontSize:18, fontWeight:600, color:C.navy, margin:"0 0 8px" }}>{labels[tabId]||tabId}</p>
-        <p style={{ fontSize:14, margin:0 }}>Esta seção está em desenvolvimento.</p>
-        <p style={{ fontSize:12, margin:"6px 0 0", color:"#9ca3af" }}>Volte em breve para acompanhar as atualizações.</p>
-      </div>
+    <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:48 }}>
+      <EmptyState
+        icon={ctx.Icon}
+        title={ctx.title}
+        desc={ctx.desc}
+        ctaLabel={ctx.ctaLabel}
+        onCta={ctx.onCta}
+        ctaSecondary={ctx.ctaSecondary}
+      />
     </div>
   );
 };
@@ -733,11 +795,12 @@ const OperacionalView = ({ contract, detail }) => {
                   </div>
                 ))
               : (
-                <div style={{ textAlign:"center", padding:"32px 16px", color:C.gray500 }}>
-                  <div style={{ marginBottom:8, opacity:0.4 }}><IBarChart /></div>
-                  <p style={{ fontSize:13, margin:"0 0 4px" }}>Nenhum registro de progresso.</p>
-                  <p style={{ fontSize:11, color:"#9ca3af", margin:0 }}>Cadastre na aba "Entrada de Dados".</p>
-                </div>
+                <EmptyState
+                  icon={IBarChart}
+                  title="Sem registros de progresso"
+                  desc='Cadastre marcos e atualizações na aba "Entrada de Dados" para visualizar o progresso aqui.'
+                  ctaLabel={null}
+                />
               )
             }
           </div>
@@ -794,7 +857,11 @@ const FinanceiroView = ({ contract, detail }) => {
         <div style={{ background:C.white, borderRadius:8, padding:"20px 24px", boxShadow:"0 2px 8px rgba(32,21,71,0.06)" }}>
           <h3 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>Resumo por Categoria</h3>
           {byCategory.length===0
-            ? <p style={{ textAlign:"center", color:C.gray500, padding:"16px 0" }}>Nenhuma entrada cadastrada.</p>
+            ? <EmptyState
+                icon={IBarChart}
+                title="Sem dados financeiros"
+                desc='Cadastre entradas financeiras na aba "Entrada de Dados".'
+              />
             : (
               <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
                 {byCategory.map(cat => {
@@ -849,10 +916,12 @@ const FinanceiroView = ({ contract, detail }) => {
         <h3 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>Detalhamento Financeiro</h3>
         {entries.length===0
           ? (
-            <div style={{ textAlign:"center", padding:"32px 0", color:C.gray500 }}>
-              <IFolder />
-              <p style={{ marginTop:12, fontWeight:600, color:C.navy }}>Nenhuma entrada financeira cadastrada.</p>
-            </div>
+            <EmptyState
+              icon={IDatabase}
+              title="Nenhuma entrada financeira cadastrada"
+              desc='Importe dados via Excel ou cadastre manualmente na aba "Entrada de Dados".'
+              ctaLabel={null}
+            />
           )
           : (
             <table style={{ width:"100%", fontSize:13, borderCollapse:"collapse" }}>
