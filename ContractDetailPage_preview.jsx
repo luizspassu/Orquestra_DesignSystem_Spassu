@@ -1,0 +1,2773 @@
+const { useState, useMemo, useRef, useEffect } = React;
+
+/* ── Icons ── */
+const I = ({ d, size=20, stroke=2 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+    {Array.isArray(d) ? d.map((p,i)=><path key={i} d={p}/>) : <path d={d}/>}
+  </svg>
+);
+const IMenu      = () => <I d="M3 12h18M3 6h18M3 18h18"/>;
+const IChevR     = () => <I d="M9 18l6-6-6-6" size={16}/>;
+const IArrowLeft = () => <I d="M19 12H5M12 5l-7 7 7 7" size={16}/>;
+const ITarget    = () => <I size={18} d={["M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z","M12 18c3.31 0 6-2.69 6-6s-2.69-6-6-6-6 2.69-6 6 2.69 6 6 6z","M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"]}/>;
+const ITrend     = () => <I size={18} d={["M22 7l-8.5 8.5-5-5L2 17","M16 7h6v6"]}/>;
+const IGitBranch = () => <I size={18} d={["M6 3v12","M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z","M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z","M18 9a9 9 0 0 1-9 9"]}/>;
+const IClipboard = () => <I size={18} d={["M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2","M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"]}/>;
+const ICalendar  = () => <I size={18} d={["M8 2v4","M16 2v4","M3 10h18","M21 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8z"]}/>;
+const IAlertC    = () => <I size={18} d={["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4","M12 17h.01"]}/>;
+const IDatabase  = () => <I size={18} d={["M12 2C6.48 2 2 4.46 2 7.5S6.48 13 12 13s10-2.46 10-5.5S17.52 2 12 2z","M2 7.5v5C2 15.54 6.48 18 12 18s10-2.46 10-5.5v-5","M2 12.5v5C2 20.54 6.48 23 12 23s10-2.46 10-5.5v-5"]}/>;
+const IBell      = () => <I size={18} d={["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9","M13.73 21a2 2 0 0 1-3.46 0"]}/>;
+const IBarChart  = () => <I size={18} d="M12 20V10M18 20V4M6 20v-6"/>;
+const ICheckC    = () => <I size={14} d={["M22 11.08V12a10 10 0 1 1-5.93-9.14","M22 4 12 14.01l-3-3"]}/>;
+const IPause     = () => <I size={18} d={["M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z","M10 15V9M14 15V9"]}/>;
+const IFolder    = () => <I size={40} stroke={1.5} d={["M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"]}/>;
+const IPlus      = () => <I d="M12 5v14M5 12h14" size={16}/>;
+const IBrief     = () => <I size={18} d={["M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"]}/>;
+const IClock     = () => <I size={18} d={["M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z","M12 6v6l4 2"]}/>;
+const IXCirc     = () => <I size={18} d={["M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z","M15 9l-6 6M9 9l6 6"]}/>;
+const ICheck     = () => <I size={18} d={["M22 11.08V12a10 10 0 1 1-5.93-9.14","M22 4 12 14.01l-3-3"]}/>;
+const IPencil    = () => <I size={14} d={["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7","M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"]}/>;
+const ITrash     = () => <I size={14} d={["M3 6h18","M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6","M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"]}/>;
+const ILink      = () => <I size={14} d={["M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6","M15 3h6v6","M10 14 21 3"]}/>;
+const ISearch    = () => <I size={16} d={["M21 21l-4.35-4.35","M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0"]}/>;
+const IXSmall    = () => <I size={13} d="M18 6L6 18M6 6l12 12"/>;
+const IChevron   = ({ open }) => (
+  <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+    style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+    <path d="M6 9l6 6 6-6"/>
+  </svg>
+);
+const ICheckMark = () => <I size={13} d="M20 6L9 17l-5-5"/>;
+const IDollar    = () => <I size={18} d={["M12 2v20","M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"]}/>;
+const IUsers     = () => <I size={18} d={["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2","M23 21v-2a4 4 0 0 0-3-3.87","M16 3.13a4 4 0 0 1 0 7.75","M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"]}/>;
+const ISave      = () => <I size={16} d={["M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z","M17 21v-8H7v8","M7 3v5h8"]}/>;
+const IXIcon     = () => <I size={16} d="M18 6L6 18M6 6l12 12"/>;
+const ILink2     = () => <I size={16} d={["M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71","M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"]}/>;
+const IUser      = () => <I size={16} d={["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2","M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]}/>;
+const IMail      = () => <I size={16} d={["M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z","M22 6l-10 7L2 6"]}/>;
+const IFile      = () => <I size={16} d={["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6","M16 13H8","M16 17H8","M10 9H8"]}/>;
+const IBuild     = () => <I size={16} d={["M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z","M9 22V12h6v10"]}/>;
+const IAlertSm   = () => <I size={12} d={["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4","M12 17h.01"]}/>;
+
+/* ── Logo ── */
+const SPASSU_B64 = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYXllcl8yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTkuOTkgNjAiPjxkZWZzPjxzdHlsZT4uY2xzLTF7ZmlsbDojZmZmO308L3N0eWxlPjwvZGVmcz48ZyBpZD0iTGF5ZXJfMS0yIj48Zz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03Mi40NSw0MS43N2MtMS42LDAtMy4wNC0uMi00LjMzLS42MS0xLjI5LS40MS0yLjMzLS45NS0zLjEzLTEuNjNzLTEuNDEtMS40NS0xLjg0LTIuM2MtLjQyLS44NS0uNjMtMS43NS0uNjMtMi43aDMuNDZjLjAzLDEuMzEsLjYyLDIuMzksMS43NiwzLjI2LDEuMTUsLjg3LDIuNzIsMS4zLDQuNzMsMS4zLDEuODgsMCwzLjMzLS4zNCw0LjMzLTEuMDIsMS4wMS0uNjgsMS41MS0xLjYyLDEuNTEtMi44M3MtLjUtMi4wNy0xLjQ5LTIuNTljLTEtLjUyLTIuNi0uOTUtNC43OS0xLjI4LTEuMjMtLjE3LTIuMy0uMzktMy4yMS0uNjYtLjkyLS4yNi0xLjc5LS42My0yLjYxLTEuMTEtLjgyLS40Ny0xLjQ1LTEuMS0xLjg4LTEuODdzLS42NS0xLjY4LS42NS0yLjczYzAtMS44MywuNzMtMy4zNSwyLjE5LTQuNTMsMS40Ni0xLjE5LDMuNTUtMS43OSw2LjI2LTEuNzksMi43MiwwLDQuOTEsLjYsNi41OCwxLjgxLDEuNjcsMS4yLDIuNTEsMi43NSwyLjUxLDQuNjRsLTMuNTUtLjAyYy0uMDYtMS4xLS41OS0xLjk5LTEuNTgtMi42NS0uOTktLjY3LTIuMzEtMS0zLjk1LTEtMS41OSwwLTIuOCwuMzMtMy42NCwuOTktLjg0LC42Ni0xLjI2LDEuNDktMS4yNiwyLjQ5cy40MiwxLjg5LDEuMjYsMi40MmMuODQsLjUyLDIuNCwuOTcsNC42OSwxLjMyLC43MSwuMSwxLjMyLC4yLDEuODQsLjNzMS4xLC4yNCwxLjc1LC40MWMuNjUsLjE3LDEuMjEsLjM2LDEuNjYsLjU3LC40NSwuMjEsLjkyLC40NywxLjQsLjc5cy44NiwuNjgsMS4xNSwxLjA4Yy4yOSwuMzksLjUyLC44NywuNzEsMS40MiwuMTgsLjU1LC4yNywxLjE3LC4yNywxLjg0LDAsMi4xNS0uODYsMy44LTIuNTgsNC45Ni0xLjcyLDEuMTUtNC4wMywxLjczLTYuOTMsMS43M1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik04My40OSw0OC42NVYxOS4yOWgzLjQ2djQuOTdjLjg2LTEuNjMsMi4xNC0yLjk3LDMuODMtNCwxLjY5LTEuMDMsMy41OC0xLjU1LDUuNjgtMS41NSwyLjIxLDAsNC4yMywuNTEsNi4wNSwxLjU0LDEuODIsMS4wMywzLjI0LDIuNDIsNC4yNyw0LjE4LDEuMDMsMS43NiwxLjU0LDMuNywxLjU0LDUuOCwwLDIuMTItLjUxLDQuMDYtMS41NCw1LjgzLTEuMDMsMS43Ni0yLjQ1LDMuMTYtNC4yNiw0LjE4LTEuODEsMS4wMi0zLjgyLDEuNTQtNi4wMSwxLjU0LTIuMDQsMC0zLjkxLS40OS01LjYyLTEuNDctMS43MS0uOTgtMi45OS0yLjMtMy44NC0zLjk3bC4wNywyLjQzdjkuODloLTMuNjNabTEyLjQzLTkuOTVjMi40NiwwLDQuNTUtLjgsNi4yNi0yLjM5LDEuNzEtMS41OSwyLjU3LTMuNjIsMi41Ny02LjA4cy0uODYtNC40My0yLjU3LTYuMDRjLTEuNzEtMS42MS0zLjgxLTIuNDEtNi4yOC0yLjQxLTIuNDUsMC00LjUzLC44Mi02LjI1LDIuNDYtMS43MiwxLjY0LTIuNTgsMy42NC0yLjU4LDUuOTgsMCwyLjQxLC44Niw0LjQyLDIuNTksNi4wNCwxLjczLDEuNjIsMy44MSwyLjQzLDYuMjYsMi40M1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjEuNjgsNDEuNzdjLTIuMTUsMC00LjEyLS41MS01LjkxLTEuNTQtMS43OS0xLjAzLTMuMTktMi40Mi00LjIxLTQuMTktMS4wMi0xLjc3LTEuNTMtMy43MS0xLjUzLTUuODJzLjUxLTQuMDQsMS41My01LjhjMS4wMi0xLjc2LDIuNDItMy4xNiw0LjIxLTQuMTgsMS43OS0xLjAzLDMuNzUtMS41NCw1Ljg4LTEuNTRzNC4xNywuNSw1LjkxLDEuNDljMS43NCwxLDMuMDMsMi4zNSwzLjg2LDQuMDV2LTQuOTdoMy40NHYyMS44OGgtMy40NHYtNC45MmMtLjgzLDEuNzEtMi4xMiwzLjA1LTMuODUsNC4wNC0xLjczLC45OS0zLjcsMS40OC01LjksMS40OFptLjc4LTMuMWMyLjQ4LDAsNC41Ny0uODEsNi4yOC0yLjQ0LDEuNzEtMS42MywyLjU3LTMuNjMsMi41Ny02LjAxcy0uODYtNC4zNi0yLjU5LTZjLTEuNzMtMS42My0zLjgxLTIuNDUtNi4yNi0yLjQ1LTIuNDYsMC00LjU1LC44LTYuMjcsMi40MS0xLjcyLDEuNi0yLjU4LDMuNjItMi41OCw2LjA0cy44Niw0LjQ5LDIuNTgsNi4wN2MxLjcyLDEuNTgsMy44MSwyLjM4LDYuMjcsMi4zOFoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNDYuMzUsNDEuNzdjLTEuNiwwLTMuMDQtLjItNC4zMy0uNjEtMS4yOS0uNDEtMi4zMy0uOTUtMy4xMy0xLjYzLS44LS42OC0xLjQxLTEuNDUtMS44My0yLjMtLjQyLS44NS0uNjQtMS43NS0uNjQtMi43aDMuNDZjLjAzLDEuMzEsLjYyLDIuMzksMS43NywzLjI2LDEuMTUsLjg3LDIuNzIsMS4zLDQuNzMsMS4zLDEuODgsMCwzLjMzLS4zNCw0LjMzLTEuMDIsMS0uNjgsMS41MS0xLjYyLDEuNTEtMi44M3MtLjUtMi4wNy0xLjQ5LTIuNTktMi41OS0uOTUtNC43OS0xLjI4Yy0xLjIyLS4xNy0yLjMtLjM5LTMuMjEtLjY2LS45Mi0uMjYtMS43OS0uNjMtMi42MS0xLjExLS44My0uNDctMS40NS0xLjEtMS44OC0xLjg3LS40My0uNzctLjY1LTEuNjgtLjY1LTIuNzMsMC0xLjgzLC43My0zLjM1LDIuMTktNC41MywxLjQ2LTEuMTksMy41NS0xLjc5LDYuMjYtMS43OSwyLjcyLDAsNC45MSwuNiw2LjU4LDEuODEsMS42NywxLjIsMi41MSwyLjc1LDIuNTEsNC42NGwtMy41NS0uMDJjLS4wNi0xLjEtLjU5LTEuOTktMS41OC0yLjY1LS45OS0uNjctMi4zMS0xLTMuOTYtMXMtMi44LC4zMy0zLjY0LC45OWMtLjg0LC42Ni0xLjI2LDEuNDktMS4yNiwyLjQ5LDAsMS4wOSwuNDIsMS44OSwxLjI2LDIuNDIsLjg0LC41MiwyLjQsLjk3LDQuNywxLjMyLC43MSwuMSwxLjMyLC4yLDEuODMsLjNzMS4xLC4yNCwxLjc1LC40MWMuNjUsLjE3LDEuMiwuMzYsMS42NiwuNTcsLjQ2LC4yMSwuOTIsLjQ3LDEuNCwuNzksLjQ4LC4zMiwuODYsLjY4LDEuMTUsMS4wOCwuMjksLjM5LC41MywuODcsLjcxLDEuNDIsLjE4LC41NSwuMjcsMS4xNywuMjcsMS44NCwwLDIuMTUtLjg2LDMuOC0yLjU4LDQuOTYtMS43MiwxLjE1LTQuMDMsMS43My02LjkzLDEuNzNaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTY3LjM0LDQxLjc3Yy0xLjYsMC0zLjA0LS4yLTQuMzMtLjYxLTEuMjktLjQxLTIuMzMtLjk1LTMuMTMtMS42My0uOC0uNjgtMS40MS0xLjQ1LTEuODMtMi4zLS40Mi0uODUtLjY0LTEuNzUtLjY0LTIuN2gzLjQ2Yy4wMywxLjMxLC42MiwyLjM5LDEuNzcsMy4yNiwxLjE1LC44NywyLjcyLDEuMyw0LjczLDEuMywxLjg4LDAsMy4zMy0uMzQsNC4zMy0xLjAyLDEtLjY4LDEuNTEtMS42MiwxLjUxLTIuODMsMC0xLjItLjUtMi4wNy0xLjQ5LTIuNTlzLTIuNTktLjk1LTQuNzktMS4yOGMtMS4yMi0uMTctMi4zLS4zOS0zLjIxLS42Ni0uOTItLjI2LTEuNzktLjYzLTIuNjEtMS4xMS0uODMtLjQ3LTEuNDUtMS4xLTEuODgtMS44N3MtLjY1LTEuNjgtLjY1LTIuNzNjMC0xLjgzLC43My0zLjM1LDIuMTktNC41MywxLjQ2LTEuMTksMy41NS0xLjc5LDYuMjYtMS43OSwyLjcyLDAsNC45MSwuNiw2LjU4LDEuODEsMS42NywxLjIsMi41MSwyLjc1LDIuNTEsNC42NGwtMy41NS0uMDJjLS4wNi0xLjEtLjU5LTEuOTktMS41OC0yLjY1LS45OS0uNjctMi4zMS0xLTMuOTYtMS0xLjU4LDAtMi44LC4zMy0zLjY0LC45OS0uODQsLjY2LTEuMjYsMS40OS0xLjI2LDIuNDksMCwxLjA5LC40MiwxLjg5LDEuMjYsMi40MiwuODQsLjUyLDIuNCwuOTcsNC43LDEuMzIsLjcxLC4xLDEuMzIsLjIsMS44MywuM3MxLjEsLjI0LDEuNzUsLjQxYy42NSwuMTcsMS4yLC4zNiwxLjY2LC41NywuNDYsLjIxLC45MiwuNDcsMS40LC43OSwuNDgsLjMyLC44NiwuNjgsMS4xNSwxLjA4LC4yOSwuMzksLjUzLC44NywuNzEsMS40MiwuMTgsLjU1LC4yNywxLjE3LC4yNywxLjg0LDAsMi4xNS0uODYsMy44LTIuNTgsNC45Ni0xLjcyLDEuMTUtNC4wMywxLjczLTYuOTMsMS43M1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xODkuMjMsNDEuNzdjLTMuMzQsMC01Ljk5LS44OS03LjkzLTIuNjgtMS45NS0xLjc4LTIuOTItNC40OS0yLjkyLTguMTF2LTExLjY5aDMuNTh2MTEuNjFjMCwyLjU1LC42Miw0LjQ5LDEuODcsNS44LDEuMjUsMS4zMiwzLjAzLDEuOTgsNS4zNiwxLjk4LDIuMzIsMCw0LjExLS42Niw1LjM2LTEuOTcsMS4yNS0xLjMxLDEuODctMy4yNSwxLjg3LTUuODF2LTExLjYxaDMuNTh2MTEuNjljMCwzLjYxLS45Nyw2LjMxLTIuOTIsOC4xLTEuOTUsMS43OS00LjU2LDIuNjktNy44NCwyLjY5WiIvPjxnPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQ4LjM3LDUzLjc0Yy0uMjEsMC0uMzgtLjE3LS4zOC0uMzhzLjE3LS4zOCwuMzgtLjM4LC4zOCwuMTcsLjM4LC4zOC0uMTcsLjM4LS4zOCwuMzhaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNDIuNDYsNTcuMzJjLS4zMywwLS42LS4yNi0uNi0uNTlzLjI3LS41OSwuNi0uNTksLjYsLjI2LC42LC41OS0uMjcsLjU5LS42LC41OVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zNS45Miw1OS40NGMtLjQ1LDAtLjgxLS4zNi0uODEtLjhzLjM2LS44LC44MS0uOCwuODEsLjM2LC44MSwuOC0uMzYsLjgtLjgxLC44WiIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMSIgY3g9IjI5LjEyIiBjeT0iNTguOTkiIHJ4PSIxLjAyIiByeT0iMS4wMSIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTIyLjQxLDU5Yy0uNjgsMC0xLjIzLS41NS0xLjIzLTEuMjNzLjU1LTEuMjMsMS4yMy0xLjIzLDEuMjMsLjU1LDEuMjMsMS4yMy0uNTUsMS4yMy0xLjIzLDEuMjNaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTYuMTcsNTYuNDhjLS44LDAtMS40NS0uNjQtMS40NS0xLjQ0cy42NS0xLjQ0LDEuNDUtMS40NCwxLjQ1LC42NCwxLjQ1LDEuNDQtLjY1LDEuNDQtMS40NSwxLjQ0WiIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMSIgY3g9IjEwLjc0IiBjeT0iNTAuOTUiIHJ4PSIxLjY1IiByeT0iMS42NCIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTYuNDEsNDcuNWMtLjk4LDAtMS43OC0uNzktMS43OC0xLjc2cy44LTEuNzYsMS43OC0xLjc2LDEuNzgsLjc5LDEuNzgsMS43Ni0uOCwxLjc2LTEuNzgsMS43NloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zLjQxLDQxLjUyYy0xLjAzLDAtMS44Ny0uODMtMS44Ny0xLjg2cy44NC0xLjg2LDEuODctMS44NiwxLjg3LC44MywxLjg3LDEuODYtLjg0LDEuODYtMS44NywxLjg2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTEuOTEsMzQuOTZjLTEuMDYsMC0xLjkxLS44NS0xLjkxLTEuOXMuODYtMS45LDEuOTEtMS45LDEuOTEsLjg1LDEuOTEsMS45LS44NiwxLjktMS45MSwxLjlaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMS45OSwyOC4xOWMtMS4wNiwwLTEuOTEtLjg1LTEuOTEtMS45cy44Ni0xLjksMS45MS0xLjksMS45MSwuODUsMS45MSwxLjktLjg2LDEuOS0xLjkxLDEuOVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zLjY0LDIxLjU4Yy0xLjAzLDAtMS44Ny0uODMtMS44Ny0xLjg1cy44NC0xLjg2LDEuODctMS44NiwxLjg3LC44MywxLjg3LDEuODYtLjg0LDEuODUtMS44NywxLjg1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTYuNzksMTUuNDhjLS45OCwwLTEuNzctLjc5LTEuNzctMS43NnMuNzktMS43NiwxLjc3LTEuNzYsMS43NywuNzksMS43NywxLjc2LS43OSwxLjc2LTEuNzcsMS43NloiLz48ZWxsaXBzZSBjbGFzcz0iY2xzLTEiIGN4PSIxMS4yNSIgY3k9IjguNiIgcng9IjEuNjQiIHJ5PSIxLjYzIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTYuNzcsNi4wN2MtLjc5LDAtMS40NC0uNjQtMS40NC0xLjQzcy42NC0xLjQzLDEuNDQtMS40MywxLjQ0LC42NCwxLjQ0LDEuNDMtLjY0LDEuNDMtMS40NCwxLjQzWiIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMSIgY3g9IjIzLjA3IiBjeT0iMi4wNiIgcng9IjEuMjIiIHJ5PSIxLjIxIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjkuODEsMi4wMWMtLjU2LDAtMS4wMS0uNDUtMS4wMS0xcy40NS0xLDEuMDEtMSwxLjAxLC40NSwxLjAxLDEtLjQ1LDEtMS4wMSwxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM2LjYxLDIuM2MtLjQ0LDAtLjc5LS4zNS0uNzktLjc5cy4zNi0uNzksLjc5LS43OSwuNzksLjM1LC43OSwuNzktLjM2LC43OS0uNzksLjc5WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQzLjEsNC4xNWMtLjMyLDAtLjU4LS4yNi0uNTgtLjU4cy4yNi0uNTgsLjU4LS41OCwuNTgsLjI2LC41OCwuNTgtLjI2LC41OC0uNTgsLjU4WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQ4LjkzLDcuNDRjLS4yLDAtLjM3LS4xNi0uMzctLjM2cy4xNi0uMzYsLjM3LS4zNiwuMzcsLjE2LC4zNywuMzYtLjE2LC4zNi0uMzcsLjM2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTUzLjc5LDEyLjAzYy0uMTIsMC0uMjEtLjA5LS4yMS0uMjFzLjA5LS4yMSwuMjEtLjIxLC4yMSwuMDksLjIxLC4yMS0uMDksLjIxLS4yMSwuMjFaIi8+PGNpcmNsZSBjbGFzcz0iY2xzLTEiIGN4PSI0Ny4xNiIgY3k9IjQ4LjA0IiByPSIuMyIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQxLjQ5LDUyLjM0Yy0uMzEsMC0uNTYtLjI1LS41Ni0uNTVzLjI1LS41NSwuNTYtLjU1LC41NiwuMjUsLjU2LC41NS0uMjUsLjU1LS41NiwuNTVaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzUuMDEsNTQuNjNjLS40NSwwLS44MS0uMzYtLjgxLS44MXMuMzYtLjgxLC44MS0uODEsLjgxLC4zNiwuODEsLjgxLS4zNiwuODEtLjgxLC44MVoiLz48ZWxsaXBzZSBjbGFzcz0iY2xzLTEiIGN4PSIyOC4xOSIgY3k9IjUzLjk5IiByeD0iMS4wNyIgcnk9IjEuMDYiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMS42LDUzLjU5Yy0uNzMsMC0xLjMyLS41OS0xLjMyLTEuMzJzLjU5LTEuMzEsMS4zMi0xLjMxLDEuMzIsLjU5LDEuMzIsMS4zMS0uNTksMS4zMi0xLjMyLDEuMzJaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTUuNzUsNTAuMzhjLS44NywwLTEuNTgtLjctMS41OC0xLjU3cy43MS0xLjU3LDEuNTgtMS41NywxLjU4LC43LDEuNTgsMS41Ny0uNzEsMS41Ny0xLjU4LDEuNTdaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTEuMSw0NS42MmMtLjk3LDAtMS43NS0uNzgtMS43NS0xLjc0cy43OS0xLjc0LDEuNzUtMS43NCwxLjc1LC43OCwxLjc1LDEuNzQtLjc5LDEuNzQtMS43NSwxLjc0WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTgsMzkuNzJjLTEuMDMsMC0xLjg3LS44My0xLjg3LTEuODZzLjg0LTEuODYsMS44Ny0xLjg2LDEuODcsLjgzLDEuODcsMS44Ni0uODQsMS44Ni0xLjg3LDEuODZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNi43MiwzMy4xMmMtMS4wNiwwLTEuOTItLjg2LTEuOTItMS45MXMuODYtMS45MSwxLjkyLTEuOTEsMS45MiwuODYsMS45MiwxLjkxLS44NiwxLjkxLTEuOTIsMS45MVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03LjMzLDI2LjM2Yy0xLjA1LDAtMS44OS0uODQtMS44OS0xLjg4cy44NS0xLjg4LDEuODktMS44OCwxLjg5LC44NCwxLjg5LDEuODgtLjg1LDEuODgtMS44OSwxLjg4WiIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMSIgY3g9IjkuODEiIGN5PSIxOC4xNyIgcng9IjEuODIiIHJ5PSIxLjgxIi8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iMTMuOTUiIGN5PSIxMi44IiByeD0iMS42NyIgcnk9IjEuNjUiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xOS40MiwxMC4yYy0uNzksMC0xLjQzLS42NC0xLjQzLTEuNDJzLjY0LTEuNDIsMS40My0xLjQyLDEuNDMsLjY0LDEuNDMsMS40Mi0uNjQsMS40Mi0xLjQzLDEuNDJaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjUuOCw3LjU5Yy0uNjUsMC0xLjE3LS41Mi0xLjE3LTEuMTZzLjUyLTEuMTYsMS4xNy0xLjE2LDEuMTcsLjUyLDEuMTcsMS4xNi0uNTIsMS4xNi0xLjE3LDEuMTZaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzIuNiw2LjgzYy0uNSwwLS45MS0uNC0uOTEtLjkxcy40MS0uOTEsLjkxLS45MSwuOTEsLjQxLC45MSwuOTEtLjQxLC45MS0uOTEsLjkxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM5LjI3LDcuOTZjLS4zNiwwLS42NS0uMjktLjY1LS42NXMuMjktLjY1LC42NS0uNjUsLjY1LC4yOSwuNjUsLjY1LS4yOSwuNjUtLjY1LC42NVoiLz48Y2lyY2xlIGNsYXNzPSJjbHMtMSIgY3g9IjQ1LjI4IiBjeT0iMTAuNDgiIHI9Ii40Ii8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNTAuMTgsMTUuMzhjLS4xMSwwLS4yLS4wOS0uMi0uMnMuMDktLjIsLjItLjIsLjIsLjA5LC4yLC4yLS4wOSwuMi0uMiwuMloiLz48Y2lyY2xlIGNsYXNzPSJjbHMtMSIgY3g9IjQ1Ljc0IiBjeT0iNDIuNDkiIHI9Ii4yMiIvPjxjaXJjbGUgY2xhc3M9ImNscy0xIiBjeD0iNDAuNSIgY3k9IjQ2Ljc4IiByPSIuNDkiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zNC4wOCw0OS44MmMtLjQ1LDAtLjgyLS4zNi0uODItLjgxcy4zNy0uODEsLjgyLS44MSwuODIsLjM2LC44MiwuODEtLjM3LC44MS0uODIsLjgxWiIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMSIgY3g9IjI3LjI4IiBjeT0iNDguOSIgcng9IjEuMTQiIHJ5PSIxLjEzIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjAuOTMsNDcuOWMtLjgxLDAtMS40Ni0uNjUtMS40Ni0xLjQ1cy42NS0xLjQ1LDEuNDYtMS40NSwxLjQ2LC42NSwxLjQ2LDEuNDUtLjY1LDEuNDUtMS40NiwxLjQ1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE1LjgzLDQzLjdjLS45NSwwLTEuNzItLjc3LTEuNzItMS43MXMuNzctMS43MSwxLjcyLTEuNzEsMS43MiwuNzcsMS43MiwxLjcxLS43NywxLjcxLTEuNzIsMS43MVoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMi42LDM3LjkxYy0xLjAzLDAtMS44Ny0uODMtMS44Ny0xLjg2cy44NC0xLjg2LDEuODctMS44NiwxLjg3LC44MywxLjg3LDEuODYtLjg0LDEuODYtMS44NywxLjg2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTExLjYzLDMxLjI5Yy0xLjA3LDAtMS45My0uODYtMS45My0xLjkycy44Ni0xLjkyLDEuOTMtMS45MiwxLjkzLC44NiwxLjkzLDEuOTItLjg2LDEuOTItMS45MywxLjkyWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTEzLjA0LDI0LjYxYy0xLjAzLDAtMS44Ni0uODMtMS44Ni0xLjg1cy44My0xLjg1LDEuODYtMS44NSwxLjg2LC44MywxLjg2LDEuODUtLjgzLDEuODUtMS44NiwxLjg1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE2LjY4LDE4Ljc0Yy0uOTQsMC0xLjctLjc1LTEuNy0xLjY4cy43Ni0xLjY4LDEuNy0xLjY4LDEuNywuNzUsMS43LDEuNjgtLjc2LDEuNjgtMS43LDEuNjhaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjIuMDYsMTQuMzRjLS43OCwwLTEuNDEtLjYzLTEuNDEtMS40cy42My0xLjQsMS40MS0xLjQsMS40MSwuNjMsMS40MSwxLjQtLjYzLDEuNC0xLjQxLDEuNFoiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yOC41NSwxMi4wMWMtLjYsMC0xLjA5LS40OC0xLjA5LTEuMDhzLjQ5LTEuMDgsMS4wOS0xLjA4LDEuMDksLjQ4LDEuMDksMS4wOC0uNDksMS4wOC0xLjA5LDEuMDhaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzUuMzQsMTIuMDJjLS40MiwwLS43Ny0uMzQtLjc3LS43NnMuMzQtLjc2LC43Ny0uNzYsLjc3LC4zNCwuNzcsLjc2LS4zNCwuNzYtLjc3LC43NloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik00MS41OSwxNC4zNGMtLjI0LDAtLjQ0LS4yLS40NC0uNDRzLjItLjQ0LC40NC0uNDQsLjQ0LC4yLC40NCwuNDQtLjIsLjQ0LS40NCwuNDRaIi8+PGNpcmNsZSBjbGFzcz0iY2xzLTEiIGN4PSI0Ni41NCIgY3k9IjE4LjUzIiByPSIuMTkiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNy4yNiwzNC41MnMtLjA2LS4wMy0uMDYtLjA2LC4wMy0uMDYsLjA2LS4wNiwuMDYsLjAzLC4wNiwuMDYtLjAzLC4wNi0uMDYsLjA2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE5LjMzLDM4LjY2Yy0uMSwwLS4xOC0uMDgtLjE4LS4xOHMuMDgtLjE4LC4xOC0uMTgsLjE4LC4wOCwuMTgsLjE4LS4wOCwuMTgtLjE4LC4xOFoiLz48Y2lyY2xlIGNsYXNzPSJjbHMtMSIgY3g9IjIyLjU1IiBjeT0iNDEuNjUiIHI9Ii4zOSIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTI2LjYsNDQuMzVjLS4zOCwwLS42OC0uMy0uNjgtLjY4cy4zMS0uNjgsLjY4LS42OCwuNjgsLjMsLjY4LC42OC0uMzEsLjY4LS42OCwuNjhaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzEuMDksNDUuMzFjLS41NCwwLS45Ny0uNDMtLjk3LS45NnMuNDMtLjk2LC45Ny0uOTYsLjk3LC40MywuOTcsLjk2LS40MywuOTYtLjk3LC45NloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zNS41Nyw0NC44NmMtLjY5LDAtMS4yNi0uNTYtMS4yNi0xLjI1cy41Ni0xLjI1LDEuMjYtMS4yNSwxLjI2LC41NiwxLjI2LDEuMjUtLjU2LDEuMjUtMS4yNiwxLjI1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM5LjYsNDMuMDdjLS44NSwwLTEuNTUtLjY5LTEuNTUtMS41M3MuNjktMS41MywxLjU1LTEuNTMsMS41NSwuNjksMS41NSwxLjUzLS42OSwxLjUzLTEuNTUsMS41M1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik00Mi43Nyw0MC4wNmMtLjk3LDAtMS43NS0uNzgtMS43NS0xLjc0cy43OC0xLjc0LDEuNzUtMS43NCwxLjc1LC43OCwxLjc1LDEuNzQtLjc4LDEuNzQtMS43NSwxLjc0WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQ0Ljc5LDM2LjE0Yy0xLjA0LDAtMS44OC0uODMtMS44OC0xLjg2cy44NC0xLjg2LDEuODgtMS44NiwxLjg4LC44MywxLjg4LDEuODYtLjg0LDEuODYtMS44OCwxLjg2WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQ1LjQ0LDMxLjczYy0xLjA3LDAtMS45My0uODYtMS45My0xLjkycy44Ny0xLjkyLDEuOTMtMS45MiwxLjkzLC44NiwxLjkzLDEuOTItLjg3LDEuOTItMS45MywxLjkyWiIvPjxlbGxpcHNlIGNsYXNzPSJjbHMtMSIgY3g9IjQ0LjY2IiBjeT0iMjUuMzciIHJ4PSIxLjg3IiByeT0iMS44NiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTQyLjU0LDIzLjEyYy0uOTYsMC0xLjc1LS43OC0xLjc1LTEuNzNzLjc4LTEuNzMsMS43NS0xLjczLDEuNzUsLjc4LDEuNzUsMS43My0uNzgsMS43My0xLjc1LDEuNzNaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMzkuMjcsMTkuNzhjLS44NSwwLTEuNTMtLjY4LTEuNTMtMS41MnMuNjktMS41MiwxLjUzLTEuNTIsMS41MywuNjgsMS41MywxLjUyLS42OSwxLjUyLTEuNTMsMS41MloiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zNS4yLDE3LjUyYy0uNjksMC0xLjI0LS41NS0xLjI0LTEuMjNzLjU2LTEuMjMsMS4yNC0xLjIzLDEuMjQsLjU1LDEuMjQsMS4yMy0uNTYsMS4yMy0xLjI0LDEuMjNaIi8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iMzAuNyIgY3k9IjE1LjY4IiByeD0iLjk1IiByeT0iLjk0Ii8+PGVsbGlwc2UgY2xhc3M9ImNscy0xIiBjeD0iMjYuMjMiIGN5PSIxNi40NyIgcng9Ii42NiIgcnk9Ii42NiIvPjxjaXJjbGUgY2xhc3M9ImNscy0xIiBjeD0iMjIuMjQiIGN5PSIxOC42MSIgcj0iLjM3Ii8+PGNpcmNsZSBjbGFzcz0iY2xzLTEiIGN4PSIxOS4xMSIgY3k9IjIxLjg3IiByPSIuMTciLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNy4xNSwyNS45OHMtLjA1LS4wMi0uMDUtLjA1LC4wMi0uMDUsLjA1LS4wNSwuMDUsLjAyLC4wNSwuMDUtLjAyLC4wNS0uMDUsLjA1WiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==";
+const SpassuLogo = () => (
+  <img src={"data:image/svg+xml;base64," + SPASSU_B64} alt="SPASSU" height="32" style={{ display:"block" }} />
+);
+
+/* ── Design tokens ── */
+const C = {
+  navy:"#201547", navyDark:"#160f30", orange:"#FA4616", orangeText:"#C2410C",
+  avocado:"#DBE442", avocadoDark:"#b8c018", gray50:"#f9fafb", gray100:"#f3f4f6",
+  gray200:"#e5e7eb", gray500:"#6b7280", gray700:"#374151", white:"#ffffff",
+};
+
+/* ── Mock data ── */
+const MOCK_DETAIL = {
+  milestones:[],
+  phases:[
+    { id:"1", name:"Discovery", percentage:10, duration:"3 semanas", value:78000,
+      startDate:"2025-01-10", endDate:"2025-01-31", phaseStatus:"completed",
+      sprints:[{ id:"s1", name:"Sprint 0: Validação do Entendimento e Planejamento Inicial", status:"completed", deliverables:["Documento de escopo validado","Plano de projeto inicial"] }] },
+    { id:"2", name:"MVP1: Core Backend", percentage:35, duration:"14 semanas", value:273000,
+      startDate:"2025-02-03", endDate:"2025-05-09", phaseStatus:"in_progress",
+      sprints:[
+        { id:"s2", name:"Sprint 1: Fundação do Backend e Setup de Interfaces",       status:"completed",   deliverables:["Ambiente configurado","APIs base implementadas"] },
+        { id:"s3", name:"Sprint 2: Integração com OBTs e Visualização de Reservas",  status:"in_progress", deliverables:["Integração OBT concluída","Tela de reservas funcional"] },
+        { id:"s4", name:"Sprint 3: Módulo de Notas Fiscais e IA para Validação",     status:"pending",     deliverables:["Módulo NF implementado","IA de validação integrada"] },
+      ] },
+    { id:"3", name:"MVP2: Frontend & Integrações", percentage:25, duration:"11 semanas", value:195000,
+      startDate:"2025-05-12", endDate:"2025-07-25", phaseStatus:"pending",
+      sprints:[
+        { id:"s5", name:"Sprint 4: Interface Web e Mobile",         status:"pending", deliverables:["App web responsivo","App mobile iOS/Android"] },
+        { id:"s6", name:"Sprint 5: Integrações de Pagamento e GDS", status:"pending", deliverables:["Gateway integrado","GDS conectado"] },
+      ] },
+    { id:"4", name:"MVP3: Validação & Testes", percentage:20, duration:"10 semanas", value:156000,
+      startDate:"2025-07-28", endDate:"2025-10-03", phaseStatus:"pending",
+      sprints:[{ id:"s7", name:"Sprint 6: QA, Segurança e Performance", status:"pending", deliverables:["Cobertura >80%","Pentest concluído"] }] },
+    { id:"5", name:"Go-Live", percentage:10, duration:"7 semanas", value:78000,
+      startDate:"2025-10-06", endDate:"2025-11-21", phaseStatus:"pending",
+      sprints:[{ id:"s8", name:"Sprint 7: Deploy, Cutover e Estabilização", status:"pending", deliverables:["Sistema em produção","Treinamento concluído"] }] },
+  ],
+  progress:[],
+  financial:[
+    { id:"fe1", category:"Desenvolvimento",   period:"Jan-Mar/2025", planned:280000, actual:78000  },
+    { id:"fe2", category:"Infraestrutura",    period:"Jan-Fev/2025", planned:195000, actual:54000  },
+    { id:"fe3", category:"Design UX/UI",      period:"Fev-Mar/2025", planned:156000, actual:27000  },
+    { id:"fe4", category:"Gestão de Projeto", period:"Jan-Abr/2025", planned:149000, actual:12500  },
+  ],
+  issues:[],
+};
+
+const MOCK_PROJECTS = [
+  { id:"1", number:"ICJ 5900.0131123.25.2", title:"Solução Inovadora para Gestão de Pagamento de Hotéis", company:"Petrobras",        status:"Em Andamento", progress:12,  startDate:"2025-01-10", endDate:"2025-12-31", totalValue:780000 },
+  { id:"2", number:"ICJ 5900.0098456.24.1", title:"Modernização do Sistema de Controle de Frota",          company:"Petrobras",        status:"Planejado",    progress:0,   startDate:"2026-03-01", endDate:"2026-09-30" },
+  { id:"3", number:"ICJ 5900.0075312.23.8", title:"Plataforma de Integração SAP e Sistemas Legados",       company:"Petrobras",        status:"Finalizado",   progress:100, startDate:"2023-06-01", endDate:"2024-06-30" },
+  { id:"4", number:"ICJ 5900.0042781.22.5", title:"Automação de Relatórios Regulatórios",                  company:"Transpetro",       status:"Cancelado",    progress:45,  startDate:"2022-03-15", endDate:"2022-12-31" },
+  { id:"5", number:"ICJ 5900.0063297.23.1", title:"Portal de Gestão de Fornecedores e Contratos",          company:"Pré-Sal Petróleo", status:"Suspenso",     progress:67,  startDate:"2023-01-01", endDate:"2026-06-30" },
+];
+
+const STATUS_MAP = {
+  "Em Andamento":{ bg:"#dbeafe", color:"#1d4ed8", dot:"#3b82f6" },
+  "Planejado":   { bg:"#f3f4f6", color:"#374151", dot:"#9ca3af" },
+  "Cancelado":   { bg:"#fee2e2", color:"#b91c1c", dot:"#ef4444" },
+  "Suspenso":    { bg:"#fef9c3", color:"#a16207", dot:"#eab308" },
+  "Finalizado":  { bg:"#dcfce7", color:"#15803d", dot:"#22c55e" },
+};
+
+/* ── Helpers ── */
+const kpiDefs = (c) => [
+  { Icon:IBrief, label:"Total de projetos", value:c.length },
+  { Icon:ITrend, label:"Em andamento",      value:c.filter(x=>x.status==="Em Andamento").length },
+  { Icon:IClock, label:"Planejado",         value:c.filter(x=>x.status==="Planejado").length },
+  { Icon:IXCirc, label:"Cancelado",         value:c.filter(x=>x.status==="Cancelado").length },
+  { Icon:IPause, label:"Suspenso",          value:c.filter(x=>x.status==="Suspenso").length },
+  { Icon:ICheck, label:"Finalizado",        value:c.filter(x=>x.status==="Finalizado").length },
+];
+
+const CLIENTES    = ["Petrobras","Transpetro","Pré-Sal Petróleo","BR Distribuidora","Petrobras Biocombustível"];
+const INITIAL_FORM = { title:"", description:"", company:"", startDate:"", endDate:"", docLink:"", focalPoint:"", email:"", contractNumber:"" };
+const genICJ      = () => { const yy=new Date().getFullYear().toString().slice(-2); const r=String(Math.floor(Math.random()*9000000)+1000000); const s=Math.floor(Math.random()*9)+1; return "ICJ 5900."+r+"."+yy+"."+s; };
+const calcMonths  = (s,e) => { if(!s||!e) return ""; const sd=new Date(s),ed=new Date(e); if(ed<=sd) return 0; return (ed.getFullYear()-sd.getFullYear())*12+(ed.getMonth()-sd.getMonth()); };
+const isURL       = (v) => { try { new URL(v); return true; } catch(e2) { return false; } };
+const isEmail     = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const fmtDate     = (d) => d instanceof Date ? d.toLocaleDateString("pt-BR") : "—";
+const fmtCur      = (v) => new Intl.NumberFormat("pt-BR",{ style:"currency", currency:"BRL" }).format(v||0);
+
+const statusBadgeClass = (s) => {
+  if (s==="completed")   return { bg:"#dcfce7", color:"#15803d" };
+  if (s==="in_progress") return { bg:"#dbeafe", color:"#1d4ed8" };
+  if (s==="delayed")     return { bg:"#fee2e2", color:"#b91c1c" };
+  return { bg:"#f3f4f6", color:"#374151" };
+};
+const statusLabel = (s) => {
+  if (s==="completed")   return "Concluída";
+  if (s==="in_progress") return "Em Andamento";
+  if (s==="delayed")     return "Atrasado";
+  return "Pendente";
+};
+
+const calcProgress = (detail) => {
+  if (!detail) return 0;
+  if (detail.progress && detail.progress.length>0) {
+    const avg = detail.progress.reduce((a,b)=>a+b.completion_pct,0)/detail.progress.length;
+    return Math.round(avg);
+  }
+  const all = (detail.phases||[]).flatMap(p=>p.sprints||[]);
+  if (!all.length) return 0;
+  return Math.round(all.filter(s=>s.status==="completed").length/all.length*100);
+};
+
+const calcMilestones = (detail) => {
+  const m = (detail&&detail.milestones) ? detail.milestones : [];
+  return {
+    total:m.length,
+    completed:m.filter(x=>x.status==="completed").length,
+    inProgress:m.filter(x=>x.status==="in_progress").length,
+    pending:m.filter(x=>x.status==="pending").length,
+  };
+};
+
+/* ── Highlight ── */
+const Highlight = ({ text, query }) => {
+  if (!query || !text) return React.createElement(React.Fragment, null, text);
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const parts = String(text).split(new RegExp("("+escaped+")","gi"));
+  return React.createElement(React.Fragment, null,
+    parts.map((p,i) =>
+      p.toLowerCase()===query.toLowerCase()
+        ? React.createElement("mark", { key:i, style:{ background:"#fef08a", color:"#713f12", borderRadius:4, padding:"0 2px" } }, p)
+        : p
+    )
+  );
+};
+
+/* ── FilterDropdown ── */
+const FilterDropdown = ({ label, value, options, onChange, isActive, width=148 }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+  const selLabel = (options.find(o=>o.value===value)||{}).label || label;
+  return (
+    <div ref={ref} style={{ position:"relative", width, flexShrink:0 }}>
+      <button
+        onClick={() => setOpen(v=>!v)}
+        style={{
+          width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", gap:6,
+          padding:"8px 12px", borderRadius:8, fontSize:13, fontWeight:500, cursor:"pointer", overflow:"hidden",
+          border: isActive ? "1.5px solid #201547" : "1px solid #d1d5db",
+          background: isActive ? "#201547" : "#fff",
+          color: isActive ? "#fff" : "#374151",
+        }}
+      >
+        <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{selLabel}</span>
+        <span style={{ flexShrink:0 }}><IChevron open={open} /></span>
+      </button>
+      {open && (
+        <div style={{
+          position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:200, background:"#fff",
+          border:"1px solid #e5e7eb", borderRadius:8, boxShadow:"0 10px 20px -5px rgba(32,21,71,.15)",
+          minWidth:190, overflow:"hidden", padding:"4px 0",
+        }}>
+          {options.map(opt => {
+            const isSel = value===opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                style={{
+                  width:"100%", textAlign:"left", display:"flex", alignItems:"center", gap:6,
+                  padding:"8px 12px", fontSize:13, cursor:"pointer", border:"none",
+                  background: isSel ? "rgba(32,21,71,0.05)" : "transparent",
+                  color: isSel ? "#201547" : "#374151",
+                  fontWeight: isSel ? 500 : 400,
+                }}
+                onMouseEnter={e => { if(!isSel) e.currentTarget.style.background="#f9fafb"; }}
+                onMouseLeave={e => { if(!isSel) e.currentTarget.style.background="transparent"; }}
+              >
+                {isSel
+                  ? <span style={{ color:C.orange, flexShrink:0 }}><ICheckMark /></span>
+                  : <span style={{ width:13, flexShrink:0 }}></span>
+                }
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── Field ── */
+const Field = ({ label, required, error, helperText, icon:Icon, children }) => (
+  <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+    <label style={{ fontSize:13, fontWeight:500, color:"#374151", marginBottom:4, display:"block" }}>
+      {label}
+      {required && <span style={{ color:C.orange, marginLeft:2 }}>*</span>}
+    </label>
+    <div style={{ position:"relative" }}>
+      {Icon && (
+        <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:"#9ca3af", pointerEvents:"none", display:"flex" }}>
+          <Icon />
+        </span>
+      )}
+      {children}
+    </div>
+    {helperText && !error && (
+      <span style={{ fontSize:11, color:"#9ca3af", marginTop:1 }}>{helperText}</span>
+    )}
+    {error && (
+      <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:12, color:"#dc2626" }}>
+        <IAlertSm /> {error}
+      </span>
+    )}
+  </div>
+);
+
+/* ── NewProjectPage ── */
+const NewProjectPage = ({ onSave, onOpen, onCancel, editProject=null }) => {
+  const [form, setForm] = useState(() =>
+    editProject
+      ? { title:editProject.title||"", description:editProject.description||"", company:editProject.company||"",
+          startDate:editProject.startDate||"", endDate:editProject.endDate||"", docLink:editProject.docLink||"",
+          focalPoint:editProject.focalPoint||"", email:editProject.email||"",
+          contractNumber:editProject.contractNumber||editProject.number||"" }
+      : INITIAL_FORM
+  );
+  const [errors,  setErrors]  = useState({});
+  const [touched, setTouched] = useState({});
+  const [saving,  setSaving]  = useState(false);
+  const [saved,   setSaved]   = useState(null);
+
+  const months = calcMonths(form.startDate, form.endDate);
+
+  const change = (k,v) => {
+    setForm(f => ({ ...f, [k]:v }));
+    setTouched(t => ({ ...t, [k]:true }));
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.title.trim())      e.title       = "Campo obrigatório.";
+    if (!form.description.trim()) e.description = "Campo obrigatório.";
+    if (!form.company)            e.company     = "Selecione um cliente.";
+    if (!form.startDate)          e.startDate   = "Campo obrigatório.";
+    if (!form.endDate)            e.endDate     = "Campo obrigatório.";
+    if (form.startDate && form.endDate && new Date(form.endDate)<=new Date(form.startDate))
+                                  e.endDate     = "Deve ser posterior à data de início.";
+    if (!form.docLink.trim())     e.docLink     = "Campo obrigatório.";
+    else if (!isURL(form.docLink)) e.docLink    = "URL inválida (ex: https://…).";
+    if (form.email && !isEmail(form.email)) e.email = "E-mail inválido.";
+    return e;
+  };
+
+  useEffect(() => {
+    const e = validate();
+    const filtered = {};
+    Object.keys(e).forEach(k => { if (touched[k]) filtered[k] = e[k]; });
+    setErrors(filtered);
+  }, [form, touched]);
+
+  const submit = async () => {
+    const allTouched = {};
+    Object.keys(INITIAL_FORM).forEach(k => { allTouched[k]=true; });
+    setTouched(allTouched);
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
+    setSaving(true);
+    await new Promise(r => setTimeout(r,350));
+    const proj = editProject
+      ? { ...editProject, ...form, title:form.title.trim(), description:form.description.trim(), durationMonths:months }
+      : { id:String(Date.now()), number:genICJ(), ...form, title:form.title.trim(), description:form.description.trim(), durationMonths:months, status:"Planejado", progress:0 };
+    setSaving(false);
+    setSaved(proj);
+  };
+
+  const inp = (err) => ({
+    width:"100%", boxSizing:"border-box", padding:"10px 12px 10px 36px", fontSize:13, fontFamily:"inherit",
+    border: err ? "1px solid #f87171" : "1px solid #d1d5db", borderRadius:8, outline:"none",
+    background: err ? "#fef2f2" : "#fff", color:"#1f2937",
+  });
+
+  const card    = { background:"#fff", borderRadius:12, boxShadow:"0 4px 6px -1px rgba(32,21,71,.1)", padding:32, display:"flex", flexDirection:"column", gap:20 };
+  const section = { fontSize:14, fontWeight:600, color:"#201547", borderBottom:"1px solid #f3f4f6", paddingBottom:12, margin:0 };
+  const g2      = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 };
+  const g3      = { display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:20 };
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#f9fafb", fontFamily:"Poppins,system-ui,sans-serif" }}>
+      <AppHeader />
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", height:56, display:"flex", alignItems:"center", padding:"0 32px", gap:8 }}>
+        <button onClick={onCancel}
+          style={{ background:"none", border:"none", fontSize:13, color:"#6b7280", cursor:"pointer", padding:0 }}
+          onMouseEnter={e=>e.currentTarget.style.color="#201547"}
+          onMouseLeave={e=>e.currentTarget.style.color="#6b7280"}
+        >Visão geral</button>
+        <span style={{ color:"#d1d5db" }}><IChevR /></span>
+        <span style={{ fontSize:13, fontWeight:500, color:"#201547" }}>
+          {editProject ? "Editar Projeto" : "Cadastrar Projeto"}
+        </span>
+      </div>
+      <main style={{ padding:"40px 16px 80px" }}>
+        <div style={{ maxWidth:768, margin:"0 auto", display:"flex", flexDirection:"column", gap:24 }}>
+          <div>
+            <h1 style={{ fontSize:24, fontWeight:600, color:"#201547", margin:"0 0 4px" }}>
+              {editProject ? "Editar Projeto" : "Cadastrar Novo Projeto"}
+            </h1>
+            <p style={{ fontSize:13, color:"#6b7280", margin:0 }}>
+              Campos marcados com <span style={{ color:C.orange }}>*</span> são obrigatórios.
+            </p>
+          </div>
+
+          <div style={card}>
+            <p style={section}>Informações do Projeto</p>
+            <Field label="Nome do Projeto" required error={errors.title} icon={IFile}>
+              <input value={form.title} onChange={e=>change("title",e.target.value)}
+                placeholder="Ex: Modernização do Sistema de Controle de Frota"
+                style={inp(!!errors.title)}
+                onFocus={e=>e.target.style.borderColor="#FA4616"}
+                onBlur={e=>e.target.style.borderColor=errors.title?"#f87171":"#d1d5db"} />
+            </Field>
+            <Field label="Descrição" required error={errors.description}>
+              <textarea value={form.description} onChange={e=>change("description",e.target.value)}
+                placeholder="Descreva objetivo, escopo e principais entregas…" rows={4}
+                style={{ ...inp(!!errors.description), padding:"10px 12px", resize:"vertical" }}
+                onFocus={e=>e.target.style.borderColor="#FA4616"}
+                onBlur={e=>e.target.style.borderColor=errors.description?"#f87171":"#d1d5db"} />
+            </Field>
+            <div style={g2}>
+              <Field label="Cliente" required error={errors.company} icon={IBuild}>
+                <select value={form.company} onChange={e=>change("company",e.target.value)}
+                  style={{ ...inp(!!errors.company), appearance:"none" }}>
+                  <option value="">Selecione o cliente…</option>
+                  {CLIENTES.map(c=><option key={c} value={c}>{c}</option>)}
+                </select>
+              </Field>
+              <Field label="Link de Documentação" required error={errors.docLink} icon={ILink2}>
+                <input type="url" value={form.docLink} onChange={e=>change("docLink",e.target.value)}
+                  placeholder="https://…" style={inp(!!errors.docLink)}
+                  onFocus={e=>e.target.style.borderColor="#FA4616"}
+                  onBlur={e=>e.target.style.borderColor=errors.docLink?"#f87171":"#d1d5db"} />
+              </Field>
+            </div>
+            <div style={g3}>
+              <Field label="Data de Início" required error={errors.startDate} icon={ICalendar}>
+                <input type="date" value={form.startDate} onChange={e=>change("startDate",e.target.value)} style={inp(!!errors.startDate)} />
+              </Field>
+              <Field label="Data de Término" required error={errors.endDate} helperText={!form.startDate ? "Preencha primeiro a Data de Início." : undefined} icon={ICalendar}>
+                <input type="date" value={form.endDate} min={form.startDate||undefined}
+                  disabled={!form.startDate}
+                  onChange={e=>change("endDate",e.target.value)} style={{ ...inp(!!errors.endDate), opacity: !form.startDate ? 0.5 : 1, cursor: !form.startDate ? "not-allowed" : "auto" }} />
+              </Field>
+              <Field label="Período (meses)" icon={IClock}>
+                <input readOnly value={months!==""?(months+" "+(months===1?"mês":"meses")):""}
+                  placeholder="Calculado automaticamente"
+                  style={{ ...inp(false), padding:"10px 12px 10px 36px", background:"#f9fafb", color:"#9ca3af", cursor:"default" }} />
+              </Field>
+            </div>
+          </div>
+
+          <div style={card}>
+            <p style={section}>
+              Informações de Contato
+              <span style={{ fontSize:12, fontWeight:400, color:"#9ca3af", marginLeft:6 }}>(opcionais)</span>
+            </p>
+            <div style={g2}>
+              <Field label="Ponto Focal" icon={IUser}>
+                <input value={form.focalPoint} onChange={e=>change("focalPoint",e.target.value)}
+                  placeholder="Nome do responsável" style={inp(false)}
+                  onFocus={e=>e.target.style.borderColor="#FA4616"}
+                  onBlur={e=>e.target.style.borderColor="#d1d5db"} />
+              </Field>
+              <Field label="E-mail" error={errors.email} icon={IMail}>
+                <input type="email" value={form.email} onChange={e=>change("email",e.target.value)}
+                  placeholder="responsavel@empresa.com.br" style={inp(!!errors.email)}
+                  onFocus={e=>e.target.style.borderColor="#FA4616"}
+                  onBlur={e=>e.target.style.borderColor=errors.email?"#f87171":"#d1d5db"} />
+              </Field>
+            </div>
+            <div style={g2}>
+              <Field label="Número do Contrato" icon={IFile}>
+                <input value={form.contractNumber} onChange={e=>change("contractNumber",e.target.value)}
+                  placeholder="Ex: 5900.0131123.25.2" style={inp(false)}
+                  onFocus={e=>e.target.style.borderColor="#FA4616"}
+                  onBlur={e=>e.target.style.borderColor="#d1d5db"} />
+              </Field>
+            </div>
+          </div>
+
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", paddingTop:8 }}>
+            <button onClick={onCancel}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 24px", borderRadius:8, border:"1px solid #d1d5db", background:"#fff", fontSize:13, fontWeight:500, color:"#4b5563", cursor:"pointer" }}
+              onMouseEnter={e=>{ e.currentTarget.style.background="#f9fafb"; e.currentTarget.style.borderColor="#9ca3af"; }}
+              onMouseLeave={e=>{ e.currentTarget.style.background="#fff"; e.currentTarget.style.borderColor="#d1d5db"; }}
+            >
+              <IXIcon /> Cancelar
+            </button>
+            <button onClick={submit} disabled={saving}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 32px", borderRadius:8, border:"none", background:saving?"#9ca3af":"#FA4616", fontSize:13, fontWeight:500, color:"#fff", cursor:saving?"not-allowed":"pointer" }}
+              onMouseEnter={e=>{ if(!saving) e.currentTarget.style.background="#e03d12"; }}
+              onMouseLeave={e=>{ if(!saving) e.currentTarget.style.background="#FA4616"; }}
+            >
+              <ISave /> {saving ? "Salvando…" : editProject ? "Salvar Alterações" : "Salvar Projeto"}
+            </button>
+          </div>
+        </div>
+      </main>
+
+      {saved && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(32,21,71,0.45)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div style={{ background:"#fff", borderRadius:12, padding:"32px 32px 28px", maxWidth:420, width:"100%", boxShadow:"0 20px 60px rgba(32,21,71,0.2)" }}>
+            <h2 style={{ fontSize:18, fontWeight:700, color:"#111827", margin:"0 0 8px" }}>
+              {editProject ? "Projeto Atualizado" : "Projeto Criado"}
+            </h2>
+            <p style={{ fontSize:14, color:"#6b7280", margin:"0 0 28px", lineHeight:1.5 }}>
+              O projeto <strong style={{ color:"#201547" }}>{saved.title}</strong> foi {editProject?"atualizado":"criado"} com sucesso.
+            </p>
+            <div style={{ display:"flex", gap:12, justifyContent:"flex-end" }}>
+              <button onClick={()=>onSave(saved)}
+                style={{ padding:"10px 24px", borderRadius:8, border:"1px solid #d1d5db", background:"#fff", fontSize:13, fontWeight:500, color:"#4b5563", cursor:"pointer" }}
+                onMouseEnter={e=>e.currentTarget.style.background="#f9fafb"}
+                onMouseLeave={e=>e.currentTarget.style.background="#fff"}
+              >Fechar</button>
+              <button onClick={()=>onOpen(saved)}
+                style={{ padding:"10px 24px", borderRadius:8, border:"none", background:"#FA4616", fontSize:13, fontWeight:500, color:"#fff", cursor:"pointer" }}
+                onMouseEnter={e=>e.currentTarget.style.background="#e03d12"}
+                onMouseLeave={e=>e.currentTarget.style.background="#FA4616"}
+              >Abrir</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── AppHeader ── */
+const AppHeader = ({ onToggleSidebar, hasSidebar=true, contextLabel=null }) => (
+  <header style={{ background:C.navy, height:72, display:"flex", alignItems:"center", padding:"0 32px", gap:16, flexShrink:0, boxShadow:"0 2px 8px rgba(32,21,71,0.3)", zIndex:50, position:"relative" }}>
+    {hasSidebar && (
+      <button
+        onClick={onToggleSidebar||(()=>{})}
+        style={{ background:"transparent", border:"none", color:C.white, cursor:"pointer", padding:8, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, minWidth:36, minHeight:36 }}
+        onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.1)"}
+        onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+      >
+        <IMenu />
+      </button>
+    )}
+    <div style={{ display:"flex", alignItems:"center", flexShrink:0 }}>
+      <SpassuLogo />
+    </div>
+    <div style={{ position:"absolute", left:0, right:0, textAlign:"center", pointerEvents:"none" }}>
+      <span style={{ color:C.white, fontSize:24, fontWeight:600 }}>Orquestra</span>
+      <span style={{ color:"rgba(255,255,255,0.8)", fontSize:22, fontWeight:400 }}> — Gestão de Projeto de Produto</span>
+    </div>
+    {contextLabel && (
+      <div style={{ marginLeft:"auto", flexShrink:0 }}>
+        <span style={{ color:"rgba(255,255,255,0.75)", fontSize:11, fontWeight:500, border:"1px solid rgba(255,255,255,0.2)", background:"rgba(255,255,255,0.1)", borderRadius:24, padding:"4px 12px", letterSpacing:"1px", textTransform:"uppercase" }}>
+          {contextLabel}
+        </span>
+      </div>
+    )}
+  </header>
+);
+
+/* ── Sidebar ── */
+const SIDEBAR_GROUPS = [
+  { title:"Dashboard", items:[
+    { id:"operational",  label:"Operacional",     icon:ITarget    },
+    { id:"financial",    label:"Financeiro",       icon:IDollar    },
+    { id:"process",      label:"Processo TO BE",   icon:IGitBranch },
+    { id:"usecases",     label:"Casos de Uso",     icon:IUsers     },
+    { id:"timeline",     label:"Cronograma",       icon:ICalendar  },
+    { id:"issues",       label:"Problemas",        icon:IAlertC    },
+  ]},
+  { title:"Cadastro",       items:[{ id:"data-entry", label:"Entrada de Dados", icon:IDatabase },{ id:"data-entry-2", label:"Entrada de Dados 2", icon:IDatabase }] },
+  { title:"Configurações",  items:[{ id:"notifications", label:"Notificações",     icon:IBell     }] },
+];
+
+const Sidebar = ({ collapsed, activeTab, onTabChange, onCollapse }) => (
+  <div style={{ width:collapsed?0:256, overflow:"hidden", flexShrink:0, transition:"width 0.3s ease", background:"#fff", borderRight:"1px solid #e5e7eb", display:"flex", flexDirection:"column", boxShadow:collapsed?"none":"2px 0 8px rgba(32,21,71,0.06)" }}>
+    <div style={{ width:256, height:"100%", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 16px 16px", borderBottom:"1px solid #f3f4f6", flexShrink:0 }}>
+        <span style={{ fontSize:14, fontWeight:600, color:"#111827" }}>Navegação</span>
+        <button onClick={onCollapse}
+          style={{ background:"none", border:"none", cursor:"pointer", padding:4, borderRadius:4, color:"#9ca3af", display:"flex", alignItems:"center" }}
+          onMouseEnter={e=>{ e.currentTarget.style.color="#374151"; e.currentTarget.style.background="#f3f4f6"; }}
+          onMouseLeave={e=>{ e.currentTarget.style.color="#9ca3af"; e.currentTarget.style.background="none"; }}
+        >
+          <IXSmall />
+        </button>
+      </div>
+      <nav style={{ flex:1, padding:"8px 0" }}>
+        {SIDEBAR_GROUPS.map(group => (
+          <div key={group.title} style={{ marginBottom:4 }}>
+            <p style={{ fontSize:11, fontWeight:600, color:"#9ca3af", textTransform:"uppercase", letterSpacing:"1.2px", padding:"12px 16px 4px", margin:0 }}>
+              {group.title}
+            </p>
+            {group.items.map(item => {
+              const isActive = item.id===activeTab;
+              const Icon = item.icon;
+              return (
+                <button key={item.id} onClick={()=>onTabChange(item.id)}
+                  style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"10px 16px", border:"none", cursor:"pointer", fontSize:13, textAlign:"left", transition:"background 0.15s, color 0.15s", background:isActive?"#FA4616":"transparent", color:isActive?"#fff":"#374151", fontWeight:isActive?600:400 }}
+                  onMouseEnter={e=>{ if(!isActive) e.currentTarget.style.background="#f9fafb"; }}
+                  onMouseLeave={e=>{ if(!isActive) e.currentTarget.style.background="transparent"; }}
+                >
+                  <Icon />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+    </div>
+  </div>
+);
+
+/* ── SubHeader ── */
+const SubHeader = ({ contract, progress, onBack }) => (
+  <div style={{ background:C.white, borderBottom:"1px solid "+C.gray200, padding:"0 32px", height:56, display:"flex", alignItems:"center", gap:12, flexShrink:0 }}>
+    <button onClick={onBack}
+      style={{ background:"none", border:"none", cursor:"pointer", color:C.gray500, display:"flex", alignItems:"center", gap:4, fontSize:13, padding:"4px 8px", borderRadius:6 }}
+      onMouseEnter={e=>e.currentTarget.style.color=C.navy}
+      onMouseLeave={e=>e.currentTarget.style.color=C.gray500}
+    >
+      <IArrowLeft /> Visão geral
+    </button>
+    <span style={{ color:C.gray200 }}><IChevR /></span>
+    <span style={{ fontSize:13, fontWeight:500, color:C.navy, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>
+      {contract.title}
+    </span>
+    <div style={{ display:"flex", alignItems:"center", gap:16, flexShrink:0 }}>
+      <span style={{ fontSize:12, color:C.gray500 }}>Última atualização: {fmtDate(contract.lastUpdate)}</span>
+      <span style={{ fontSize:13, fontWeight:700, color:progress>0?C.orange:C.gray500, background:progress>0?"rgba(250,70,22,0.08)":C.gray100, border:"1px solid "+(progress>0?"rgba(250,70,22,0.2)":C.gray200), borderRadius:24, padding:"3px 12px" }}>
+        {progress}%
+      </span>
+    </div>
+  </div>
+);
+
+/* ── KpiCard ── */
+const KpiCard = ({ Icon, label, value, accentColor }) => (
+  <div style={{ background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", padding:24, display:"flex", alignItems:"center", gap:16, borderLeft:"4px solid "+accentColor }}>
+    <div style={{ width:48, height:48, borderRadius:9999, flexShrink:0, background:accentColor+"18", display:"flex", alignItems:"center", justifyContent:"center", color:accentColor }}>
+      <Icon />
+    </div>
+    <div>
+      <div style={{ fontSize:28, fontWeight:700, color:C.navy, lineHeight:1 }}>{value}</div>
+      <div style={{ fontSize:13, color:C.gray500, marginTop:4 }}>{label}</div>
+    </div>
+  </div>
+);
+
+/* ── PhaseCard ── */
+const PhaseCard = ({ phase }) => {
+  const pct = phase.percentage||0;
+  return (
+    <div style={{ background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", border:"1px solid "+C.gray200, overflow:"hidden" }}>
+      <div style={{ padding:"14px 18px", background:"rgba(32,21,71,0.05)" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <h3 style={{ fontSize:15, fontWeight:700, color:C.navy, margin:0 }}>{phase.name}</h3>
+          <span style={{ fontSize:12, fontWeight:700, color:C.navy, background:C.avocado, borderRadius:24, padding:"3px 10px" }}>{pct}%</span>
+        </div>
+        <p style={{ fontSize:12, color:C.gray500, margin:"4px 0 0" }}>{phase.duration}</p>
+      </div>
+      <div style={{ padding:16, display:"flex", flexDirection:"column", gap:12 }}>
+        {(phase.sprints||[]).slice(0,3).map(sprint => {
+          const badge = statusBadgeClass(sprint.status);
+          const delivs = (sprint.deliverables||[]).slice(0,2).map(d=>typeof d==="string"?d:(d&&d.description)||"").filter(Boolean);
+          return (
+            <div key={sprint.id} style={{ borderLeft:"3px solid "+(sprint.status==="completed"?C.avocado:C.orange), paddingLeft:12 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
+                <p style={{ fontSize:13, fontWeight:500, color:C.navy, margin:0, flex:1, lineHeight:1.4 }}>{sprint.name}</p>
+                <span style={{ fontSize:11, fontWeight:500, whiteSpace:"nowrap", background:badge.bg, color:badge.color, borderRadius:4, padding:"2px 8px", flexShrink:0 }}>
+                  {statusLabel(sprint.status)}
+                </span>
+              </div>
+              {delivs.length>0 && (
+                <p style={{ fontSize:11, color:C.gray500, margin:"4px 0 0" }}>{delivs.join(" • ")}</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+
+/* ── EmptyState ── */
+const EmptyState = ({ icon:Icon, title, desc, ctaLabel, onCta, ctaSecondary }) => (
+  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+    padding:"40px 24px", textAlign:"center", gap:12 }}>
+    <div style={{ width:56, height:56, borderRadius:12, background:"rgba(32,21,71,0.06)",
+      display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4 }}>
+      {Icon && <Icon />}
+    </div>
+    <p style={{ fontSize:15, fontWeight:700, color:"#201547", margin:0 }}>{title}</p>
+    {desc && <p style={{ fontSize:13, color:"#6b7280", margin:0, maxWidth:340, lineHeight:1.5 }}>{desc}</p>}
+    {ctaLabel && onCta && (
+      <button onClick={onCta}
+        style={{ marginTop:4, padding:"9px 22px", borderRadius:8, border:"none",
+          background:"#FA4616", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer" }}
+        onMouseEnter={e => e.currentTarget.style.background="#e03d12"}
+        onMouseLeave={e => e.currentTarget.style.background="#FA4616"}>
+        {ctaLabel}
+      </button>
+    )}
+    {ctaSecondary && (
+      <p style={{ fontSize:12, color:"#9ca3af", margin:0 }}>{ctaSecondary}</p>
+    )}
+  </div>
+);
+
+/* ── PlaceholderView ── */
+const PlaceholderView = ({ tabId, onTabChange }) => {
+  const config = {
+    issues: {
+      Icon: IAlertC,
+      title: "Nenhum problema registrado",
+      desc: "Registre ocorrências, riscos e pendências do contrato para acompanhamento da equipe.",
+      ctaLabel: "Registrar Problema",
+      onCta: () => onTabChange && onTabChange("data-entry"),
+      ctaSecondary: "Os problemas registrados aparecem aqui automaticamente.",
+    },
+    notifications: {
+      Icon: IBell,
+      title: "Sem notificações no momento",
+      desc: "Você será alertado sobre vencimentos, marcos críticos e pendências do contrato.",
+      ctaLabel: null,
+      ctaSecondary: "As notificações são geradas automaticamente pelo sistema.",
+    },
+    "data-entry": {
+      Icon: IDatabase,
+      title: "Cadastro de Dados",
+      desc: "Gerencie contratos, fases, marcos, progresso e informações financeiras do projeto.",
+      ctaLabel: "Acessar Cadastro",
+      onCta: null,
+      ctaSecondary: "Esta seção está em desenvolvimento.",
+    },
+  };
+  const ctx = config[tabId] || {
+    Icon: IFolder,
+    title: "Seção em desenvolvimento",
+    desc: "Esta área estará disponível em breve.",
+    ctaLabel: null,
+  };
+  return (
+    <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:48 }}>
+      <EmptyState
+        icon={ctx.Icon}
+        title={ctx.title}
+        desc={ctx.desc}
+        ctaLabel={ctx.ctaLabel}
+        onCta={ctx.onCta}
+        ctaSecondary={ctx.ctaSecondary}
+      />
+    </div>
+  );
+};
+
+/* ── OperacionalView ── */
+const OperacionalView = ({ contract, detail }) => {
+  const ms   = useMemo(() => calcMilestones(detail), [detail]);
+  const prog = useMemo(() => calcProgress(detail),   [detail]);
+  const kpis = [
+    { Icon:ITarget,   label:"Total Marcos",  value:ms.total,      accentColor:C.orange  },
+    { Icon:ICheckC,   label:"Concluídas",    value:ms.completed,  accentColor:C.avocado },
+    { Icon:IPause,    label:"Em Andamento",  value:ms.inProgress, accentColor:C.orange  },
+    { Icon:ICalendar, label:"Pendentes",     value:ms.pending,    accentColor:"#D9D9D6" },
+  ];
+  const detailFields = [
+    { label:"Contratada",  value:contract.contractor||"—"  },
+    { label:"Duração",     value:contract.duration||"—"    },
+    { label:"Data Início", value:fmtDate(contract.startDate) },
+    { label:"Data Fim",    value:fmtDate(contract.endDate)   },
+  ];
+  return (
+    <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+      <div style={{ background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", padding:"20px 24px", borderLeft:"4px solid "+C.navy }}>
+        <h3 style={{ fontSize:15, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>Detalhes do Contrato</h3>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:24 }}>
+          {detailFields.map(f => (
+            <div key={f.label}>
+              <p style={{ fontSize:11, color:C.gray500, margin:"0 0 4px" }}>{f.label}</p>
+              <p style={{ fontSize:14, fontWeight:500, color:C.navy, margin:0 }}>{f.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:20 }}>
+        {kpis.map(k => <KpiCard key={k.label} Icon={k.Icon} label={k.label} value={k.value} accentColor={k.accentColor} />)}
+      </div>
+      <div style={{ background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", padding:"20px 24px" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+          <h2 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:0 }}>Progresso Geral do Projeto</h2>
+          <span style={{ fontSize:16, fontWeight:700, color:C.orange }}>{prog}%</span>
+        </div>
+        <div style={{ height:8, borderRadius:9999, background:"#D9D9D6", overflow:"hidden" }}>
+          <div style={{ height:"100%", borderRadius:9999, transition:"width 0.5s ease", width:prog+"%", background:prog>0?"linear-gradient(90deg, "+C.orange+" 0%, "+C.avocado+" 100%)":"transparent" }}>
+          </div>
+        </div>
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:20, alignItems:"start" }}>
+        <div style={{ background:C.white, borderRadius:8, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", border:"1px solid "+C.gray200, overflow:"hidden" }}>
+          <div style={{ padding:"14px 18px", background:"rgba(32,21,71,0.05)" }}>
+            <h3 style={{ fontSize:15, fontWeight:700, color:C.navy, margin:0 }}>Histórico de Progresso</h3>
+          </div>
+          <div style={{ padding:16, maxHeight:320, overflowY:"auto" }}>
+            {(detail&&detail.progress&&detail.progress.length>0)
+              ? [...detail.progress].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(entry => (
+                  <div key={entry.id} style={{ borderLeft:"3px solid "+(entry.completion_pct>=100?"#10B981":C.orange), paddingLeft:12, marginBottom:16 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                      <span style={{ fontSize:11, color:C.gray500 }}>{new Date(entry.date).toLocaleDateString("pt-BR")}</span>
+                      <span style={{ fontSize:13, fontWeight:700, color:C.navy }}>{entry.completion_pct}%</span>
+                    </div>
+                    <p style={{ fontSize:13, fontWeight:500, color:C.navy, margin:0 }}>{entry.sprint_name}</p>
+                  </div>
+                ))
+              : (
+                <EmptyState
+                  icon={IBarChart}
+                  title="Sem registros de progresso"
+                  desc='Cadastre marcos e atualizações na aba "Entrada de Dados" para visualizar o progresso aqui.'
+                  ctaLabel={null}
+                />
+              )
+            }
+          </div>
+        </div>
+        {(detail&&detail.phases?detail.phases:[]).slice(0,2).map(phase => (
+          <PhaseCard key={phase.id} phase={phase} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ── FinanceiroView ── */
+const FinanceiroView = ({ contract, detail }) => {
+  const entries = (detail&&detail.financial) ? detail.financial : [];
+  const phases  = (detail&&detail.phases)    ? detail.phases    : [];
+  const executed   = entries.reduce((s,e)=>s+(e.actual||0),0);
+  const sumPlanned = entries.reduce((s,e)=>s+(e.planned||0),0);
+  const planned    = sumPlanned>0 ? sumPlanned : (contract.totalValue||0);
+  const remaining  = planned - executed;
+  const progress   = planned>0 ? Math.round(executed/planned*100) : 0;
+
+  const byCategory = useMemo(() => {
+    const map = {};
+    entries.forEach(e => {
+      const cat = e.category||"Outros";
+      if (!map[cat]) map[cat] = { category:cat, planned:0, actual:0, count:0 };
+      map[cat].planned += e.planned||0;
+      map[cat].actual  += e.actual||0;
+      map[cat].count   += 1;
+    });
+    return Object.values(map).map(c => ({ ...c, variance:c.planned-c.actual }));
+  }, [entries]);
+
+  const kpis = [
+    { label:"Executado",  sub:"Total Realizado", value:fmtCur(executed),  borderColor:C.avocado, textColor:C.avocadoDark },
+    { label:"Planejado",  sub:"Total Orçado",    value:fmtCur(planned),   borderColor:C.orange,  textColor:C.orange  },
+    { label:"A Executar", sub:"Saldo Restante",  value:fmtCur(remaining), borderColor:"#D9D9D6", textColor:C.navy     },
+    { label:"Progresso",  sub:"Financeiro",      value:progress+"%",      borderColor:C.orange,  textColor:C.orange  },
+  ];
+
+  return (
+    <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:24 }}>
+        {kpis.map(k => (
+          <div key={k.label} style={{ background:C.white, borderRadius:8, padding:24, boxShadow:"0 2px 8px rgba(32,21,71,0.06)", borderLeft:"4px solid "+k.borderColor, textAlign:"center" }}>
+            <div style={{ fontSize:24, fontWeight:700, color:k.textColor, marginBottom:4 }}>{k.value}</div>
+            <div style={{ fontSize:14, color:C.navy, fontWeight:500 }}>{k.label}</div>
+            <div style={{ fontSize:12, color:C.gray500, marginTop:2 }}>{k.sub}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+        <div style={{ background:C.white, borderRadius:8, padding:"20px 24px", boxShadow:"0 2px 8px rgba(32,21,71,0.06)" }}>
+          <h3 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>Resumo por Categoria</h3>
+          {byCategory.length===0
+            ? <EmptyState
+                icon={IBarChart}
+                title="Sem dados financeiros"
+                desc='Cadastre entradas financeiras na aba "Entrada de Dados".'
+              />
+            : (
+              <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+                {byCategory.map(cat => {
+                  const pct   = cat.planned>0 ? (cat.actual/cat.planned*100).toFixed(1) : 0;
+                  const acima = cat.actual>cat.planned;
+                  const barColor = acima?"#ef4444":"#10b981";
+                  return (
+                    <div key={cat.category} style={{ borderBottom:"1px solid "+C.gray100, paddingBottom:12 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                        <span style={{ fontSize:14, fontWeight:500, color:C.navy }}>{cat.category}</span>
+                        <span style={{ fontSize:12, color:C.gray500 }}>{cat.count} entrada{cat.count>1?"s":""}</span>
+                      </div>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:4 }}>
+                        <span style={{ color:C.gray500 }}>Planejado: <strong>{fmtCur(cat.planned)}</strong></span>
+                        <span style={{ color:C.gray500 }}>Realizado: <strong>{fmtCur(cat.actual)}</strong></span>
+                      </div>
+                      <div style={{ height:6, background:"#D9D9D6", borderRadius:99, overflow:"hidden" }}>
+                        <div style={{ height:"100%", width:Math.min(Number(pct),100)+"%", background:barColor, borderRadius:99 }}></div>
+                      </div>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginTop:4, fontSize:12 }}>
+                        <span style={{ color:C.gray500 }}>{pct}% executado</span>
+                        <span style={{ color:barColor, fontWeight:600 }}>{acima?"▲":"▼"} {fmtCur(Math.abs(cat.variance))} {acima?"acima":"economia"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          }
+        </div>
+        <div style={{ background:C.white, borderRadius:8, padding:"20px 24px", boxShadow:"0 2px 8px rgba(32,21,71,0.06)" }}>
+          <h3 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>Distribuição por MVP</h3>
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {phases.map((ph,i) => (
+              <div key={ph.id} style={{ display:"flex", alignItems:"center", gap:16 }}>
+                <div style={{ width:180, fontSize:13, fontWeight:500, color:C.navy, flexShrink:0 }}>{ph.name}</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:4 }}>
+                    <span style={{ color:C.navy }}>{fmtCur(ph.value||0)}</span>
+                    <span style={{ color:C.orange, fontWeight:600 }}>{ph.percentage}%</span>
+                  </div>
+                  <div style={{ height:10, background:"#D9D9D6", borderRadius:99, overflow:"hidden" }}>
+                    <div style={{ height:"100%", borderRadius:99, width:((ph.percentage||0)*2.5)+"%", background:i%2===0?C.orange:C.avocado }}></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{ background:C.white, borderRadius:8, padding:"20px 24px", boxShadow:"0 2px 8px rgba(32,21,71,0.06)" }}>
+        <h3 style={{ fontSize:16, fontWeight:700, color:C.navy, margin:"0 0 16px" }}>Detalhamento Financeiro</h3>
+        {entries.length===0
+          ? (
+            <EmptyState
+              icon={IDatabase}
+              title="Nenhuma entrada financeira cadastrada"
+              desc='Importe dados via Excel ou cadastre manualmente na aba "Entrada de Dados".'
+              ctaLabel={null}
+            />
+          )
+          : (
+            <table style={{ width:"100%", fontSize:13, borderCollapse:"collapse" }}>
+              <thead>
+                <tr style={{ background:"rgba(32,21,71,0.04)" }}>
+                  <th style={{ padding:"10px 16px", textAlign:"left",  fontWeight:600, color:C.navy }}>Categoria</th>
+                  <th style={{ padding:"10px 16px", textAlign:"left",  fontWeight:600, color:C.navy }}>Período</th>
+                  <th style={{ padding:"10px 16px", textAlign:"right", fontWeight:600, color:C.navy }}>Planejado</th>
+                  <th style={{ padding:"10px 16px", textAlign:"right", fontWeight:600, color:C.navy }}>Realizado</th>
+                  <th style={{ padding:"10px 16px", textAlign:"right", fontWeight:600, color:C.navy }}>Variação</th>
+                  <th style={{ padding:"10px 16px", textAlign:"center",fontWeight:600, color:C.navy }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map(e => {
+                  const variacao = (e.planned||0)-(e.actual||0);
+                  const acima    = (e.actual||0)>(e.planned||0);
+                  return (
+                    <tr key={e.id} style={{ borderTop:"1px solid "+C.gray100 }}>
+                      <td style={{ padding:"10px 16px", fontWeight:500, color:C.navy }}>{e.category}</td>
+                      <td style={{ padding:"10px 16px", color:C.navy }}>{e.period}</td>
+                      <td style={{ padding:"10px 16px", textAlign:"right", color:C.navy }}>{fmtCur(e.planned)}</td>
+                      <td style={{ padding:"10px 16px", textAlign:"right", color:C.navy }}>{fmtCur(e.actual)}</td>
+                      <td style={{ padding:"10px 16px", textAlign:"right" }}>
+                        <span style={{ fontWeight:600, color:acima?"#ef4444":"#10b981" }}>{acima?"-":"+"}{fmtCur(Math.abs(variacao))}</span>
+                      </td>
+                      <td style={{ padding:"10px 16px", textAlign:"center" }}>
+                        <span style={{ padding:"3px 10px", borderRadius:4, fontSize:12, fontWeight:600, background:acima?"#fee2e2":"#d1fae5", color:acima?"#991b1b":"#065f46" }}>
+                          {acima?"Acima":"Dentro"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )
+        }
+      </div>
+    </div>
+  );
+};
+
+/* ── ProcessoToBEView ── */
+const PROCESS_STEPS = [
+  { id:1,  title:"Planejamento e Alinhamento",       desc:"Definição de escopo, levantamento de requisitos.",        actor:"Time SPASSU / Petrobras", system:"Gerência de Projeto"    },
+  { id:2,  title:"Reservar hotel",                   desc:"Colaborador realiza reserva no sistema OBT.",             actor:"Viajante",                system:"Reserve (OBT)"          },
+  { id:3,  title:"Gerar reserva do Hotel",           desc:"Plataforma Spassu recebe os dados via API.",              actor:"Tarefa automática",        system:"Integração API"          },
+  { id:4,  title:"Armazenar dados de reserva",       desc:"Dados armazenados para rastreabilidade.",                 actor:"Sistema",                 system:"Módulo Gestão"           },
+  { id:5,  title:"Atualizar status da reserva",      desc:"Status atualizado automaticamente conforme viagem.",      actor:"Sistema",                 system:"Módulo Gestão"           },
+  { id:6,  title:"Realizar a Viagem",                desc:"Colaborador está em viagem.",                             actor:"Viajante",                system:"Módulo Gestão"           },
+  { id:7,  title:"Solicitar envio de Nota Fiscal",   desc:"Após check-out, sistema solicita NF ao hotel.",           actor:"Tarefa automática",        system:"Módulo Hotel"            },
+  { id:8,  title:"Upload nota fiscal",               desc:"Hotel faz upload da nota fiscal.",                        actor:"Hotel",                   system:"Módulo Hotel"            },
+  { id:9,  title:"Upload demais documentos",         desc:"Hotel envia documentos complementares.",                  actor:"Hotel",                   system:"Módulo Hotel"            },
+  { id:10, title:"Validar dados da NF com a reserva",desc:"IA compara NF e reserva automaticamente.",                actor:"IA Generativa",           system:"Módulo IA"               },
+  { id:11, title:"Solicitar ajustes necessários",    desc:"Sistema identifica divergências e notifica o hotel.",     actor:"Sistema",                 system:"Módulo IA / Módulo Hotel" },
+  { id:12, title:"Realizar ações necessárias",       desc:"Hotel realiza correções e reenvia documentação.",         actor:"Hotel",                   system:"Módulo Hotel"            },
+  { id:13, title:"Validar reserva",                  desc:"Atendimento N2 faz validação manual.",                   actor:"Equipe N2",               system:"Módulo Gestão"           },
+  { id:14, title:"Dados Validados",                  desc:"Dados validados com sucesso.",                            actor:"Sistema",                 system:"Módulo Gestão"           },
+  { id:15, title:"Gerar pedido (ZSTV)",              desc:"Sistema gera pedido no SAP após validação.",              actor:"Integração SAP",          system:"SAP"                     },
+  { id:16, title:"Gerar FRS / NL",                   desc:"FRS e NL geradas automaticamente no SAP.",                actor:"Sistema",                 system:"SAP"                     },
+  { id:17, title:"Aprovar NL",                       desc:"Nota de Lançamento aprovada no SAP.",                     actor:"Aprovador",               system:"SAP"                     },
+  { id:18, title:"Criar pedido no ARIBA",            desc:"FRS enviada ao hotel para subir NF no ARIBA.",            actor:"Sistema / Hotel",         system:"ARIBA"                   },
+  { id:19, title:"Upload dos documentos",            desc:"Hotel envia XMLs e recibos via ARIBA.",                   actor:"Hotel",                   system:"ARIBA"                   },
+  { id:20, title:"Realizar validação",               desc:"Sistema valida consistência dos documentos.",             actor:"Sistema",                 system:"Módulo Faturamento"       },
+  { id:21, title:"Verificar pendências",             desc:"Sistema notifica o fiscal sobre pendências.",             actor:"Sistema",                 system:"Módulo Faturamento"       },
+  { id:22, title:"Agendar pagamento",                desc:"Pagamento agendado e executado.",                         actor:"Setor de Compras",        system:"SAP / Financeiro"         },
+  { id:23, title:"Painel de Reservas",               desc:"Dashboards atualizados com indicadores.",                 actor:"Sistema",                 system:"Módulo Gestão"           },
+];
+
+const ProcessoToBEView = () => {
+  const tag = (label, variant) => (
+    <span style={{ fontSize:11, padding:"3px 8px", borderRadius:4, fontWeight:500, background:variant==="actor"?"rgba(32,21,71,0.10)":"rgba(250,70,22,0.10)", color:variant==="actor"?C.navy:C.orange }}>
+      {label}
+    </span>
+  );
+  return (
+    <div style={{ padding:"28px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div>
+          <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:C.navy }}>Processo TO BE</h2>
+          <p style={{ margin:"4px 0 0", fontSize:13, color:C.gray500 }}>Fluxo automatizado de gestão de pagamento de hotéis — {PROCESS_STEPS.length} etapas</p>
+        </div>
+        <div style={{ background:C.avocado, borderRadius:24, padding:"6px 16px", fontSize:13, fontWeight:700, color:C.avocadoDark }}>
+          {PROCESS_STEPS.length} Etapas
+        </div>
+      </div>
+      <div style={{ background:C.white, borderRadius:12, boxShadow:"0 4px 6px -1px rgba(32,21,71,.08)", padding:24 }}>
+        <h3 style={{ margin:"0 0 20px", fontSize:14, fontWeight:700, color:C.navy }}>Fluxo do Processo</h3>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
+          {PROCESS_STEPS.map(step => (
+            <div key={step.id}
+              style={{ border:"1px solid "+C.gray200, borderRadius:10, padding:14, display:"flex", flexDirection:"column", gap:8, transition:"box-shadow .15s" }}
+              onMouseEnter={e=>e.currentTarget.style.boxShadow="0 4px 12px rgba(32,21,71,.10)"}
+              onMouseLeave={e=>e.currentTarget.style.boxShadow="none"}
+            >
+              <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+                <div style={{ flexShrink:0, width:28, height:28, borderRadius:999, background:C.navy, color:C.white, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700 }}>
+                  {step.id}
+                </div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:600, color:C.navy, lineHeight:1.4 }}>{step.title}</p>
+                  <p style={{ margin:0, fontSize:11, color:C.gray500, lineHeight:1.5, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+                    {step.desc}
+                  </p>
+                </div>
+              </div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
+                {tag(step.actor,"actor")}
+                {tag(step.system,"system")}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── CasosDeUsoView ── */
+const UC_DATA = [
+  {
+    id:"UC_001", title:"Criar nova solicitação de viagem", actor:"Viajante",
+    desc:"Sistema recebe dados de reserva via API e cria registro no sistema.",
+    pre:"Reserva realizada no sistema OBT",
+    steps:["Sistema recebe dados via API","Valida dados obrigatórios","Cria registro da solicitação"],
+    post:"Solicitação criada e disponível para acompanhamento", mvp:"Sim",
+  },
+  {
+    id:"UC_002", title:"Validar nota fiscal com IA", actor:"IA Generativa",
+    desc:"Sistema utiliza IA para validar automaticamente dados da NF contra a reserva.",
+    pre:"Nota fiscal enviada pelo hotel",
+    steps:["Recebe arquivo da nota fiscal","Extrai dados relevantes usando IA","Compara com dados da reserva"],
+    post:"Validação concluída com relatório de conformidade", mvp:"Sim",
+  },
+  {
+    id:"UC_003", title:"Solicitar ajustes ao hotel", actor:"Sistema",
+    desc:"Quando inconsistências são detectadas, sistema solicita correções ao hotel.",
+    pre:"Inconsistências identificadas na validação",
+    steps:["Identifica inconsistências específicas","Gera e-mail detalhado com problemas","Envia notificação ao hotel"],
+    post:"Hotel notificado e aguardando correções", mvp:"Sim",
+  },
+  {
+    id:"UC_004", title:"Gerar pedido no SAP", actor:"Integração SAP",
+    desc:"Após validação bem-sucedida, sistema gera pedido automaticamente no SAP.",
+    pre:"Nota fiscal validada com sucesso",
+    steps:["Prepara dados para integração SAP","Chama API do SAP","Cria pedido ZSTV"],
+    post:"Pedido criado no SAP e pronto para processamento", mvp:"Sim",
+  },
+  {
+    id:"UC_005", title:"Verificar pendências e notificar fiscal", actor:"Sistema",
+    desc:"Sistema verifica pendências no faturamento e notifica o fiscal responsável.",
+    pre:"Documentação submetida no ARIBA",
+    steps:["Valida consistência dos documentos","Identifica pendências encontradas","Notifica fiscal via sistema"],
+    post:"Fiscal informado e pendências registradas para resolução", mvp:"Não",
+  },
+];
+
+const UC_ACTOR_COLORS = {
+  "Viajante":       { bg:"rgba(250,70,22,0.12)",  color:"#FA4616" },
+  "IA Generativa":  { bg:"rgba(219,228,66,0.25)", color:"#8a9300" },
+  "Sistema":        { bg:"rgba(32,21,71,0.10)",   color:"#201547" },
+  "Integração SAP": { bg:"rgba(32,21,71,0.80)",   color:"#ffffff" },
+};
+const UC_ACTORS_FILTER = ["Todos", "Viajante", "IA Generativa", "Sistema", "Integração SAP"];
+
+const CasosDeUsoView = () => {
+  const [actorFilter, setActorFilter] = React.useState("Todos");
+  const [innerTab,    setInnerTab]    = React.useState("cases"); // "cases" | "matrix"
+
+  const filtered = actorFilter === "Todos"
+    ? UC_DATA
+    : UC_DATA.filter(u => u.actor === actorFilter);
+
+  const innerTabStyle = (id) => ({
+    padding:"8px 20px", fontSize:13, fontWeight:600, cursor:"pointer",
+    border:"none", borderBottom: innerTab===id ? "2px solid "+C.orange : "2px solid transparent",
+    background:"transparent", color: innerTab===id ? C.navy : C.gray500,
+    transition:"all .15s",
+  });
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+
+      {/* ── Header banner ── */}
+      <div style={{ background:C.navy, padding:"20px 32px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:48, height:48, borderRadius:10, background:C.orange, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <IUsers size={24} color="#fff" />
+          </div>
+          <div>
+            <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:"#fff" }}>Casos de Uso – SPASSU</h1>
+            <p style={{ margin:"2px 0 0", fontSize:13, color:"rgba(255,255,255,0.6)" }}>Sistema de Gestão de Hotéis</p>
+          </div>
+        </div>
+        <div style={{ textAlign:"right" }}>
+          <div style={{ fontSize:28, fontWeight:700, color:C.avocado, lineHeight:1 }}>{UC_DATA.length}</div>
+          <div style={{ fontSize:12, color:"rgba(255,255,255,0.6)", marginTop:2 }}>Casos de Uso</div>
+        </div>
+      </div>
+
+      {/* ── Tabs internas ── */}
+      <div style={{ background:C.white, borderBottom:"1px solid "+C.gray200, padding:"0 32px", display:"flex", gap:4 }}>
+        <button style={innerTabStyle("cases")}   onClick={() => setInnerTab("cases")}>Casos de Uso</button>
+        <button style={innerTabStyle("matrix")}  onClick={() => setInnerTab("matrix")}>Rastreabilidade</button>
+      </div>
+
+      {/* ── Conteúdo ── */}
+      <div style={{ padding:"24px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+
+        {innerTab === "cases" && (
+          <>
+            {/* Filtro por ator */}
+            <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+              <span style={{ fontSize:12, fontWeight:600, color:C.gray500, marginRight:4 }}>Filtrar por ator:</span>
+              {UC_ACTORS_FILTER.map(a => (
+                <button key={a} onClick={() => setActorFilter(a)}
+                  style={{ padding:"4px 14px", borderRadius:24, fontSize:11, fontWeight:600, cursor:"pointer", border:"1px solid",
+                    borderColor: actorFilter===a ? C.navy : C.gray200,
+                    background:  actorFilter===a ? C.navy : C.white,
+                    color:        actorFilter===a ? C.white : C.gray700,
+                    transition:"all .15s" }}>
+                  {a}
+                </button>
+              ))}
+            </div>
+
+            {/* Cards grid */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:20 }}>
+              {filtered.map(uc => {
+                const ac = UC_ACTOR_COLORS[uc.actor] || { bg:"rgba(32,21,71,0.08)", color:C.navy };
+                return (
+                  <div key={uc.id}
+                    style={{ background:C.white, borderRadius:10, border:"1px solid "+C.gray200,
+                      boxShadow:"0 2px 6px rgba(32,21,71,0.06)", padding:20, display:"flex", flexDirection:"column", gap:12 }}>
+
+                    <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12 }}>
+                      <div>
+                        <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:C.navy }}>{uc.title}</h3>
+                        <p style={{ margin:"3px 0 0", fontSize:11, color:C.gray500 }}>{uc.id}</p>
+                      </div>
+                      <span style={{ flexShrink:0, fontSize:11, fontWeight:700, borderRadius:4, padding:"3px 10px",
+                        background:ac.bg, color:ac.color, whiteSpace:"nowrap" }}>
+                        {uc.actor}
+                      </span>
+                    </div>
+
+                    <p style={{ margin:0, fontSize:13, color:C.gray700 }}>{uc.desc}</p>
+
+                    <div>
+                      <p style={{ margin:"0 0 2px", fontSize:12, fontWeight:700, color:C.orange }}>Pré-condições:</p>
+                      <p style={{ margin:0, fontSize:12, color:C.gray700 }}>{uc.pre}</p>
+                    </div>
+
+                    <div>
+                      <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.orange }}>Fluxo Principal:</p>
+                      <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                        {uc.steps.map((step, idx) => (
+                          <div key={idx} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                            <div style={{ flexShrink:0, width:20, height:20, borderRadius:"50%", background:C.navy,
+                              display:"flex", alignItems:"center", justifyContent:"center",
+                              fontSize:11, fontWeight:700, color:"#fff" }}>{idx+1}</div>
+                            <span style={{ fontSize:12, color:C.gray700, paddingTop:2 }}>{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p style={{ margin:"0 0 2px", fontSize:12, fontWeight:700, color:C.orange }}>Pós-condições:</p>
+                      <p style={{ margin:0, fontSize:12, color:C.gray700 }}>{uc.post}</p>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {innerTab === "matrix" && (
+          <div style={{ background:C.white, borderRadius:10, border:"1px solid "+C.gray200, boxShadow:"0 2px 6px rgba(32,21,71,0.06)", overflow:"hidden" }}>
+            <div style={{ padding:"14px 20px", borderBottom:"1px solid "+C.gray200 }}>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:C.navy }}>Matriz de Rastreabilidade</h3>
+            </div>
+            <div style={{ overflowX:"auto" }}>
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+                <thead>
+                  <tr style={{ background:"rgba(32,21,71,0.04)" }}>
+                    {["Caso de Uso","Ator","Pré-condições","Pós-condições","MVP"].map(h => (
+                      <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:C.navy, fontWeight:600, borderBottom:"1px solid "+C.gray200, whiteSpace:"nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {UC_DATA.map((uc, idx) => (
+                    <tr key={uc.id} style={{ borderBottom:"1px solid "+C.gray100, background:idx%2===1?"rgba(249,250,251,0.6)":C.white }}>
+                      <td style={{ padding:"10px 16px", fontWeight:700, color:C.navy, whiteSpace:"nowrap" }}>{uc.id}</td>
+                      <td style={{ padding:"10px 16px", color:C.gray700, whiteSpace:"nowrap" }}>{uc.actor}</td>
+                      <td style={{ padding:"10px 16px", color:C.gray700, maxWidth:260 }}>{uc.pre}</td>
+                      <td style={{ padding:"10px 16px", color:C.gray700, maxWidth:260 }}>
+                        {uc.post.length > 45 ? uc.post.substring(0,45)+"..." : uc.post}
+                      </td>
+                      <td style={{ padding:"10px 16px", textAlign:"center" }}>
+                        <span style={{ fontSize:11, fontWeight:600,
+                          color: uc.mvp==="Sim" ? "#065f46" : C.gray500,
+                          background: uc.mvp==="Sim" ? "rgba(16,185,129,0.12)" : C.gray100,
+                          borderRadius:4, padding:"2px 8px" }}>{uc.mvp}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
+
+/* ── ContractDetailPage ── */
+/* ── CronogramaView ── */
+const PHASE_STATUS_MAP = {
+  completed:   { bar:"#10B981", label:"Conclu\u00edda",    text:"#065f46", bg:"rgba(16,185,129,0.12)" },
+  in_progress: { bar:"#FA4616", label:"Em Andamento", text:"#FA4616", bg:"rgba(250,70,22,0.10)"  },
+  pending:     { bar:"#201547", label:"Pendente",     text:"#201547", bg:"rgba(32,21,71,0.08)"   },
+};
+
+const GANTT_MONTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov"];
+const G_START = new Date("2025-01-10").getTime();
+const G_END   = new Date("2025-11-21").getTime();
+const G_TOTAL = G_END - G_START;
+
+const ganttBar = (s, e) => {
+  const ms = new Date(s).getTime(), me = new Date(e).getTime();
+  const left  = Math.max(0, (ms - G_START) / G_TOTAL * 100);
+  const width = Math.max(1, (me - ms)      / G_TOTAL * 100);
+  return { left, width };
+};
+
+const CronogramaView = ({ detail }) => {
+  const [innerTab, setInnerTab] = React.useState("gantt");
+  const phases = (detail && detail.phases) ? detail.phases : [];
+
+  const doneCount   = phases.filter(p => p.phaseStatus === "completed").length;
+  const activeCount = phases.filter(p => p.phaseStatus === "in_progress").length;
+  const totalValue  = phases.reduce((a, p) => a + p.value, 0);
+
+  const kpis = [
+    { label:"Total de Fases",   value: phases.length,   color:"#201547"  },
+    { label:"Conclu\u00eddas", value: doneCount,        color:"#10B981"  },
+    { label:"Em Andamento",     value: activeCount,      color:"#FA4616"  },
+    { label:"Valor do Projeto", value: fmtCur(totalValue), color:"#201547", small:true },
+  ];
+
+  const tabStyle = (id) => ({
+    padding:"8px 20px", fontSize:13, fontWeight:600, cursor:"pointer",
+    border:"none", borderBottom: innerTab===id ? "2px solid #FA4616" : "2px solid transparent",
+    background:"transparent", color: innerTab===id ? "#201547" : "#6b7280",
+    transition:"all .15s",
+  });
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column" }}>
+
+      {/* Banner */}
+      <div style={{ background:"#201547", padding:"20px 32px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:48, height:48, borderRadius:10, background:"#FA4616", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <ICalendar size={24} color="#fff" />
+          </div>
+          <div>
+            <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:"#fff" }}>Cronograma \u2013 SPASSU</h1>
+            <p style={{ margin:"2px 0 0", fontSize:13, color:"rgba(255,255,255,0.6)" }}>Gest\u00e3o de Pagamento de Hot\u00e9is \u00b7 Jan\u2013Nov 2025</p>
+          </div>
+        </div>
+        <div style={{ textAlign:"right" }}>
+          <div style={{ fontSize:28, fontWeight:700, color:"#DBE442", lineHeight:1 }}>{phases.length}</div>
+          <div style={{ fontSize:12, color:"rgba(255,255,255,0.6)", marginTop:2 }}>Fases do Projeto</div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", padding:"0 32px", display:"flex", gap:4 }}>
+        <button style={tabStyle("gantt")}  onClick={() => setInnerTab("gantt")}>Gantt</button>
+        <button style={tabStyle("phases")} onClick={() => setInnerTab("phases")}>Fases & Entregas</button>
+      </div>
+
+      <div style={{ padding:"24px 32px", display:"flex", flexDirection:"column", gap:24 }}>
+
+        {/* KPIs */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
+          {kpis.map(k => (
+            <div key={k.label} style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb",
+              padding:"14px 18px", boxShadow:"0 2px 6px rgba(32,21,71,0.06)" }}>
+              <p style={{ margin:"0 0 4px", fontSize:12, color:"#6b7280", fontWeight:500 }}>{k.label}</p>
+              <p style={{ margin:0, fontSize: k.small ? 16 : 24, fontWeight:700, color:k.color }}>{k.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Gantt */}
+        {innerTab === "gantt" && (
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", boxShadow:"0 2px 6px rgba(32,21,71,0.06)", overflow:"hidden" }}>
+            <div style={{ padding:"14px 20px", borderBottom:"1px solid #e5e7eb" }}>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Linha do Tempo</h3>
+              <p style={{ margin:"3px 0 0", fontSize:12, color:"#6b7280" }}>Jan 2025 \u2013 Nov 2025</p>
+            </div>
+            <div style={{ padding:"20px 24px 24px" }}>
+              {/* Meses */}
+              <div style={{ display:"flex", marginBottom:10 }}>
+                <div style={{ width:150, flexShrink:0 }} />
+                <div style={{ flex:1, display:"grid", gridTemplateColumns:"repeat(11,1fr)" }}>
+                  {GANTT_MONTHS.map(m => (
+                    <div key={m} style={{ textAlign:"center", fontSize:11, fontWeight:600, color:"#6b7280" }}>{m}</div>
+                  ))}
+                </div>
+                <div style={{ width:120, flexShrink:0 }} />
+              </div>
+              {/* Linhas */}
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {phases.map(phase => {
+                  const col = PHASE_STATUS_MAP[phase.phaseStatus] || PHASE_STATUS_MAP.pending;
+                  const pos = (phase.startDate && phase.endDate) ? ganttBar(phase.startDate, phase.endDate) : { left:0, width:0 };
+                  const shortName = phase.name.includes(":") ? phase.name.split(":")[0] : phase.name;
+                  return (
+                    <div key={phase.id} style={{ display:"flex", alignItems:"center" }}>
+                      <div style={{ width:150, flexShrink:0, fontSize:12, fontWeight:600, color:"#201547",
+                        textAlign:"right", paddingRight:12, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                        {shortName}
+                      </div>
+                      <div style={{ flex:1, position:"relative", height:30, background:"rgba(32,21,71,0.03)", borderRadius:4 }}>
+                        {[1,2,3,4,5,6,7,8,9,10].map(i => (
+                          <div key={i} style={{ position:"absolute", left:(i/11*100)+"%", top:0, bottom:0,
+                            width:1, background:"rgba(32,21,71,0.07)", pointerEvents:"none" }} />
+                        ))}
+                        <div style={{ position:"absolute", left:pos.left+"%", width:pos.width+"%",
+                          height:"100%", borderRadius:4, background:col.bar,
+                          display:"flex", alignItems:"center", paddingLeft:8, overflow:"hidden" }}>
+                          <span style={{ fontSize:11, fontWeight:700, color:"#fff", whiteSpace:"nowrap" }}>{phase.duration}</span>
+                        </div>
+                      </div>
+                      <div style={{ width:120, flexShrink:0, paddingLeft:12 }}>
+                        <span style={{ fontSize:11, fontWeight:600, padding:"2px 8px", borderRadius:4,
+                          background:col.bg, color:col.text }}>{col.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Legenda */}
+              <div style={{ marginTop:18, paddingTop:14, borderTop:"1px solid #e5e7eb", display:"flex", gap:20, flexWrap:"wrap" }}>
+                {Object.values(PHASE_STATUS_MAP).map(v => (
+                  <div key={v.label} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <div style={{ width:14, height:14, borderRadius:3, background:v.bar }} />
+                    <span style={{ fontSize:11, color:"#6b7280" }}>{v.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fases & Entregas */}
+        {innerTab === "phases" && (
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {phases.map(phase => {
+              const col = PHASE_STATUS_MAP[phase.phaseStatus] || PHASE_STATUS_MAP.pending;
+              return (
+                <div key={phase.id} style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb",
+                  boxShadow:"0 2px 6px rgba(32,21,71,0.06)", overflow:"hidden" }}>
+                  <div style={{ padding:"14px 20px", borderBottom:"1px solid #f3f4f6",
+                    display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                      <div style={{ width:36, height:36, borderRadius:8, background:col.bg,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:13, fontWeight:700, color:col.text }}>{phase.id}</div>
+                      <div>
+                        <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>{phase.name}</h3>
+                        <p style={{ margin:"2px 0 0", fontSize:12, color:"#6b7280" }}>
+                          {phase.duration} \u00b7 {fmtCur(phase.value)} \u00b7 {phase.percentage}% do total
+                        </p>
+                      </div>
+                    </div>
+                    <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:4,
+                      background:col.bg, color:col.text }}>{col.label}</span>
+                  </div>
+                  <div style={{ padding:"0 20px" }}>
+                    {phase.sprints.map((sprint, idx) => {
+                      const sc = statusBadgeClass(sprint.status);
+                      const isLast = idx === phase.sprints.length - 1;
+                      return (
+                        <div key={sprint.id} style={{ padding:"12px 0",
+                          borderBottom: isLast ? "none" : "1px solid #f3f4f6",
+                          display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
+                          <div style={{ flex:1 }}>
+                            <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#201547" }}>{sprint.name}</p>
+                            <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                              {sprint.deliverables.map((d, i) => (
+                                <span key={i} style={{ fontSize:11, padding:"2px 8px", borderRadius:4,
+                                  background:"rgba(32,21,71,0.06)", color:"#201547" }}>{d}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <span style={{ flexShrink:0, fontSize:11, fontWeight:600, padding:"3px 10px",
+                            borderRadius:4, background:sc.bg, color:sc.color, whiteSpace:"nowrap" }}>
+                            {statusLabel(sprint.status)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
+
+
+/* ── EntradaDados2View ── */
+
+const TabStatusBadge = ({ status, count }) => {
+  const s = ({
+    complete: { bg:"#dcfce7", color:"#065f46" },
+    draft:    { bg:"#fef3c7", color:"#92400e" },
+    empty:    { bg:"#f3f4f6", color:"#9ca3af" },
+  })[status] || { bg:"#f3f4f6", color:"#9ca3af" };
+  const lbl = status === "complete" ? (count > 0 ? String(count) : "✓") : String(count || 0);
+  return (
+    <span style={{ fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99,
+      background:s.bg, color:s.color, marginLeft:4 }}>
+      {lbl}
+    </span>
+  );
+};
+
+const BtnCancel  = ({ onClick, children }) => (
+  <button onClick={onClick} style={{ padding:"9px 20px", borderRadius:8,
+    border:"1px solid #d1d5db", background:"transparent", color:"#6b7280",
+    fontSize:13, fontWeight:500, cursor:"pointer" }}>{children || "Cancelar"}</button>
+);
+const BtnDraft   = ({ onClick, children }) => (
+  <button onClick={onClick} style={{ padding:"9px 20px", borderRadius:8,
+    border:"1px solid #FA4616", background:"transparent", color:"#FA4616",
+    fontSize:13, fontWeight:500, cursor:"pointer" }}>{children || "Salvar Rascunho"}</button>
+);
+const BtnPrimary = ({ onClick, children }) => (
+  <button onClick={onClick} style={{ padding:"9px 24px", borderRadius:8,
+    border:"none", background:"#FA4616", color:"#fff",
+    fontSize:13, fontWeight:600, cursor:"pointer" }}>{children || "Enviar Final"}</button>
+);
+
+const EntradaDados2View = ({ contract, detail }) => {
+  const [tab,      setTab]      = React.useState("contrato");
+  const [showForm, setShowForm] = React.useState(false);
+  const [fv,       setFv]       = React.useState({});
+
+  const phases    = (detail && detail.phases)    || [];
+  const financial = (detail && detail.financial) || [];
+  const sprints   = phases.flatMap(p =>
+    (p.sprints || []).map(s => ({ ...s, phaseName: p.name.split(":")[0] }))
+  );
+
+  const openForm  = () => { setFv({}); setShowForm(true); };
+  const closeForm = () => setShowForm(false);
+  const sv        = (k, v) => setFv(prev => ({ ...prev, [k]: v }));
+
+  const TAB_GROUPS = [
+    { label:"Estrutura do Contrato", ids:["contrato","fases","sprints"] },
+    { label:"Conteúdo Operacional",  ids:["processo","usecases","objetivos","marcos"] },
+    { label:"Acompanhamento",        ids:["progresso","financeiro","problemas"] },
+    { label:"Importação",            ids:["excel"] },
+  ];
+
+  const TAB_DEFS = [
+    { id:"contrato",  label:"Contrato",        Icon:IFile,      group:"Estrutura do Contrato",  status:MOCK_PROJECTS.length > 0 ? "complete" : "empty", count:MOCK_PROJECTS.length },
+    { id:"fases",     label:"Fases",           Icon:IBarChart,  group:"Estrutura do Contrato",  status:phases.length > 0 ? "complete" : "empty",        count:phases.length },
+    { id:"sprints",   label:"Sprints",         Icon:ICheckC,    group:"Estrutura do Contrato",  status:sprints.length > 0 ? "draft" : "empty",           count:sprints.length },
+    { id:"processo",  label:"Processo",        Icon:IGitBranch, group:"Conteúdo Operacional",   status:"empty", count:0 },
+    { id:"usecases",  label:"Casos de Uso",    Icon:IUsers,     group:"Conteúdo Operacional",   status:UC_DATA.length > 0 ? "complete" : "empty",        count:UC_DATA.length },
+    { id:"objetivos", label:"Objetivos TO-BE", Icon:ITarget,    group:"Conteúdo Operacional",   status:"empty", count:0 },
+    { id:"marcos",    label:"Marcos",          Icon:ICalendar,  group:"Conteúdo Operacional",   status:"empty", count:0 },
+    { id:"progresso", label:"Progresso",       Icon:ITrend,     group:"Acompanhamento",         status:"empty", count:0 },
+    { id:"financeiro",label:"Financeiro",      Icon:IDollar,    group:"Acompanhamento",         status:financial.length > 0 ? "complete" : "empty",      count:financial.length },
+    { id:"problemas", label:"Problemas",       Icon:IAlertC,    group:"Acompanhamento",         status:"empty", count:0 },
+    { id:"excel",     label:"Importar Excel",  Icon:IDatabase,  group:"Importação",             status:null, count:null },
+  ];
+
+  const thSt = { padding:"10px 14px", textAlign:"left", fontSize:12, fontWeight:600,
+    color:"#201547", borderBottom:"1px solid #e5e7eb" };
+  const tdSt = { padding:"10px 14px", fontSize:13, color:"#374151",
+    borderBottom:"1px solid #f3f4f6" };
+  const finp = { width:"100%", padding:"9px 12px", borderRadius:6,
+    border:"1px solid #d1d5db", fontSize:13, color:"#111827", outline:"none" };
+  const fLbl = { fontSize:12, fontWeight:500, color:"#374151", marginBottom:4, display:"block" };
+  const r2   = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 };
+  const r3   = { display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 };
+
+  const FormFooter = () => (
+    <div style={{ display:"flex", gap:8, justifyContent:"flex-end",
+      paddingTop:16, borderTop:"1px solid #f3f4f6", marginTop:16 }}>
+      <BtnCancel  onClick={closeForm} />
+      <BtnDraft   onClick={closeForm} />
+      <BtnPrimary onClick={closeForm} />
+    </div>
+  );
+
+  const FormWrap = ({ title, children }) => (
+    <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20, marginTop:16 }}>
+      <p style={{ margin:"0 0 16px", fontSize:13, fontWeight:700, color:"#201547" }}>{title || "Novo Registro"}</p>
+      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>{children}</div>
+      <FormFooter />
+    </div>
+  );
+
+  const AddBtn = ({ label }) => (
+    <button onClick={openForm}
+      style={{ marginTop:16, display:"flex", alignItems:"center", gap:6, padding:"9px 18px",
+        borderRadius:8, border:"none", background:"#FA4616", color:"#fff",
+        fontSize:13, fontWeight:600, cursor:"pointer" }}>
+      <IPlus /> {label}
+    </button>
+  );
+
+  const Table = ({ cols, children }) => (
+    <div style={{ overflowX:"auto" }}>
+      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+        <thead><tr style={{ background:"rgba(32,21,71,0.04)" }}>
+          {cols.map(c => <th key={c} style={thSt}>{c}</th>)}
+        </tr></thead>
+        <tbody>{children}</tbody>
+      </table>
+    </div>
+  );
+
+  const renderContent = () => {
+
+    if (tab === "contrato") return (
+      <div>
+        <Table cols={["Número","Título","Contratada","Valor","Status","Ações"]}>
+          {MOCK_PROJECTS.map(p => (
+            <tr key={p.id}>
+              <td style={{...tdSt, fontWeight:600, color:"#201547"}}>{p.number}</td>
+              <td style={{...tdSt, color:"#FA4616", maxWidth:240}}>{p.title}</td>
+              <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.company}</td>
+              <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.totalValue ? fmtCur(p.totalValue) : "—"}</td>
+              <td style={tdSt}>
+                <span style={{ fontSize:11, fontWeight:600, padding:"2px 8px", borderRadius:4,
+                  background:(STATUS_MAP[p.status]||{bg:"#f3f4f6"}).bg,
+                  color:(STATUS_MAP[p.status]||{color:"#374151"}).color }}>{p.status}</span>
+              </td>
+              <td style={tdSt}>
+                <div style={{ display:"flex", gap:6 }}>
+                  <button style={{ padding:"4px 8px", border:"1px solid #e5e7eb", borderRadius:4,
+                    background:"#fff", cursor:"pointer" }}><IPencil /></button>
+                  <button style={{ padding:"4px 8px", border:"1px solid #fee2e2", borderRadius:4,
+                    background:"#fff", cursor:"pointer", color:"#ef4444" }}><ITrash /></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Contrato">
+            <div><label style={fLbl}>Título *</label>
+              <input style={finp} value={fv.title||""} onChange={e=>sv("title",e.target.value)} placeholder="Nome do contrato" /></div>
+            <div style={r2}>
+              <div><label style={fLbl}>Número do Contrato</label>
+                <input style={finp} value={fv.num||""} onChange={e=>sv("num",e.target.value)} placeholder="ICJ 5900.xxxx.xx.x" /></div>
+              <div><label style={fLbl}>Contratada *</label>
+                <input style={finp} value={fv.company||""} onChange={e=>sv("company",e.target.value)} /></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Valor Total (R$)</label>
+                <input type="number" style={finp} value={fv.value||""} onChange={e=>sv("value",e.target.value)} /></div>
+              <div><label style={fLbl}>Status</label>
+                <select style={{...finp, appearance:"none"}} value={fv.status||""} onChange={e=>sv("status",e.target.value)}>
+                  <option value="">Selecione…</option>
+                  {["Em Andamento","Planejado","Finalizado","Suspenso","Cancelado"].map(s=><option key={s}>{s}</option>)}
+                </select></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Data de Início *</label>
+                <input type="date" style={finp} value={fv.start||""} onChange={e=>sv("start",e.target.value)} /></div>
+              <div>
+                <label style={fLbl}>Data de Término *</label>
+                <input type="date" style={{...finp, opacity:fv.start?1:0.5, cursor:fv.start?"auto":"not-allowed"}}
+                  value={fv.end||""} disabled={fv.start ? false : true}
+                  onChange={e=>sv("end",e.target.value)} />
+                {fv.start ? null : <span style={{fontSize:11,color:"#9ca3af",marginTop:2,display:"block"}}>Preencha primeiro a Data de Início.</span>}
+              </div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Contrato" />}
+      </div>
+    );
+
+    if (tab === "fases") return (
+      <div>
+        <Table cols={["ID","Nome","Duração","Valor","% do Total","Status"]}>
+          {phases.map(p => {
+            const col = PHASE_STATUS_MAP[p.phaseStatus] || PHASE_STATUS_MAP.pending;
+            return (
+              <tr key={p.id}>
+                <td style={{...tdSt, fontWeight:700, color:"#201547"}}>{p.id}</td>
+                <td style={tdSt}>{p.name}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.duration}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{fmtCur(p.value)}</td>
+                <td style={{...tdSt, textAlign:"center", fontWeight:600}}>{p.percentage}%</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                    background:col.bg,color:col.text}}>{col.label}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Nova Fase">
+            <div><label style={fLbl}>Nome da Fase *</label>
+              <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} placeholder="Ex: MVP1: Core Backend" /></div>
+            <div style={r3}>
+              <div><label style={fLbl}>Duração</label>
+                <input style={finp} value={fv.dur||""} onChange={e=>sv("dur",e.target.value)} placeholder="Ex: 10 semanas" /></div>
+              <div><label style={fLbl}>Valor (R$)</label>
+                <input type="number" style={finp} value={fv.val||""} onChange={e=>sv("val",e.target.value)} /></div>
+              <div><label style={fLbl}>% do Total</label>
+                <input type="number" style={finp} value={fv.pct||""} onChange={e=>sv("pct",e.target.value)} min="0" max="100" /></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Nova Fase" />}
+      </div>
+    );
+
+    if (tab === "sprints") return (
+      <div>
+        <Table cols={["ID","Nome","Fase","Status"]}>
+          {sprints.map(s => {
+            const sc = statusBadgeClass(s.status);
+            return (
+              <tr key={s.id}>
+                <td style={{...tdSt, fontWeight:700, color:"#201547"}}>{s.id}</td>
+                <td style={tdSt}>{s.name}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{s.phaseName}</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                    background:sc.bg,color:sc.color}}>{statusLabel(s.status)}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Sprint">
+            <div><label style={fLbl}>Nome do Sprint *</label>
+              <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} placeholder="Ex: Sprint 8: ..." /></div>
+            <div style={r2}>
+              <div><label style={fLbl}>Fase * <span style={{fontSize:11,color:"#9ca3af",fontWeight:400}}>— selecione primeiro</span></label>
+                <select style={{...finp,appearance:"none"}} value={fv.phase||""} onChange={e=>sv("phase",e.target.value)}>
+                  <option value="">Selecione a fase…</option>
+                  {phases.map(p=><option key={p.id} value={p.id}>{p.name.split(":")[0]}</option>)}
+                </select></div>
+              <div><label style={fLbl}>Status</label>
+                <select style={{...finp,appearance:"none"}} value={fv.status||"pending"} onChange={e=>sv("status",e.target.value)}>
+                  <option value="pending">Pendente</option>
+                  <option value="in_progress">Em Andamento</option>
+                  <option value="completed">Concluída</option>
+                  <option value="delayed">Atrasada</option>
+                </select></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Sprint" />}
+      </div>
+    );
+
+    if (tab === "usecases") return (
+      <div>
+        <Table cols={["ID","Título","Ator","Pré-condições","MVP"]}>
+          {UC_DATA.map(u => (
+            <tr key={u.id}>
+              <td style={{...tdSt,fontWeight:700,color:"#201547"}}>{u.id}</td>
+              <td style={tdSt}>{u.title}</td>
+              <td style={{...tdSt,whiteSpace:"nowrap"}}>{u.actor}</td>
+              <td style={{...tdSt,maxWidth:240,color:"#6b7280"}}>{u.pre}</td>
+              <td style={{...tdSt,textAlign:"center"}}>
+                <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                  background:u.mvp==="Sim"?"#dcfce7":"#f3f4f6",
+                  color:u.mvp==="Sim"?"#065f46":"#6b7280"}}>{u.mvp}</span>
+              </td>
+            </tr>
+          ))}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Caso de Uso">
+            <div style={r2}>
+              <div><label style={fLbl}>ID *</label>
+                <input style={finp} value={fv.id||""} onChange={e=>sv("id",e.target.value)} placeholder="UC_006" /></div>
+              <div><label style={fLbl}>Ator *</label>
+                <input style={finp} value={fv.actor||""} onChange={e=>sv("actor",e.target.value)} placeholder="Ex: Viajante" /></div>
+            </div>
+            <div><label style={fLbl}>Título *</label>
+              <input style={finp} value={fv.title||""} onChange={e=>sv("title",e.target.value)} /></div>
+            <div><label style={fLbl}>Pré-condições</label>
+              <input style={finp} value={fv.pre||""} onChange={e=>sv("pre",e.target.value)} /></div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Caso de Uso" />}
+      </div>
+    );
+
+    if (tab === "financeiro") return (
+      <div>
+        <Table cols={["Categoria","Período","Planejado","Realizado","Variação"]}>
+          {financial.map(f => {
+            const variance = f.actual - f.planned;
+            const acima = variance > 0;
+            return (
+              <tr key={f.id}>
+                <td style={{...tdSt,fontWeight:600,color:"#201547"}}>{f.category}</td>
+                <td style={tdSt}>{f.period}</td>
+                <td style={tdSt}>{fmtCur(f.planned)}</td>
+                <td style={tdSt}>{fmtCur(f.actual)}</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:12,fontWeight:600,color:acima?"#b91c1c":"#15803d"}}>
+                    {acima?"▲":"▼"} {fmtCur(Math.abs(variance))}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Nova Entrada Financeira">
+            <div style={r2}>
+              <div><label style={fLbl}>Categoria *</label>
+                <input style={finp} value={fv.cat||""} onChange={e=>sv("cat",e.target.value)} placeholder="Ex: Desenvolvimento" /></div>
+              <div><label style={fLbl}>Período</label>
+                <input style={finp} value={fv.period||""} onChange={e=>sv("period",e.target.value)} placeholder="Ex: Jan-Mar/2025" /></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Valor Planejado (R$)</label>
+                <input type="number" style={finp} value={fv.planned||""} onChange={e=>sv("planned",e.target.value)} /></div>
+              <div><label style={fLbl}>Valor Realizado (R$)</label>
+                <input type="number" style={finp} value={fv.actual||""} onChange={e=>sv("actual",e.target.value)} /></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Nova Entrada" />}
+      </div>
+    );
+
+    if (tab === "excel") {
+      const SHEETS = [
+        {id:"fases",label:"Fases"},{id:"sprints",label:"Sprints"},{id:"marcos",label:"Marcos"},
+        {id:"progresso",label:"Progresso"},{id:"financeiro",label:"Financeiro"},
+        {id:"problemas",label:"Problemas"},{id:"processo",label:"Passos do Processo"},
+        {id:"objetivos",label:"Objetivos TO-BE"},{id:"usecases",label:"Casos de Uso"},
+      ];
+      const stepCircle = (n, active) => ({
+        width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center",
+        justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff",
+        background: active ? "#FA4616" : "#201547",
+      });
+      return (
+        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(1,true)}>1</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Selecione as planilhas para incluir no template</h3>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+              {SHEETS.map(s => (
+                <label key={s.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px",
+                  border:"1px solid #e5e7eb", borderRadius:6, cursor:"pointer", fontSize:13, color:"#374151",
+                  background:"#fafafa" }}>
+                  <input type="checkbox" style={{ accentColor:"#FA4616" }} />
+                  {s.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(2,false)}>2</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Baixar template</h3>
+            </div>
+            <p style={{ margin:"0 0 12px", fontSize:12, color:"#6b7280" }}>Preencha o template e retorne para importar os dados.</p>
+            <div style={{ display:"flex", gap:12 }}>
+              <BtnCancel onClick={()=>{}}>Template Vazio</BtnCancel>
+              <BtnDraft  onClick={()=>{}}>Pré-preenchido com dados atuais</BtnDraft>
+            </div>
+          </div>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(3,false)}>3</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Upload do arquivo preenchido</h3>
+            </div>
+            <div style={{ border:"2px dashed #d1d5db", borderRadius:8, padding:"32px 24px",
+              textAlign:"center", background:"#f9fafb", cursor:"pointer" }}>
+              <div style={{ opacity:0.4, marginBottom:8 }}><IDatabase /></div>
+              <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:600, color:"#201547" }}>Arraste o arquivo aqui</p>
+              <p style={{ margin:"0 0 12px", fontSize:12, color:"#6b7280" }}>.xlsx ou .xlsm — máx 10MB</p>
+              <BtnCancel onClick={()=>{}}>Selecionar arquivo</BtnCancel>
+            </div>
+          </div>
+          <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20, opacity:0.5 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{...stepCircle(4,false), background:"#9ca3af"}}>4</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#9ca3af" }}>Prévia e confirmação</h3>
+            </div>
+            <p style={{ margin:"8px 0 0 34px", fontSize:12, color:"#9ca3af" }}>Disponível após o upload do arquivo.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Empty tabs: processo, objetivos, marcos, progresso, problemas
+    const emptyCfg = {
+      processo:  { Icon:IGitBranch, title:"Nenhum passo de processo cadastrado",  desc:"Documente os passos do processo TO BE.", cta:"Novo Passo" },
+      objetivos: { Icon:ITarget,    title:"Nenhum objetivo cadastrado",           desc:"Registre os objetivos TO BE para acompanhamento.", cta:"Novo Objetivo" },
+      marcos:    { Icon:ICalendar,  title:"Nenhum marco cadastrado",             desc:"Marcos são entregas-chave associadas a fases.", cta:"Novo Marco" },
+      progresso: { Icon:ITrend,     title:"Sem registros de progresso",          desc:"Atualize o progresso das fases e sprints.", cta:"Novo Registro" },
+      problemas: { Icon:IAlertC,    title:"Nenhum problema registrado",          desc:"Registre ocorrências, riscos e pendências.", cta:"Registrar Problema" },
+    };
+    const ec = emptyCfg[tab] || { Icon:IFolder, title:"Em desenvolvimento", desc:"", cta:"Novo Registro" };
+    return (
+      <div>
+        {showForm ? (
+          <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <p style={{ margin:"0 0 16px", fontSize:13, fontWeight:700, color:"#201547" }}>{ec.cta}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div><label style={fLbl}>Nome / Título *</label>
+                <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} /></div>
+              <div><label style={fLbl}>Descrição</label>
+                <textarea style={{...finp, minHeight:80, resize:"vertical"}}
+                  value={fv.desc||""} onChange={e=>sv("desc",e.target.value)} /></div>
+            </div>
+            <FormFooter />
+          </div>
+        ) : (
+          <EmptyState icon={ec.Icon} title={ec.title} desc={ec.desc} ctaLabel={ec.cta} onCta={openForm} />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column" }}>
+
+      {/* Banner */}
+      <div style={{ background:"#201547", padding:"20px 32px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:48, height:48, borderRadius:10, background:"#FA4616",
+            display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <IDatabase />
+          </div>
+          <div>
+            <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:"#fff" }}>Entrada de Dados 2</h1>
+            <p style={{ margin:"2px 0 0", fontSize:13, color:"rgba(255,255,255,0.6)" }}>Versão experimental — em validação</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Grupos + Tab bar */}
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb" }}>
+        {/* Group labels */}
+        <div style={{ display:"flex", padding:"6px 16px 0", borderBottom:"1px solid #f3f4f6" }}>
+          {TAB_GROUPS.map((g, gi) => {
+            const grpActive = TAB_DEFS.filter(t => t.group === g.label).some(t => t.id === tab);
+            return (
+              <div key={g.label} style={{ paddingRight: gi < TAB_GROUPS.length-1 ? 24 : 0 }}>
+                <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase",
+                  letterSpacing:"0.8px", paddingBottom:5, display:"block",
+                  color: grpActive ? "#FA4616" : "#9ca3af",
+                  borderBottom: grpActive ? "2px solid #FA4616" : "2px solid transparent" }}>
+                  {g.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        {/* Tabs */}
+        <div style={{ display:"flex", padding:"0 8px", overflowX:"auto" }}>
+          {TAB_DEFS.map(t => {
+            const isAct = t.id === tab;
+            const TIcon = t.Icon;
+            return (
+              <button key={t.id}
+                onClick={() => { setTab(t.id); setShowForm(false); }}
+                style={{ display:"flex", alignItems:"center", gap:5, padding:"10px 10px",
+                  border:"none", borderBottom: isAct ? "2px solid #FA4616" : "2px solid transparent",
+                  background:"transparent", fontSize:12, fontWeight: isAct ? 600 : 400,
+                  color: isAct ? "#201547" : "#6b7280", cursor:"pointer",
+                  whiteSpace:"nowrap", transition:"all .15s" }}>
+                <TIcon />
+                {t.label}
+                {t.status === null ? null : <TabStatusBadge status={t.status} count={t.count} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding:"24px 32px" }}>
+        {renderContent()}
+      </div>
+    </div>
+  );
+};
+
+
+/* ── EntradaDadosView ── */
+const EntradaDadosView = ({ contract, detail }) => {
+  const [tab,      setTab]      = React.useState("contrato");
+  const [showForm, setShowForm] = React.useState(false);
+  const [fv,       setFv]       = React.useState({});
+
+  const phases    = (detail && detail.phases)    || [];
+  const financial = (detail && detail.financial) || [];
+  const sprints   = phases.flatMap(p =>
+    (p.sprints || []).map(s => ({ ...s, phaseName: p.name.split(":")[0] }))
+  );
+
+  const openForm  = () => { setFv({}); setShowForm(true); };
+  const closeForm = () => setShowForm(false);
+  const sv        = (k, v) => setFv(prev => ({ ...prev, [k]: v }));
+
+  const TABS = [
+    { id:"contrato",   label:"Contrato" },
+    { id:"fases",      label:"Fases" },
+    { id:"sprints",    label:"Sprints" },
+    { id:"processo",   label:"Processo" },
+    { id:"usecases",   label:"Casos de Uso" },
+    { id:"objetivos",  label:"Objetivos TO-BE" },
+    { id:"marcos",     label:"Marcos" },
+    { id:"progresso",  label:"Progresso" },
+    { id:"financeiro", label:"Financeiro" },
+    { id:"problemas",  label:"Problemas" },
+    { id:"excel",      label:"Importar Excel" },
+  ];
+
+  const thSt = { padding:"10px 14px", textAlign:"left", fontSize:12, fontWeight:600,
+    color:"#201547", borderBottom:"1px solid #e5e7eb" };
+  const tdSt = { padding:"10px 14px", fontSize:13, color:"#374151",
+    borderBottom:"1px solid #f3f4f6" };
+  const finp = { width:"100%", padding:"9px 12px", borderRadius:6,
+    border:"1px solid #d1d5db", fontSize:13, color:"#111827", outline:"none" };
+  const fLbl = { fontSize:12, fontWeight:500, color:"#374151", marginBottom:4, display:"block" };
+  const r2   = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 };
+  const r3   = { display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 };
+
+  const FormFooter = () => (
+    <div style={{ display:"flex", gap:8, justifyContent:"flex-end",
+      paddingTop:16, borderTop:"1px solid #f3f4f6", marginTop:16 }}>
+      <BtnCancel  onClick={closeForm} />
+      <BtnDraft   onClick={closeForm} />
+      <BtnPrimary onClick={closeForm} />
+    </div>
+  );
+
+  const FormWrap = ({ title, children }) => (
+    <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20, marginTop:16 }}>
+      <p style={{ margin:"0 0 16px", fontSize:13, fontWeight:700, color:"#201547" }}>{title || "Novo Registro"}</p>
+      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>{children}</div>
+      <FormFooter />
+    </div>
+  );
+
+  const AddBtn = ({ label }) => (
+    <button onClick={openForm}
+      style={{ marginTop:16, display:"flex", alignItems:"center", gap:6, padding:"9px 18px",
+        borderRadius:8, border:"none", background:"#FA4616", color:"#fff",
+        fontSize:13, fontWeight:600, cursor:"pointer" }}>
+      <IPlus /> {label}
+    </button>
+  );
+
+  const Table = ({ cols, children }) => (
+    <div style={{ overflowX:"auto" }}>
+      <table style={{ width:"100%", borderCollapse:"collapse" }}>
+        <thead><tr style={{ background:"rgba(32,21,71,0.04)" }}>
+          {cols.map(c => <th key={c} style={thSt}>{c}</th>)}
+        </tr></thead>
+        <tbody>{children}</tbody>
+      </table>
+    </div>
+  );
+
+  const renderContent = () => {
+
+    if (tab === "contrato") return (
+      <div>
+        <Table cols={["Número","Título","Contratada","Valor","Status","Ações"]}>
+          {MOCK_PROJECTS.map(p => (
+            <tr key={p.id}>
+              <td style={{...tdSt, fontWeight:600, color:"#201547"}}>{p.number}</td>
+              <td style={{...tdSt, color:"#FA4616", maxWidth:240}}>{p.title}</td>
+              <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.company}</td>
+              <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.totalValue ? fmtCur(p.totalValue) : "—"}</td>
+              <td style={tdSt}>
+                <span style={{ fontSize:11, fontWeight:600, padding:"2px 8px", borderRadius:4,
+                  background:(STATUS_MAP[p.status]||{bg:"#f3f4f6"}).bg,
+                  color:(STATUS_MAP[p.status]||{color:"#374151"}).color }}>{p.status}</span>
+              </td>
+              <td style={tdSt}>
+                <div style={{ display:"flex", gap:6 }}>
+                  <button style={{ padding:"4px 8px", border:"1px solid #e5e7eb", borderRadius:4,
+                    background:"#fff", cursor:"pointer" }}><IPencil /></button>
+                  <button style={{ padding:"4px 8px", border:"1px solid #fee2e2", borderRadius:4,
+                    background:"#fff", cursor:"pointer", color:"#ef4444" }}><ITrash /></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Contrato">
+            <div><label style={fLbl}>Título *</label>
+              <input style={finp} value={fv.title||""} onChange={e=>sv("title",e.target.value)} placeholder="Nome do contrato" /></div>
+            <div style={r2}>
+              <div><label style={fLbl}>Número do Contrato</label>
+                <input style={finp} value={fv.num||""} onChange={e=>sv("num",e.target.value)} placeholder="ICJ 5900.xxxx.xx.x" /></div>
+              <div><label style={fLbl}>Contratada *</label>
+                <input style={finp} value={fv.company||""} onChange={e=>sv("company",e.target.value)} /></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Valor Total (R$)</label>
+                <input type="number" style={finp} value={fv.value||""} onChange={e=>sv("value",e.target.value)} /></div>
+              <div><label style={fLbl}>Status</label>
+                <select style={{...finp, appearance:"none"}} value={fv.status||""} onChange={e=>sv("status",e.target.value)}>
+                  <option value="">Selecione…</option>
+                  {["Em Andamento","Planejado","Finalizado","Suspenso","Cancelado"].map(s=><option key={s}>{s}</option>)}
+                </select></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Data de Início *</label>
+                <input type="date" style={finp} value={fv.start||""} onChange={e=>sv("start",e.target.value)} /></div>
+              <div>
+                <label style={fLbl}>Data de Término *</label>
+                <input type="date" style={{...finp, opacity:fv.start?1:0.5, cursor:fv.start?"auto":"not-allowed"}}
+                  value={fv.end||""} disabled={fv.start ? false : true}
+                  onChange={e=>sv("end",e.target.value)} />
+                {fv.start ? null : <span style={{fontSize:11,color:"#9ca3af",marginTop:2,display:"block"}}>Preencha primeiro a Data de Início.</span>}
+              </div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Contrato" />}
+      </div>
+    );
+
+    if (tab === "fases") return (
+      <div>
+        <Table cols={["ID","Nome","Duração","Valor","% do Total","Status"]}>
+          {phases.map(p => {
+            const col = PHASE_STATUS_MAP[p.phaseStatus] || PHASE_STATUS_MAP.pending;
+            return (
+              <tr key={p.id}>
+                <td style={{...tdSt, fontWeight:700, color:"#201547"}}>{p.id}</td>
+                <td style={tdSt}>{p.name}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{p.duration}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{fmtCur(p.value)}</td>
+                <td style={{...tdSt, textAlign:"center", fontWeight:600}}>{p.percentage}%</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                    background:col.bg,color:col.text}}>{col.label}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Nova Fase">
+            <div><label style={fLbl}>Nome da Fase *</label>
+              <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} placeholder="Ex: MVP1: Core Backend" /></div>
+            <div style={r3}>
+              <div><label style={fLbl}>Duração</label>
+                <input style={finp} value={fv.dur||""} onChange={e=>sv("dur",e.target.value)} placeholder="Ex: 10 semanas" /></div>
+              <div><label style={fLbl}>Valor (R$)</label>
+                <input type="number" style={finp} value={fv.val||""} onChange={e=>sv("val",e.target.value)} /></div>
+              <div><label style={fLbl}>% do Total</label>
+                <input type="number" style={finp} value={fv.pct||""} onChange={e=>sv("pct",e.target.value)} min="0" max="100" /></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Nova Fase" />}
+      </div>
+    );
+
+    if (tab === "sprints") return (
+      <div>
+        <Table cols={["ID","Nome","Fase","Status"]}>
+          {sprints.map(s => {
+            const sc = statusBadgeClass(s.status);
+            return (
+              <tr key={s.id}>
+                <td style={{...tdSt, fontWeight:700, color:"#201547"}}>{s.id}</td>
+                <td style={tdSt}>{s.name}</td>
+                <td style={{...tdSt, whiteSpace:"nowrap"}}>{s.phaseName}</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                    background:sc.bg,color:sc.color}}>{statusLabel(s.status)}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Sprint">
+            <div><label style={fLbl}>Nome do Sprint *</label>
+              <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} placeholder="Ex: Sprint 8: ..." /></div>
+            <div style={r2}>
+              <div>
+                <label style={fLbl}>Fase *</label>
+                <select style={{...finp,appearance:"none"}} value={fv.phase||""} onChange={e=>sv("phase",e.target.value)}>
+                  <option value="">Selecione a fase…</option>
+                  {phases.map(p=><option key={p.id} value={p.id}>{p.name.split(":")[0]}</option>)}
+                </select>
+                {fv.phase ? null : <span style={{fontSize:11,color:"#9ca3af",marginTop:2,display:"block"}}>Selecione uma fase antes de prosseguir.</span>}
+              </div>
+              <div><label style={fLbl}>Status</label>
+                <select style={{...finp,appearance:"none"}} value={fv.status||"pending"} onChange={e=>sv("status",e.target.value)}>
+                  <option value="pending">Pendente</option>
+                  <option value="in_progress">Em Andamento</option>
+                  <option value="completed">Concluída</option>
+                  <option value="delayed">Atrasada</option>
+                </select></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Sprint" />}
+      </div>
+    );
+
+    if (tab === "usecases") return (
+      <div>
+        <Table cols={["ID","Título","Ator","Pré-condições","MVP"]}>
+          {UC_DATA.map(u => (
+            <tr key={u.id}>
+              <td style={{...tdSt,fontWeight:700,color:"#201547"}}>{u.id}</td>
+              <td style={tdSt}>{u.title}</td>
+              <td style={{...tdSt,whiteSpace:"nowrap"}}>{u.actor}</td>
+              <td style={{...tdSt,maxWidth:240,color:"#6b7280"}}>{u.pre}</td>
+              <td style={{...tdSt,textAlign:"center"}}>
+                <span style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:4,
+                  background:u.mvp==="Sim"?"#dcfce7":"#f3f4f6",
+                  color:u.mvp==="Sim"?"#065f46":"#6b7280"}}>{u.mvp}</span>
+              </td>
+            </tr>
+          ))}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Novo Caso de Uso">
+            <div style={r2}>
+              <div><label style={fLbl}>ID *</label>
+                <input style={finp} value={fv.id||""} onChange={e=>sv("id",e.target.value)} placeholder="UC_006" /></div>
+              <div><label style={fLbl}>Ator *</label>
+                <input style={finp} value={fv.actor||""} onChange={e=>sv("actor",e.target.value)} placeholder="Ex: Viajante" /></div>
+            </div>
+            <div><label style={fLbl}>Título *</label>
+              <input style={finp} value={fv.title||""} onChange={e=>sv("title",e.target.value)} /></div>
+            <div><label style={fLbl}>Pré-condições</label>
+              <input style={finp} value={fv.pre||""} onChange={e=>sv("pre",e.target.value)} /></div>
+          </FormWrap>
+        ) : <AddBtn label="Novo Caso de Uso" />}
+      </div>
+    );
+
+    if (tab === "financeiro") return (
+      <div>
+        <Table cols={["Categoria","Período","Planejado","Realizado","Variação"]}>
+          {financial.map(f => {
+            const variance = f.actual - f.planned;
+            const acima = variance > 0;
+            return (
+              <tr key={f.id}>
+                <td style={{...tdSt,fontWeight:600,color:"#201547"}}>{f.category}</td>
+                <td style={tdSt}>{f.period}</td>
+                <td style={tdSt}>{fmtCur(f.planned)}</td>
+                <td style={tdSt}>{fmtCur(f.actual)}</td>
+                <td style={tdSt}>
+                  <span style={{fontSize:12,fontWeight:600,color:acima?"#b91c1c":"#15803d"}}>
+                    {acima?"▲":"▼"} {fmtCur(Math.abs(variance))}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </Table>
+        {showForm ? (
+          <FormWrap title="Nova Entrada Financeira">
+            <div style={r2}>
+              <div><label style={fLbl}>Categoria *</label>
+                <input style={finp} value={fv.cat||""} onChange={e=>sv("cat",e.target.value)} placeholder="Ex: Desenvolvimento" /></div>
+              <div><label style={fLbl}>Período</label>
+                <input style={finp} value={fv.period||""} onChange={e=>sv("period",e.target.value)} placeholder="Ex: Jan-Mar/2025" /></div>
+            </div>
+            <div style={r2}>
+              <div><label style={fLbl}>Valor Planejado (R$)</label>
+                <input type="number" style={finp} value={fv.planned||""} onChange={e=>sv("planned",e.target.value)} /></div>
+              <div><label style={fLbl}>Valor Realizado (R$)</label>
+                <input type="number" style={finp} value={fv.actual||""} onChange={e=>sv("actual",e.target.value)} /></div>
+            </div>
+          </FormWrap>
+        ) : <AddBtn label="Nova Entrada" />}
+      </div>
+    );
+
+    if (tab === "excel") {
+      const SHEETS = [
+        {id:"fases",label:"Fases"},{id:"sprints",label:"Sprints"},{id:"marcos",label:"Marcos"},
+        {id:"progresso",label:"Progresso"},{id:"financeiro",label:"Financeiro"},
+        {id:"problemas",label:"Problemas"},{id:"processo",label:"Passos do Processo"},
+        {id:"objetivos",label:"Objetivos TO-BE"},{id:"usecases",label:"Casos de Uso"},
+      ];
+      const stepCircle = (n, active) => ({
+        width:24, height:24, borderRadius:"50%", display:"flex", alignItems:"center",
+        justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff",
+        background: active ? "#FA4616" : "#201547",
+      });
+      return (
+        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(1,true)}>1</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Selecione as planilhas para incluir no template</h3>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+              {SHEETS.map(s => (
+                <label key={s.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px",
+                  border:"1px solid #e5e7eb", borderRadius:6, cursor:"pointer", fontSize:13, color:"#374151",
+                  background:"#fafafa" }}>
+                  <input type="checkbox" style={{ accentColor:"#FA4616" }} />
+                  {s.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(2,false)}>2</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Baixar template</h3>
+            </div>
+            <p style={{ margin:"0 0 12px", fontSize:12, color:"#6b7280" }}>Preencha o template e retorne para importar os dados.</p>
+            <div style={{ display:"flex", gap:12 }}>
+              <BtnCancel onClick={()=>{}}>Template Vazio</BtnCancel>
+              <BtnDraft  onClick={()=>{}}>Pré-preenchido com dados atuais</BtnDraft>
+            </div>
+          </div>
+          <div style={{ background:"#fff", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <div style={stepCircle(3,false)}>3</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#201547" }}>Upload do arquivo preenchido</h3>
+            </div>
+            <div style={{ border:"2px dashed #d1d5db", borderRadius:8, padding:"32px 24px",
+              textAlign:"center", background:"#f9fafb", cursor:"pointer" }}>
+              <div style={{ opacity:0.4, marginBottom:8 }}><IDatabase /></div>
+              <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:600, color:"#201547" }}>Arraste o arquivo aqui</p>
+              <p style={{ margin:"0 0 12px", fontSize:12, color:"#6b7280" }}>.xlsx ou .xlsm — máx 10MB</p>
+              <BtnCancel onClick={()=>{}}>Selecionar arquivo</BtnCancel>
+            </div>
+          </div>
+          <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20, opacity:0.5 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{...stepCircle(4,false), background:"#9ca3af"}}>4</div>
+              <h3 style={{ margin:0, fontSize:14, fontWeight:700, color:"#9ca3af" }}>Prévia e confirmação</h3>
+            </div>
+            <p style={{ margin:"8px 0 0 34px", fontSize:12, color:"#9ca3af" }}>Disponível após o upload do arquivo.</p>
+          </div>
+        </div>
+      );
+    }
+
+    /* Empty state tabs: processo, objetivos, marcos, progresso, problemas */
+    const emptyCfg = {
+      processo:  { Icon:IGitBranch, title:"Nenhum passo de processo cadastrado",  desc:"Documente os passos do processo TO BE.", cta:"Novo Passo" },
+      objetivos: { Icon:ITarget,    title:"Nenhum objetivo cadastrado",           desc:"Registre os objetivos TO BE para acompanhamento.", cta:"Novo Objetivo" },
+      marcos:    { Icon:ICalendar,  title:"Nenhum marco cadastrado",              desc:"Marcos são entregas-chave associadas a fases.", cta:"Novo Marco" },
+      progresso: { Icon:ITrend,     title:"Sem registros de progresso",           desc:"Atualize o progresso das fases e sprints.", cta:"Novo Registro" },
+      problemas: { Icon:IAlertC,    title:"Nenhum problema registrado",           desc:"Registre ocorrências, riscos e pendências.", cta:"Registrar Problema" },
+    };
+    const ec = emptyCfg[tab] || { Icon:IDatabase, title:"Em desenvolvimento", desc:"", cta:"Novo Registro" };
+    return (
+      <div>
+        {showForm ? (
+          <div style={{ background:"#f9fafb", borderRadius:10, border:"1px solid #e5e7eb", padding:20 }}>
+            <p style={{ margin:"0 0 16px", fontSize:13, fontWeight:700, color:"#201547" }}>{ec.cta}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div><label style={fLbl}>Nome / Título *</label>
+                <input style={finp} value={fv.name||""} onChange={e=>sv("name",e.target.value)} /></div>
+              <div><label style={fLbl}>Descrição</label>
+                <textarea style={{...finp, minHeight:80, resize:"vertical"}}
+                  value={fv.desc||""} onChange={e=>sv("desc",e.target.value)} /></div>
+            </div>
+            <FormFooter />
+          </div>
+        ) : (
+          <EmptyState icon={ec.Icon} title={ec.title} desc={ec.desc} ctaLabel={ec.cta} onCta={openForm} />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column" }}>
+
+      {/* Banner */}
+      <div style={{ background:"#201547", padding:"20px 32px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:48, height:48, borderRadius:10, background:"#FA4616",
+            display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <IDatabase />
+          </div>
+          <div>
+            <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:"#fff" }}>Entrada de Dados</h1>
+            <p style={{ margin:"2px 0 0", fontSize:13, color:"rgba(255,255,255,0.6)" }}>Cadastro e gestão de informações do contrato</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab bar — flat, original design */}
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb" }}>
+        <div style={{ display:"flex", padding:"0 16px", overflowX:"auto" }}>
+          {TABS.map(t => {
+            const isAct = t.id === tab;
+            return (
+              <button key={t.id}
+                onClick={() => { setTab(t.id); setShowForm(false); }}
+                style={{ padding:"12px 16px", border:"none",
+                  borderBottom: isAct ? "2px solid #FA4616" : "2px solid transparent",
+                  background:"transparent", fontSize:13, fontWeight: isAct ? 600 : 400,
+                  color: isAct ? "#201547" : "#6b7280", cursor:"pointer",
+                  whiteSpace:"nowrap", transition:"all .15s" }}>
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding:"24px 32px" }}>
+        {renderContent()}
+      </div>
+    </div>
+  );
+};
+
+const ContractDetailPage = ({ contract, detail, onBack }) => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [activeTab,        setActiveTab]        = useState("operational");
+  const progress = calcProgress(detail);
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100vh", fontFamily:"'Poppins', system-ui, sans-serif", overflow:"hidden" }}>
+      <AppHeader onToggleSidebar={()=>setSidebarCollapsed(v=>!v)} contextLabel="Operacional" />
+      <div style={{ display:"flex", flex:1, overflow:"hidden" }}>
+        <Sidebar collapsed={sidebarCollapsed} activeTab={activeTab} onTabChange={setActiveTab} onCollapse={()=>setSidebarCollapsed(true)} />
+        <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+          <SubHeader contract={contract} progress={progress} onBack={onBack} />
+          <main style={{ flex:1, overflowY:"auto", background:C.gray50 }}>
+            {activeTab==="operational" && <OperacionalView  contract={contract} detail={detail} />}
+            {activeTab==="financial"   && <FinanceiroView   contract={contract} detail={detail} />}
+            {activeTab==="process"     && <ProcessoToBEView />}
+            {activeTab==="usecases"    && <CasosDeUsoView />}
+            {activeTab==="timeline"   && <CronogramaView detail={detail} />}
+            {activeTab==="data-entry"  && <EntradaDadosView  contract={contract} detail={detail} />}
+            {activeTab==="data-entry-2" && <EntradaDados2View contract={contract} detail={detail} />}
+            {activeTab!=="operational" && activeTab!=="financial" && activeTab!=="process" && activeTab!=="usecases" && activeTab!=="timeline" && activeTab!=="data-entry" && activeTab!=="data-entry-2" && (
+              <PlaceholderView tabId={activeTab} />
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── NavSwitch ── */
+const NavSwitch = () => (
+  <div style={{ position:"fixed", bottom:16, right:16, zIndex:999999, display:"flex", background:"rgba(0,0,0,0.75)", borderRadius:999, overflow:"hidden", fontFamily:"sans-serif", fontSize:12, boxShadow:"0 4px 12px rgba(0,0,0,0.2)", opacity:0.7 }}
+    onMouseOver={e=>e.currentTarget.style.opacity="1"}
+    onMouseOut={e=>e.currentTarget.style.opacity="0.7"}
+  >
+    <span style={{ padding:"8px 12px", background:"#fff", color:"#000", fontWeight:600 }}>Preview</span>
+    <a href="design-system.html" style={{ padding:"8px 12px", color:"#fff", textDecoration:"none" }}>Design System</a>
+  </div>
+);
+
+/* ── ProjectRow  ← COMPONENTE EXTRAÍDO (resolve o JSX error) ── */
+const ProjectRow = ({ project:c, onView, onEdit, onDelete, query }) => {
+  const s = STATUS_MAP[c.status] || STATUS_MAP["Planejado"];
+  const btn = { background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:4, padding:6, cursor:"pointer", color:"#6b7280", display:"flex", alignItems:"center", justifyContent:"center" };
+  return (
+    <tr
+      onMouseEnter={e=>e.currentTarget.style.background="#fafafa"}
+      onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+    >
+      <td style={{ padding:16 }}>
+        <button
+          onClick={()=>onView(c.id)}
+          style={{ background:"none", border:"none", cursor:"pointer", padding:0, textAlign:"left" }}
+          onMouseEnter={e=>{ const t=e.currentTarget.querySelector(".ttl"); if(t){ t.style.color="#FA4616"; t.style.textDecoration="underline"; } }}
+          onMouseLeave={e=>{ const t=e.currentTarget.querySelector(".ttl"); if(t){ t.style.color="#201547"; t.style.textDecoration="none"; } }}
+        >
+          <p className="ttl" style={{ fontSize:13, fontWeight:600, color:"#201547", margin:"0 0 2px", transition:"color .15s" }}>
+            <Highlight text={c.title} query={query} />
+          </p>
+          <p style={{ fontSize:11, color:"#9ca3af", margin:0, fontFamily:"monospace" }}>
+            <Highlight text={c.number} query={query} />
+          </p>
+        </button>
+      </td>
+      <td style={{ padding:16 }}>
+        <span style={{ fontSize:13, color:"#374151" }}>
+          <Highlight text={c.company} query={query} />
+        </span>
+      </td>
+      <td style={{ padding:16 }}>
+        <span style={{ display:"inline-flex", alignItems:"center", gap:6, fontSize:12, fontWeight:500, padding:"4px 10px", borderRadius:24, background:s.bg, color:s.color }}>
+          <span style={{ width:6, height:6, borderRadius:999, background:s.dot, display:"inline-block", flexShrink:0 }}></span>
+          {c.status}
+        </span>
+      </td>
+      <td style={{ padding:16, minWidth:120 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <div style={{ flex:1, height:6, background:"#f3f4f6", borderRadius:999, overflow:"hidden" }}>
+            <div style={{ height:"100%", borderRadius:999, width:c.progress+"%", background:c.progress===100?"#22c55e":c.progress>0?"#FA4616":"#D9D9D6", transition:"width .4s" }}></div>
+          </div>
+          <span style={{ fontSize:12, fontWeight:600, color:"#201547", minWidth:32, textAlign:"right" }}>{c.progress}%</span>
+        </div>
+      </td>
+      <td style={{ padding:16 }}>
+        <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
+          <button title="Ver detalhes" onClick={()=>onView(c.id)} style={btn}
+            onMouseEnter={e=>{ e.currentTarget.style.background="#dbeafe"; e.currentTarget.style.color="#1d4ed8"; e.currentTarget.style.borderColor="#93c5fd"; }}
+            onMouseLeave={e=>{ e.currentTarget.style.background="#f9fafb"; e.currentTarget.style.color="#6b7280"; e.currentTarget.style.borderColor="#e5e7eb"; }}
+          >
+            <ILink />
+          </button>
+          <button title="Editar" onClick={()=>onEdit(c)} style={btn}
+            onMouseEnter={e=>{ e.currentTarget.style.background="#fef9c3"; e.currentTarget.style.color="#a16207"; e.currentTarget.style.borderColor="#fde047"; }}
+            onMouseLeave={e=>{ e.currentTarget.style.background="#f9fafb"; e.currentTarget.style.color="#6b7280"; e.currentTarget.style.borderColor="#e5e7eb"; }}
+          >
+            <IPencil />
+          </button>
+          <button title="Excluir" onClick={()=>onDelete(c.id, c.title)} style={btn}
+            onMouseEnter={e=>{ e.currentTarget.style.background="#fee2e2"; e.currentTarget.style.color="#b91c1c"; e.currentTarget.style.borderColor="#fca5a5"; }}
+            onMouseLeave={e=>{ e.currentTarget.style.background="#f9fafb"; e.currentTarget.style.color="#6b7280"; e.currentTarget.style.borderColor="#e5e7eb"; }}
+          >
+            <ITrash />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+/* ── App ── */
+function App() {
+  const [page,          setPage]          = useState("home");
+  const [selectedId,    setSelectedId]    = useState(null);
+  const [projects,      setProjects]      = useState(MOCK_PROJECTS);
+  const [q,             setQ]             = useState("");
+  const [filterStatus,  setFilterStatus]  = useState("todos");
+  const [filterCliente, setFilterCliente] = useState("todos");
+  const [lastAction,    setLastAction]    = useState(null);
+  const [deleteTarget,  setDeleteTarget]  = useState(null);
+  const [editTarget,    setEditTarget]    = useState(null);
+  const [currentPage,   setCurrentPage]   = useState(1);
+  const [itemsPerPage,  setItemsPerPage]  = useState(25);
+
+  const triggerToast = (msg) => { setLastAction(msg); setTimeout(()=>setLastAction(null),3000); };
+
+  const handleViewDetail = (id) => { setSelectedId(id); setPage("detail"); };
+  const handleBack       = ()   => { setPage("home"); setSelectedId(null); };
+
+  useEffect(()=>{ setCurrentPage(1); }, [q, filterStatus, filterCliente, itemsPerPage]);
+
+  const handleSaveProject = (project) => {
+    if (editTarget) { setProjects(prev=>prev.map(p=>p.id===project.id?project:p)); triggerToast("Projeto atualizado."); }
+    else            { setProjects(prev=>[...prev, project]); triggerToast("Projeto criado."); }
+    setEditTarget(null);
+    setPage("home");
+  };
+
+  const handleOpenProject = (project) => {
+    if (editTarget) setProjects(prev=>prev.map(p=>p.id===project.id?project:p));
+    else            setProjects(prev=>[...prev, project]);
+    setEditTarget(null);
+    setSelectedId(project.id);
+    setPage("detail");
+  };
+
+  const handleDelete = (id, title) => { setDeleteTarget({ id, title }); };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    setProjects(prev=>prev.filter(p=>p.id!==deleteTarget.id));
+    setDeleteTarget(null);
+    triggerToast("Projeto excluído.");
+  };
+
+  if (page==="new") {
+    return (
+      <div>
+        <NewProjectPage editProject={editTarget} onSave={handleSaveProject} onOpen={handleOpenProject} onCancel={()=>{ setEditTarget(null); setPage("home"); }} />
+        <NavSwitch />
+      </div>
+    );
+  }
+
+  if (page==="detail") {
+    const sel = projects.find(p=>p.id===selectedId) || projects[0];
+    const contractObj = {
+      id:sel.id, number:sel.number||sel.contractNumber||"", title:sel.title,
+      company:sel.company, status:sel.status||"Planejado", progress:sel.progress||0,
+      contractor:sel.contractor||"SPASSU TECNOLOGIA E SERVIÇOS S.A.",
+      duration: calcMonths(sel.startDate,sel.endDate) ? calcMonths(sel.startDate,sel.endDate)+" meses" : "—",
+      startDate:sel.startDate?new Date(sel.startDate):null,
+      endDate:sel.endDate?new Date(sel.endDate):null,
+      totalValue:sel.totalValue||0, lastUpdate:new Date(),
+    };
+    const detailObj = sel.id==="1" ? MOCK_DETAIL : { milestones:[], phases:[], progress:[], financial:[], issues:[] };
+    return (
+      <div>
+        <ContractDetailPage contract={contractObj} detail={detailObj} onBack={handleBack} />
+        <NavSwitch />
+      </div>
+    );
+  }
+
+  /* ── Visão Geral ── */
+  const clienteOptions = [
+    { value:"todos", label:"Todos os clientes" },
+    ...[...new Set(projects.map(c=>c.company))].sort().map(c=>({ value:c, label:c })),
+  ];
+  const statusOptions = [
+    { value:"todos",        label:"Todos os status"  },
+    { value:"Em Andamento", label:"Em Andamento"     },
+    { value:"Planejado",    label:"Planejado"        },
+    { value:"Suspenso",     label:"Suspenso"         },
+    { value:"Cancelado",    label:"Cancelado"        },
+    { value:"Finalizado",   label:"Finalizado"       },
+  ];
+
+  const lq = q.toLowerCase().trim();
+  const filtered = projects.filter(c => {
+    const mStatus  = filterStatus==="todos"  || c.status===filterStatus;
+    const mCliente = filterCliente==="todos" || c.company===filterCliente;
+    const mText    = !lq || c.title.toLowerCase().includes(lq) || c.company.toLowerCase().includes(lq) || (c.number||"").toLowerCase().includes(lq);
+    return mStatus && mCliente && mText;
+  });
+
+  const kpis       = kpiDefs(filtered);
+  const isFiltered = q.trim()!=="" || filterStatus!=="todos" || filterCliente!=="todos";
+  const totalPages = Math.max(1, Math.ceil(filtered.length/itemsPerPage));
+  const paginated  = filtered.slice((currentPage-1)*itemsPerPage, currentPage*itemsPerPage);
+
+  const getPageNums = (cur, total) => {
+    if (total<=7) return Array.from({length:total},(_,i)=>i+1);
+    const left=Math.max(2,cur-2), right=Math.min(total-1,cur+2);
+    const pages = [1];
+    if (left>2)          pages.push("…");
+    for (let i=left; i<=right; i++) pages.push(i);
+    if (right<total-1)   pages.push("…");
+    pages.push(total);
+    return pages;
+  };
+
+  const clearAll = () => { setQ(""); setFilterStatus("todos"); setFilterCliente("todos"); };
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#f9fafb", fontFamily:"Poppins, system-ui, sans-serif" }}>
+
+      <AppHeader hasSidebar={false} />
+
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", height:56, display:"flex", alignItems:"center", padding:"0 32px", gap:16 }}>
+        <h1 style={{ fontSize:24, fontWeight:500, color:"#111827", flex:1, margin:0 }}>Visão geral</h1>
+        {lastAction && (
+          <span style={{ fontSize:12, color:"#16a34a", background:"#f0fdf4", border:"1px solid #bbf7d0", padding:"4px 10px", borderRadius:6 }}>
+            {lastAction}
+          </span>
+        )}
+        <button
+          onClick={()=>setPage("new")}
+          style={{ background:"#FA4616", color:"#fff", border:"none", borderRadius:8, padding:"10px 16px", fontSize:13, fontWeight:500, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}
+          onMouseEnter={e=>e.currentTarget.style.background="#e03d12"}
+          onMouseLeave={e=>e.currentTarget.style.background="#FA4616"}
+        >
+          <IPlus /> Cadastrar Projeto
+        </button>
+      </div>
+
+      <main style={{ padding:32, display:"flex", flexDirection:"column", gap:24 }}>
+
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:24 }}>
+          {kpis.map(({ Icon, label, value }) => (
+            <div key={label} style={{ background:"#fff", borderRadius:8, boxShadow:"0 4px 6px -1px rgba(32,21,71,.1)", padding:24, display:"flex", alignItems:"center", justifyContent:"space-between", height:100 }}>
+              <div style={{ display:"flex", flexDirection:"column", justifyContent:"space-between", height:"100%" }}>
+                <span style={{ fontSize:13, fontWeight:500, color:"#201547" }}>{label}</span>
+                <span style={{ fontSize:24, fontWeight:600, color:"#201547" }}>{value}</span>
+              </div>
+              <div style={{ width:48, height:48, borderRadius:9999, background:"rgba(250,70,22,0.08)", display:"flex", alignItems:"center", justifyContent:"center", color:C.orange, flexShrink:0 }}>
+                <Icon />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background:"#fff", borderRadius:8, boxShadow:"0 4px 6px -1px rgba(32,21,71,.1)", padding:"14px 20px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+            <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"center", gap:8, background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"8px 12px" }}
+              onFocusCapture={e=>e.currentTarget.style.borderColor="#FA4616"}
+              onBlurCapture={e=>e.currentTarget.style.borderColor="#e5e7eb"}
+            >
+              <span style={{ color:"#9ca3af", flexShrink:0 }}><ISearch /></span>
+              <input value={q} onChange={e=>setQ(e.target.value)}
+                placeholder="Buscar por título, cliente ou código ICJ…"
+                style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:13, color:"#374151", minWidth:0 }} />
+              {q && (
+                <button onClick={()=>setQ("")}
+                  style={{ background:"none", border:"none", cursor:"pointer", color:"#9ca3af", display:"flex", padding:0, flexShrink:0 }}
+                  onMouseEnter={e=>e.currentTarget.style.color="#374151"}
+                  onMouseLeave={e=>e.currentTarget.style.color="#9ca3af"}
+                >
+                  <IXSmall />
+                </button>
+              )}
+            </div>
+            <FilterDropdown label="Status"  value={filterStatus}  options={statusOptions}  onChange={setFilterStatus}  isActive={filterStatus!=="todos"}  width={148} />
+            <FilterDropdown label="Cliente" value={filterCliente} options={clienteOptions} onChange={setFilterCliente} isActive={filterCliente!=="todos"} width={164} />
+            <button
+              onClick={isFiltered?clearAll:undefined}
+              style={{
+                display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:500,
+                borderRadius:8, padding:"8px 12px", whiteSpace:"nowrap",
+                cursor:isFiltered?"pointer":"not-allowed",
+                border:isFiltered?"1px solid #fecaca":"1px solid #e5e7eb",
+                background:isFiltered?"#fef2f2":"#f9fafb",
+                color:isFiltered?"#b91c1c":"#d1d5db", opacity:isFiltered?1:0.7,
+              }}
+              onMouseEnter={e=>{ if(isFiltered){ e.currentTarget.style.background="#fee2e2"; e.currentTarget.style.borderColor="#f87171"; } }}
+              onMouseLeave={e=>{ if(isFiltered){ e.currentTarget.style.background="#fef2f2"; e.currentTarget.style.borderColor="#fecaca"; } }}
+            >
+              <IXSmall /> Limpar filtros
+            </button>
+          </div>
+        </div>
+
+        <div style={{ background:"#fff", borderRadius:8, boxShadow:"0 4px 6px -1px rgba(32,21,71,.1)", padding:24 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+            <h2 style={{ fontSize:22, fontWeight:600, color:"#201547", margin:0 }}>Projetos Cadastrados</h2>
+            <span style={{ fontSize:13, fontWeight:500, color:isFiltered?"#FA4616":"#9ca3af" }}>
+              {filtered.length} projeto{filtered.length!==1?"s":""} encontrado{filtered.length!==1?"s":""}
+            </span>
+          </div>
+
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+              <thead>
+                <tr style={{ background:"rgba(217,217,214,0.35)" }}>
+                  <th style={{ padding:"14px 16px", fontSize:13, fontWeight:500, color:"#201547", textAlign:"left",  borderRadius:"8px 0 0 8px" }}>Título</th>
+                  <th style={{ padding:"14px 16px", fontSize:13, fontWeight:500, color:"#201547", textAlign:"left"  }}>Cliente</th>
+                  <th style={{ padding:"14px 16px", fontSize:13, fontWeight:500, color:"#201547", textAlign:"left"  }}>Status</th>
+                  <th style={{ padding:"14px 16px", fontSize:13, fontWeight:500, color:"#201547", textAlign:"left"  }}>Progresso</th>
+                  <th style={{ padding:"14px 16px", fontSize:13, fontWeight:500, color:"#201547", textAlign:"right", borderRadius:"0 8px 8px 0" }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length===0
+                  ? (
+                    <tr>
+                      <td colSpan={5} style={{ padding:"48px 16px", textAlign:"center", color:"#9ca3af" }}>
+                        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
+                          <span style={{ color:"#d1d5db" }}><IFolder /></span>
+                          <span style={{ fontSize:14, fontWeight:500 }}>
+                            {isFiltered ? "Nenhum projeto corresponde aos filtros." : "Nenhum projeto encontrado."}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                  : paginated.map(c => (
+                    <ProjectRow
+                      key={c.id}
+                      project={c}
+                      query={q}
+                      onView={handleViewDetail}
+                      onEdit={p=>{ setEditTarget(p); setPage("new"); }}
+                      onDelete={handleDelete}
+                    />
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+
+          {filtered.length>0 && (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:20, flexWrap:"wrap", gap:12 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, fontSize:13, color:"#6b7280" }}>
+                <span>Exibindo</span>
+                <select value={itemsPerPage} onChange={e=>setItemsPerPage(Number(e.target.value))}
+                  style={{ padding:"4px 8px", borderRadius:6, border:"1px solid #e5e7eb", fontSize:13, color:"#374151", background:"#fff", cursor:"pointer" }}>
+                  {[10,25,50,100].map(n=><option key={n} value={n}>{n}</option>)}
+                </select>
+                <span>por página · {filtered.length} total</span>
+              </div>
+              <div style={{ display:"flex", gap:4, alignItems:"center" }}>
+                <button onClick={()=>setCurrentPage(p=>Math.max(1,p-1))} disabled={currentPage===1}
+                  style={{ padding:"6px 10px", borderRadius:6, fontSize:13, cursor:currentPage===1?"not-allowed":"pointer", border:"1px solid #e5e7eb", background:currentPage===1?"#f9fafb":"#fff", color:currentPage===1?"#d1d5db":"#374151" }}>
+                  &#8249;
+                </button>
+                {getPageNums(currentPage, totalPages).map((num,i) =>
+                  num==="…"
+                    ? <span key={"e"+i} style={{ padding:"0 4px", color:"#9ca3af" }}>…</span>
+                    : (
+                      <button key={num} onClick={()=>setCurrentPage(num)}
+                        style={{ padding:"6px 10px", borderRadius:6, fontSize:13, cursor:"pointer", minWidth:32, border:num===currentPage?"none":"1px solid #e5e7eb", background:num===currentPage?"#201547":"#fff", color:num===currentPage?"#fff":"#374151", fontWeight:num===currentPage?600:400 }}>
+                        {num}
+                      </button>
+                    )
+                )}
+                <button onClick={()=>setCurrentPage(p=>Math.min(totalPages,p+1))} disabled={currentPage===totalPages}
+                  style={{ padding:"6px 10px", borderRadius:6, fontSize:13, cursor:currentPage===totalPages?"not-allowed":"pointer", border:"1px solid #e5e7eb", background:currentPage===totalPages?"#f9fafb":"#fff", color:currentPage===totalPages?"#d1d5db":"#374151" }}>
+                  &#8250;
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </main>
+
+      {deleteTarget && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(32,21,71,0.45)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div style={{ background:"#fff", borderRadius:12, padding:"32px 32px 28px", maxWidth:420, width:"100%", boxShadow:"0 20px 60px rgba(32,21,71,0.2)" }}>
+            <h2 style={{ fontSize:18, fontWeight:700, color:"#111827", margin:"0 0 8px" }}>Excluir Projeto</h2>
+            <p style={{ fontSize:14, color:"#6b7280", margin:"0 0 28px", lineHeight:1.5 }}>
+              Tem certeza que deseja excluir <strong style={{ color:"#201547" }}>{deleteTarget.title}</strong>? Esta ação não pode ser desfeita.
+            </p>
+            <div style={{ display:"flex", gap:12, justifyContent:"flex-end" }}>
+              <button onClick={()=>setDeleteTarget(null)}
+                style={{ padding:"10px 24px", borderRadius:8, border:"1px solid #d1d5db", background:"#fff", fontSize:13, fontWeight:500, color:"#4b5563", cursor:"pointer" }}
+                onMouseEnter={e=>e.currentTarget.style.background="#f9fafb"}
+                onMouseLeave={e=>e.currentTarget.style.background="#fff"}
+              >Cancelar</button>
+              <button onClick={confirmDelete}
+                style={{ padding:"10px 24px", borderRadius:8, border:"none", background:"#dc2626", fontSize:13, fontWeight:500, color:"#fff", cursor:"pointer" }}
+                onMouseEnter={e=>e.currentTarget.style.background="#b91c1c"}
+                onMouseLeave={e=>e.currentTarget.style.background="#dc2626"}
+              >Excluir</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <NavSwitch />
+    </div>
+  );
+}
+
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
